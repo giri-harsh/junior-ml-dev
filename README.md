@@ -2,7 +2,7 @@
 
 The junior ML engineer that shows its work and catches its own mistakes.
 
-Status: Sprint 1 (foundations). No ML yet.
+Status: Sprints 1-4 done (foundations, scorer, baselines + planted bugs, data-tools MCP with leakage detective). Leakage results: `benchmarks/results/leakage_v0.json`.
 
 ## Results
 

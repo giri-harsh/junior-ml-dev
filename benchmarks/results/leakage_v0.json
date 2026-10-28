@@ -1,0 +1,1404 @@
+{
+  "command": "python -m benchmarks.run_benchmark --leakage",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 24,
+    "notes": "leakage detectors on 24 dev + 24 eval planted variants and their clean twins; eval run once after thresholds were frozen; real tasks use agent-visible train split",
+    "sandbox": "none"
+  },
+  "date": "2026-10-28T17:21:21+00:00",
+  "git_sha": "f932072da12595d8f68f77e2c3404437e4f02ea2",
+  "name": "leakage_v0",
+  "results": {
+    "dev": {
+      "rows": [
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_00"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_01"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_02"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_00"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_01"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_02"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_00"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_01"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_02"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_00"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_01"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_02"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_00"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_01"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_02"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_00"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_01"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_02"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_00"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_01"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_02"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_00"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_01"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_02"
+        }
+      ],
+      "summary": {
+        "by_bug_type": {
+          "duplicate_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": null,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "group_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "id_correlated": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "label_noise": {
+            "bootstrap95": [
+              0.0,
+              0.0
+            ],
+            "column_hit_rate": null,
+            "hits": 0,
+            "n": 3,
+            "recall": 0.0,
+            "wilson95": [
+              0.0,
+              0.5615
+            ]
+          },
+          "poisoned_name": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "target_proxy": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "temporal_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "unit_mismatch": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          }
+        },
+        "n_variants": 24,
+        "overall_recall": 0.875,
+        "overall_recall_bootstrap95": [
+          0.75,
+          1.0
+        ],
+        "twin_false_alarm_examples": [],
+        "twin_false_alarm_n": 0,
+        "twin_fpr": 0.0,
+        "twin_fpr_bootstrap95": [
+          0.0,
+          0.0
+        ],
+        "twin_fpr_wilson95": [
+          0.0,
+          0.138
+        ]
+      }
+    },
+    "environment": {
+      "numpy": "2.4.6",
+      "pandas": "3.1.0",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "python": "3.11.15",
+      "scikit_learn": "1.9.1",
+      "seed": 0
+    },
+    "eval": {
+      "rows": [
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_03"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_04"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_05"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_03"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_04"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_05"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_03"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_04"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_05"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_03"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_04"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "label_noise",
+          "hit": false,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_05"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_03"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_04"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_05"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_03"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_04"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_05"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_03"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_04"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_05"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_03"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_04"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_05"
+        }
+      ],
+      "summary": {
+        "by_bug_type": {
+          "duplicate_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": null,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "group_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "id_correlated": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "label_noise": {
+            "bootstrap95": [
+              0.0,
+              0.0
+            ],
+            "column_hit_rate": null,
+            "hits": 0,
+            "n": 3,
+            "recall": 0.0,
+            "wilson95": [
+              0.0,
+              0.5615
+            ]
+          },
+          "poisoned_name": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "target_proxy": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "temporal_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "unit_mismatch": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          }
+        },
+        "n_variants": 24,
+        "overall_recall": 0.875,
+        "overall_recall_bootstrap95": [
+          0.75,
+          1.0
+        ],
+        "twin_false_alarm_examples": [],
+        "twin_false_alarm_n": 0,
+        "twin_fpr": 0.0,
+        "twin_fpr_bootstrap95": [
+          0.0,
+          0.0
+        ],
+        "twin_fpr_wilson95": [
+          0.0,
+          0.138
+        ]
+      }
+    },
+    "exclusions": [],
+    "real_tasks": {
+      "adult": {
+        "findings": [
+          {
+            "columns": [
+              "occupation"
+            ],
+            "confidence": 0.5075122126359374,
+            "evidence": {
+              "gap": 0.0163,
+              "group_constant_columns": [],
+              "group_cv": 0.8645,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.8807
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          }
+        ],
+        "n_medium_or_high": 1,
+        "n_rows": 39073
+      },
+      "bank-marketing": {
+        "findings": [
+          {
+            "columns": [
+              "V11"
+            ],
+            "confidence": 0.8203343668781794,
+            "evidence": {
+              "gap": 0.0695,
+              "group_constant_columns": [],
+              "group_cv": 0.8482,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.9177
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          }
+        ],
+        "n_medium_or_high": 1,
+        "n_rows": 36168
+      },
+      "blood-transfusion-service-center": {
+        "findings": [
+          {
+            "columns": [],
+            "confidence": 1.0,
+            "evidence": {
+              "duplicate_rows": 167,
+              "fraction": 0.2793,
+              "label_consistent_fraction": 1.0
+            },
+            "severity": "high",
+            "type": "duplicate_rows"
+          },
+          {
+            "columns": [
+              "V1"
+            ],
+            "confidence": 1.0,
+            "evidence": {
+              "gap": 0.1966,
+              "group_constant_columns": [],
+              "group_cv": 0.4927,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.6893
+            },
+            "severity": "high",
+            "type": "group_leakage"
+          },
+          {
+            "columns": [
+              "V2",
+              "V3"
+            ],
+            "confidence": 0.5314554273833391,
+            "evidence": {
+              "gap": 0.0203,
+              "group_constant_columns": [
+                "V3"
+              ],
+              "group_cv": 0.6689,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.6893
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          },
+          {
+            "columns": [
+              "V3",
+              "V2"
+            ],
+            "confidence": 0.5314554273833391,
+            "evidence": {
+              "gap": 0.0203,
+              "group_constant_columns": [
+                "V2"
+              ],
+              "group_cv": 0.6689,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.6893
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          }
+        ],
+        "n_medium_or_high": 4,
+        "n_rows": 598
+      },
+      "churn": {
+        "findings": [
+          {
+            "columns": [
+              "total_day_minutes"
+            ],
+            "confidence": 1.0,
+            "evidence": {
+              "gap": 0.1556,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.9182,
+              "time_ordered_cv": 0.7625
+            },
+            "severity": "high",
+            "type": "temporal_leakage"
+          },
+          {
+            "columns": [
+              "number_customer_service_calls"
+            ],
+            "confidence": 1.0,
+            "evidence": {
+              "gap": 0.112,
+              "group_constant_columns": [],
+              "group_cv": 0.8062,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.9182
+            },
+            "severity": "high",
+            "type": "group_leakage"
+          },
+          {
+            "columns": [
+              "phone_number"
+            ],
+            "confidence": 0.5,
+            "evidence": {
+              "advice": "exclude from features",
+              "rank_gini": 0.0407
+            },
+            "severity": "low",
+            "type": "id_like"
+          }
+        ],
+        "n_medium_or_high": 2,
+        "n_rows": 4000
+      },
+      "cpu_act": {
+        "findings": [
+          {
+            "columns": [
+              "runqsz"
+            ],
+            "confidence": 0.509027370439875,
+            "evidence": {
+              "metric": "gini",
+              "single_feature_gini": 0.8027
+            },
+            "severity": "medium",
+            "type": "target_leakage"
+          },
+          {
+            "columns": [
+              "freemem"
+            ],
+            "confidence": 0.5259273859297008,
+            "evidence": {
+              "metric": "gini",
+              "single_feature_gini": 0.8078
+            },
+            "severity": "medium",
+            "type": "target_leakage"
+          },
+          {
+            "columns": [
+              "freeswap"
+            ],
+            "confidence": 0.5895554478531528,
+            "evidence": {
+              "metric": "gini",
+              "single_feature_gini": 0.8269
+            },
+            "severity": "medium",
+            "type": "target_leakage"
+          },
+          {
+            "columns": [
+              "rchar"
+            ],
+            "confidence": 0.8856692659948758,
+            "evidence": {
+              "rank_gini": 0.6085,
+              "unique_ratio": 1.0
+            },
+            "severity": "medium",
+            "type": "id_leak"
+          },
+          {
+            "columns": [
+              "wchar"
+            ],
+            "confidence": 0.703361027959014,
+            "evidence": {
+              "rank_gini": 0.4627,
+              "unique_ratio": 1.0
+            },
+            "severity": "medium",
+            "type": "id_leak"
+          },
+          {
+            "columns": [
+              "lwrite"
+            ],
+            "confidence": 0.5778378496217654,
+            "evidence": {
+              "fraction_beyond_robust_z": 0.2045,
+              "robust_z": 10.0
+            },
+            "severity": "medium",
+            "type": "unit_mismatch"
+          }
+        ],
+        "n_medium_or_high": 6,
+        "n_rows": 6553
+      },
+      "credit-g": {
+        "findings": [
+          {
+            "columns": [
+              "purpose"
+            ],
+            "confidence": 0.5469374384495727,
+            "evidence": {
+              "gap": 0.023,
+              "group_constant_columns": [],
+              "group_cv": 0.7694,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.7923
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          },
+          {
+            "columns": [
+              "duration"
+            ],
+            "confidence": 0.5776432449960762,
+            "evidence": {
+              "gap": 0.0282,
+              "group_constant_columns": [],
+              "group_cv": 0.7641,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.7923
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          }
+        ],
+        "n_medium_or_high": 2,
+        "n_rows": 800
+      },
+      "house_16H": {
+        "findings": [
+          {
+            "columns": [
+              "P6p2"
+            ],
+            "confidence": 0.5872293066016663,
+            "evidence": {
+              "fraction_beyond_robust_z": 0.2111,
+              "robust_z": 10.0
+            },
+            "severity": "medium",
+            "type": "unit_mismatch"
+          },
+          {
+            "columns": [
+              "H8p2"
+            ],
+            "confidence": 0.6063532122675153,
+            "evidence": {
+              "fraction_beyond_robust_z": 0.2244,
+              "robust_z": 10.0
+            },
+            "severity": "medium",
+            "type": "unit_mismatch"
+          }
+        ],
+        "n_medium_or_high": 2,
+        "n_rows": 18227
+      },
+      "segment": {
+        "findings": [
+          {
+            "columns": [],
+            "confidence": 0.584054834054834,
+            "evidence": {
+              "duplicate_rows": 139,
+              "fraction": 0.0752,
+              "label_consistent_fraction": 1.0
+            },
+            "severity": "medium",
+            "type": "duplicate_rows"
+          }
+        ],
+        "n_medium_or_high": 1,
+        "n_rows": 1848
+      },
+      "vehicle": {
+        "findings": [
+          {
+            "columns": [
+              "PR.AXIS_RECTANGULARITY"
+            ],
+            "confidence": 0.9733342314593665,
+            "evidence": {
+              "gap": 0.0955,
+              "group_constant_columns": [],
+              "group_cv": 0.8233,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.9188
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          },
+          {
+            "columns": [
+              "MAX.LENGTH_ASPECT_RATIO"
+            ],
+            "confidence": 0.5303383955307021,
+            "evidence": {
+              "gap": 0.0202,
+              "group_constant_columns": [],
+              "group_cv": 0.8986,
+              "metric": "auc (classification) or r2 (regression)",
+              "random_cv": 0.9188
+            },
+            "severity": "medium",
+            "type": "group_leakage"
+          }
+        ],
+        "n_medium_or_high": 2,
+        "n_rows": 676
+      },
+      "wine_quality": {
+        "findings": [
+          {
+            "columns": [],
+            "confidence": 0.8291321916490282,
+            "evidence": {
+              "duplicate_rows": 773,
+              "fraction": 0.1487,
+              "label_consistent_fraction": 1.0
+            },
+            "severity": "medium",
+            "type": "duplicate_rows"
+          }
+        ],
+        "n_medium_or_high": 1,
+        "n_rows": 5197
+      }
+    },
+    "thresholds": {
+      "duplicate_rows": {
+        "high_fraction": 0.2,
+        "min_fraction": 0.05
+      },
+      "group_leakage": {
+        "high_gap": 0.1,
+        "max_candidates": 3,
+        "min_gap": 0.015
+      },
+      "high_cardinality_proxy": {
+        "min_unique_ratio": 0.2
+      },
+      "id_leak": {
+        "high_gini": 0.7,
+        "min_gini": 0.3
+      },
+      "post_outcome": {
+        "hints": [
+          "refund",
+          "cancel",
+          "closed",
+          "outcome",
+          "result",
+          "resolved",
+          "churned",
+          "approved",
+          "declined",
+          "defaulted",
+          "paid",
+          "claim",
+          "after",
+          "post",
+          "final",
+          "settled"
+        ],
+        "min_gini": 0.5
+      },
+      "suspicious_column_name": {
+        "max_length": 60,
+        "patterns": [
+          "ignore (all |any )?(previous|prior|above)",
+          "system prompt",
+          "instruction",
+          "you are ",
+          "assistant",
+          "/scorer",
+          "scorer_data",
+          "https?://",
+          "rm -",
+          "<\\|",
+          "```"
+        ]
+      },
+      "target_leakage": {
+        "high_gini": 0.95,
+        "max_depth": 3,
+        "min_gini": 0.8
+      },
+      "temporal_leakage": {
+        "high_gap": 0.1,
+        "max_candidates": 2,
+        "min_gap": 0.07
+      },
+      "train_test_contamination": {
+        "min_fraction": 0.01
+      },
+      "unit_mismatch": {
+        "min_fraction": 0.15,
+        "robust_z": 10.0
+      }
+    },
+    "thresholds_sha256": "2ca20d85b8f759c9f95c20bb7568aea042d059026bbb3a2d897581487dce6b07"
+  }
+}

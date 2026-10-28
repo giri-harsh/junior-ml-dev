@@ -45,12 +45,18 @@ def aggregate(per_task: dict[str, dict[str, Any]]) -> dict[str, Any]:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--baselines", action="store_true")
+    p.add_argument("--leakage", action="store_true", help="S4: leakage detectors (eval runs once)")
+    p.add_argument("--allow-overwrite", action="store_true")
     p.add_argument("--time-budget", type=int, default=30, help="FLAML seconds per task")
     p.add_argument("--tasks", default="", help="comma-separated subset")
     p.add_argument("--out-name", default="baselines_v0")
     a = p.parse_args(argv)
+    if a.leakage:
+        from benchmarks.leakage_benchmark import run_leakage_benchmark
+
+        return run_leakage_benchmark(a.allow_overwrite)
     if not a.baselines:
-        p.error("only --baselines is implemented in S3")
+        p.error("need --baselines or --leakage")
     wanted = {t for t in a.tasks.split(",") if t}
     specs = [s for s in load_registry() if not wanted or s.name in wanted]
     per_task: dict[str, dict[str, Any]] = {}

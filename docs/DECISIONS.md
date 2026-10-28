@@ -21,3 +21,14 @@ Format: decision | alternatives | why.
 17. temporal_leak and group_leak are additive shortcuts (rows assigned to time blocks/groups whose regime matches the label with probability s); features and labels untouched. | overwrite labels | The first attempt overwrote labels and made bugged variants score lower than twins.
 18. Baselines scored in-process through the scorer's FastAPI app (TestClient), not HTTP between containers. | HTTP | Same code path and auth, no Docker dependency.
 19. FLAML restricted to lgbm/xgboost/rf/extra_tree, 3-fold CV, seed 0, 30 s per task. | default estimators | Predictable runtime on 16 CPUs; budget recorded in the result conditions.
+20. Follow the S4 brief (data-tools MCP + leakage detector) over the PRD's S4 (ingest/quality scorecard). | do PRD S4 | The brief is the newer, explicit goal; PRD S4 profile pieces and the S8 protocol are reused.
+21. Official `mcp` SDK 2.x (`MCPServer`, stdio), pinned by uv lock. | pin mcp<2 for FastMCP | v2 is current; the v1 API is gone.
+22. Evaluation is at detector-family level: a medium/high finding whose family equals the planted `expected_detector` is a hit; `low` is advisory. | exact column match required | Column hits are reported separately (1.0 where defined).
+23. No detector for `label_noise`; recall reported as 0. | confident-learning heuristic | No deterministic label-free method was built; not faked.
+24. Dev-tuned thresholds: temporal min_gap 0.07, group min_gap 0.015 (one iteration each). | tune on eval | Brief forbids eval tuning.
+25. Target-leakage scan skips only id-like and time-like columns (not group-like). | skip group-like too | A unit test showed string group-like columns hiding high-cardinality proxies; changed before the freeze.
+26. Cooperative time budget instead of a hard kill. | subprocess per call | Simpler; limitation recorded in ADR-006.
+27. Duplicates by exact+rounded row hash, not MinHash. | datasketch | Planted duplicates are exact; MinHash deferred.
+28. Real tasks run on the agent-visible train split with row_id dropped; all findings recorded unsuppressed. | hide noisy findings | Brief says do not suppress.
+29. Eval-once guard = frozen-hash assertion + refusal to overwrite leakage_v0.json. | convention only | Enforced in code and tested.
+30. MCP tool-manifest hash pinning deferred to S12. | add now | Out of S4 scope.

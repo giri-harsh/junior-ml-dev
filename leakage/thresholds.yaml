@@ -1,0 +1,36 @@
+# Leakage detector thresholds. Tuned on the planted-bug `dev` partition only, then frozen.
+# A "gini" is 2*AUC-1 for classification and R^2 for regression (both clamped at 0).
+target_leakage:
+  min_gini: 0.80
+  high_gini: 0.95
+  max_depth: 3
+post_outcome:
+  min_gini: 0.50
+  hints: [refund, cancel, closed, outcome, result, resolved, churned, approved, declined,
+          defaulted, paid, claim, after, post, final, settled]
+high_cardinality_proxy:
+  min_unique_ratio: 0.20
+duplicate_rows:
+  min_fraction: 0.05
+  high_fraction: 0.20
+temporal_leakage:
+  min_gap: 0.07
+  high_gap: 0.10
+  max_candidates: 2
+group_leakage:
+  min_gap: 0.015
+  high_gap: 0.10
+  max_candidates: 3
+id_leak:
+  min_gini: 0.30
+  high_gini: 0.70
+train_test_contamination:
+  min_fraction: 0.01
+unit_mismatch:
+  robust_z: 10.0
+  min_fraction: 0.15
+suspicious_column_name:
+  max_length: 60
+  patterns: ["ignore (all |any )?(previous|prior|above)", "system prompt", "instruction",
+             "you are ", "assistant", "/scorer", "scorer_data", "https?://", "rm -", "<\\|",
+             "```"]
