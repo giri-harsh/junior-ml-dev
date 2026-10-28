@@ -50,3 +50,7 @@ Format: decision | alternatives | why.
 46. Verifier accepts either half-up rounding or Python float formatting. | half-up only | 1.865 formats as 1.86 but rounds half-up to 1.87; template output must always verify.
 47. Negative claims keep their sign; a positive claim may match a fact's magnitude. | strip signs | Stripping signs made "-0.74" fail against -0.7356.
 48. insights.py disables a few mypy codes (pandas scalar unions). | cast everywhere | Behaviour is unit-tested; casts would add noise.
+49. Hand-written retry/backoff/breaker instead of tenacity. | tenacity | Injectable clock/sleep/rng make tests deterministic without monkeypatching.
+50. Breaker counts failures per provider after retries are exhausted, not per attempt. | per attempt | A single 429 burst should not open the circuit on its own.
+51. Budget check reserves `max_tokens` before the call and charges actual usage after. | check after only | Gives a hard stop without overshoot.
+52. Caption prompts carry facts JSON plus capped, sanitised column names inside <untrusted> tags. | raw schema | Column names are untrusted data (PRD security invariant).
