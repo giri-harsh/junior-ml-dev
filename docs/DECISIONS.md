@@ -46,3 +46,7 @@ Format: decision | alternatives | why.
 42. Local ObjectStore behind a Protocol; MinIO and arq are STUBs. | block on services | Docker/Redis absent; interface keeps the swap cheap.
 43. Timeliness needs an explicit `as_of`. | use today's date | Keeps the scorecard deterministic.
 44. Text columns detected with is_string_dtype (pandas 3 str dtype), not dtype == object. | object check | pandas 3 default string dtype.
+45. Verifier derivations: ratios and percent-of across all fact pairs, sums/differences only within one unit group (key suffix). | all pairs | Cross-unit sums matched wrong numbers by coincidence (1.6k vs 1500 + 91.3).
+46. Verifier accepts either half-up rounding or Python float formatting. | half-up only | 1.865 formats as 1.86 but rounds half-up to 1.87; template output must always verify.
+47. Negative claims keep their sign; a positive claim may match a fact's magnitude. | strip signs | Stripping signs made "-0.74" fail against -0.7356.
+48. insights.py disables a few mypy codes (pandas scalar unions). | cast everywhere | Behaviour is unit-tested; casts would add noise.

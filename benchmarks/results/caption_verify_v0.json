@@ -1,0 +1,104 @@
+{
+  "command": "python -m benchmarks.caption_verify",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 16,
+    "notes": "template captions only",
+    "sandbox": "none"
+  },
+  "date": "2026-10-28T19:00:38+00:00",
+  "git_sha": "f44e6f34bd5afd6c5f74024ab1302b3affed3ff4",
+  "name": "caption_verify_v0",
+  "results": {
+    "datasets": 16,
+    "insights": 399,
+    "numeric_claims_checked": 807,
+    "per_dataset": {
+      "banknote-authentication": {
+        "claims": 14,
+        "insights": 8,
+        "unverified": 0
+      },
+      "car": {
+        "claims": 8,
+        "insights": 2,
+        "unverified": 0
+      },
+      "cholesterol": {
+        "claims": 14,
+        "insights": 8,
+        "unverified": 0
+      },
+      "diabetes": {
+        "claims": 23,
+        "insights": 13,
+        "unverified": 0
+      },
+      "ilpd": {
+        "claims": 29,
+        "insights": 17,
+        "unverified": 0
+      },
+      "kc1": {
+        "claims": 88,
+        "insights": 44,
+        "unverified": 0
+      },
+      "kin8nm": {
+        "claims": 3,
+        "insights": 3,
+        "unverified": 0
+      },
+      "phoneme": {
+        "claims": 14,
+        "insights": 8,
+        "unverified": 0
+      },
+      "pol": {
+        "claims": 93,
+        "insights": 41,
+        "unverified": 0
+      },
+      "qsar-biodeg": {
+        "claims": 130,
+        "insights": 64,
+        "unverified": 0
+      },
+      "sk_california": {
+        "claims": 25,
+        "insights": 15,
+        "unverified": 0
+      },
+      "sk_diabetes_reg": {
+        "claims": 7,
+        "insights": 7,
+        "unverified": 0
+      },
+      "sk_wine": {
+        "claims": 18,
+        "insights": 12,
+        "unverified": 0
+      },
+      "spambase": {
+        "claims": 193,
+        "insights": 77,
+        "unverified": 0
+      },
+      "steel-plates-fault": {
+        "claims": 49,
+        "insights": 27,
+        "unverified": 0
+      },
+      "wdbc": {
+        "claims": 99,
+        "insights": 53,
+        "unverified": 0
+      }
+    },
+    "perturbed_accepted_as_coincidence": 2,
+    "perturbed_captions": 399,
+    "perturbed_rejected": 397,
+    "unverified_claims": 0
+  }
+}
