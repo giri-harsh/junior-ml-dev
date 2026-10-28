@@ -12,3 +12,4 @@
 | Profile job runs as a FastAPI background task (arq worker STUB) | Redis unavailable | arq worker arrives with the harness sprint |
 | LLM providers never called for real (Groq/Gemini/Ollama) | no keys, no local model | set GROQ_API_KEY or GEMINI_API_KEY and record fixtures (ADR-010) |
 | Sandbox egress/FS-escape/fork-bomb tests; LocalDockerBackend execution; E2B backend | no Docker, no E2B key | build image, set JMD_SANDBOX=docker, add integration tests (marker `integration`) |
+| Approvals/audit run on SQLite; Postgres + REVOKE variant not run; audit covers login and approvals only | no Postgres | port the two stores to Postgres, add integration tests, wire audit into every tool call |
