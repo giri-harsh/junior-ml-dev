@@ -14,3 +14,6 @@ Format: decision | alternatives | why.
 10. `/readyz` DB probe uses a 2 s connect timeout. | default OS timeout | A down DB made the test take 130 s on Windows.
 11. Git remote: `giri-harsh/junior-ml-dev` does not exist on GitHub; `gh` is authenticated. Creating a public repo is outward-facing, so S1 stays local until the user confirms visibility. | create now | Publishing is irreversible-ish and was not explicitly authorised for visibility.
 12. `.gitattributes` forces LF | CRLF autoconvert | Shell hook and compose files break with CRLF on Linux/CI.
+13. Remote stays local by user choice (2026-10-28); revisit at M1.
+14. fetch_openml uses parser=liac-arff | parser=auto | The pandas ARFF parser raises TypeError on pandas 3 categorical columns; the fallback to synthetic hid it, so check source.json origin.
+15. DVC skipped; raw data cached in gitignored data/tasks/_raw | DVC remote | Adds a tool for no gain while remote is local-only; re-fetch is deterministic.

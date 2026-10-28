@@ -75,6 +75,17 @@ services:
       timeout: 5s
       retries: 20
 
+  scorer:
+    <<: *micro
+    build:
+      context: ../..
+      dockerfile: deploy/compose/scorer.Dockerfile
+    environment:
+      SCORER_SECRET: ${SCORER_SECRET:?set SCORER_SECRET in .env}
+    ports: ["8001:8001"]
+    volumes: ["scorer_data:/scorer_data:ro"]
+    mem_limit: 256m
+
   langfuse:
     profiles: ["full"]
     image: langfuse/langfuse:2
@@ -89,6 +100,7 @@ services:
       postgres: {condition: service_healthy}
 
 volumes:
+  scorer_data:
   pgdata:
   miniodata:
   mlartifacts:

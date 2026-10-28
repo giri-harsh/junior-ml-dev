@@ -11,6 +11,12 @@ dependencies = [
     "sqlalchemy>=2.0",
     "alembic>=1.13",
     "psycopg[binary]>=3.1",
+    "pandas>=3.1.0",
+    "scikit-learn>=1.9.1",
+    "pyyaml>=6.0.3",
+    "pyarrow>=26.0.0",
+    "numpy>=2.4.6",
+    "python-multipart>=0.0.32",
 ]
 
 [dependency-groups]
@@ -21,6 +27,8 @@ dev = [
     "ruff>=0.5",
     "mypy>=1.10",
     "hypothesis>=6.100",
+    "pandas-stubs>=3.0.5.260914",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [build-system]
@@ -48,3 +56,13 @@ python_version = "3.11"
 strict = true
 plugins = ["pydantic.mypy"]
 files = ["trajectory", "benchmarks", "apps", "scripts"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+
+[[tool.mypy.overrides]]
+module = ["sklearn.*"]
+ignore_missing_imports = true
