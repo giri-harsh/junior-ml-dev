@@ -42,3 +42,7 @@ Format: decision | alternatives | why.
 38. Eval-once ledger keyed by thresholds hash, claimed before running, partial results resumable. | frozen-file check only | Survives crashes without allowing a second look.
 39. Spent v1 slot via test bug is disclosed, not rerun; thresholds unchanged. | rerun after tag | A rerun would only add a second look; the first run used the identical hash.
 40. wine_quality/churn false positives left unfixed after freeze (ADR-007 limitations 1-2). | retune | Brief forbids retuning after the freeze.
+41. Datasets content-addressed by sha256[:16]; re-upload of identical bytes is a no-op. | random ids | PRD: versioned by hash.
+42. Local ObjectStore behind a Protocol; MinIO and arq are STUBs. | block on services | Docker/Redis absent; interface keeps the swap cheap.
+43. Timeliness needs an explicit `as_of`. | use today's date | Keeps the scorecard deterministic.
+44. Text columns detected with is_string_dtype (pandas 3 str dtype), not dtype == object. | object check | pandas 3 default string dtype.

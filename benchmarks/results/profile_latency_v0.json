@@ -1,0 +1,25 @@
+{
+  "command": "python -m benchmarks.profile_latency ",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 3,
+    "notes": "synthetic frame, reference machine",
+    "sandbox": "none"
+  },
+  "date": "2026-10-28T18:55:52+00:00",
+  "git_sha": "2cdf9fd207eb2fa06dce2f54bdab7e25753016ff",
+  "name": "profile_latency_v0",
+  "results": {
+    "budget_seconds": 10,
+    "cols": 51,
+    "rows": 100000,
+    "seconds_each_run": [
+      5.43,
+      5.42,
+      5.42
+    ],
+    "seconds_median": 5.42,
+    "within_budget": true
+  }
+}
