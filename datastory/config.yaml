@@ -1,0 +1,22 @@
+# Quality Scorecard weights (sum to 1.0) and rules. The score is a decision aid, not a truth.
+weights:
+  completeness: 0.25
+  uniqueness: 0.15
+  validity: 0.25
+  consistency: 0.15
+  timeliness: 0.05
+  leakage_risk: 0.15
+completeness:
+  # a column missing fraction m costs min(1, m / full_penalty_at) of its share
+  full_penalty_at: 0.5
+validity:
+  non_negative_name_tokens: [age, price, amount, count, qty, quantity, salary, income, weight,
+                             height, distance, duration, cost, revenue, balance, size]
+  numeric_as_string_min_parseable: 0.9
+consistency:
+  max_variant_columns: 50
+timeliness:
+  stale_after_days: 1825
+leakage_risk:
+  high_points: 60
+  medium_points: 30
