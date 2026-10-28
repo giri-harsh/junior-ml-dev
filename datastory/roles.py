@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 TIME_NAME = re.compile(
-    r"(^|[_\W])(time|date|datetime|timestamp|ts|dt|year|month|day|week)($|[_\W])|_at$|_on$",
+    r"(^|[_\W])(time|date|datetime|timestamp|ts|year|month|week)($|[_\W])|_at$|_on$",
     re.IGNORECASE,
 )
 ID_NAME = re.compile(
@@ -18,6 +18,7 @@ ID_NAME = re.compile(
     re.IGNORECASE,
 )
 ID_UNIQUE_RATIO = 0.95
+CONTIGUOUS_RATIO = 0.9
 MIN_GROUPS = 10
 MAX_GROUP_RATIO = 0.5
 
@@ -36,6 +37,19 @@ def is_integer_valued(s: pd.Series) -> bool:
         return False
     v = s.dropna().to_numpy(dtype=float)
     return bool(v.size) and bool(np.all(np.isfinite(v))) and bool(np.all(v == np.round(v)))
+
+
+def _looks_like_identifier(name: str, s: pd.Series, nunique: int) -> bool:
+    """Unique-valued discrete column that is a row key, not a count-like feature.
+
+    Strings, id-named columns and contiguous integer ranges (row numbers) qualify; a unique
+    integer column with a wide, gappy range (a measured count such as bytes read) does not.
+    """
+    if not pd.api.types.is_numeric_dtype(s) or ID_NAME.search(name):
+        return True
+    v = s.dropna().to_numpy(dtype=float)
+    span = float(v.max() - v.min()) + 1.0
+    return bool(nunique / span >= CONTIGUOUS_RATIO)
 
 
 def is_time_like(name: str, s: pd.Series) -> bool:
@@ -61,7 +75,8 @@ def infer_roles(df: pd.DataFrame, target: str) -> Roles:
             continue
         nunique = s.nunique(dropna=True)
         if nunique / n >= ID_UNIQUE_RATIO:
-            roles.id_like.append(col)
+            if _looks_like_identifier(col, s, nunique):
+                roles.id_like.append(col)
         elif MIN_GROUPS <= nunique <= n * MAX_GROUP_RATIO:
             roles.group_like.append(col)
     # name hints first, then fewer distinct values (bigger groups) first

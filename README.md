@@ -2,7 +2,7 @@
 
 The junior ML engineer that shows its work and catches its own mistakes.
 
-Status: Sprints 1-4 done (foundations, scorer, baselines + planted bugs, data-tools MCP with leakage detective). Leakage results: `benchmarks/results/leakage_v0.json`.
+Status: Sprints 1-5 done (foundations, scorer, baselines + planted bugs, data-tools MCP, leakage precision + label_noise). Leakage results: `benchmarks/results/leakage_v1.json`; known limitations in `docs/adr/007-leakage-precision-label-noise.md`.
 
 ## Results
 

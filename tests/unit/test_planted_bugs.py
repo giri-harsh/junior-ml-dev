@@ -33,7 +33,7 @@ def test_generation_is_deterministic() -> None:
 
 def test_partitions_split_dev_and_eval() -> None:
     parts = [g.partition_of(i) for i in range(g.VARIANTS_PER_TYPE)]
-    assert parts.count("dev") == g.DEV_VARIANTS and parts.count("eval") == 3
+    assert parts == ["dev"] * 3 + ["eval_v0"] * 3 + ["eval2"] * 3
 
 
 def test_labels_are_complete() -> None:

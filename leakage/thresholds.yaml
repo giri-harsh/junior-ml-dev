@@ -1,11 +1,20 @@
-# Leakage detector thresholds. Tuned on the planted-bug `dev` partition only, then frozen.
+# Leakage detector thresholds, v1 (evidence-confirmation layer).
+# Tuned on planted `dev` + `real_dev` only, then frozen (tag s5-thresholds-frozen).
 # A "gini" is 2*AUC-1 for classification and R^2 for regression (both clamped at 0).
+probe:
+  rows: 4000
+  repeats: 3
+  loco_repeats: 2
 target_leakage:
   min_gini: 0.80
   high_gini: 0.95
   max_depth: 3
+  top_k: 3
+  min_dominance: 0.15
+  min_loco_drop: 0.03
 post_outcome:
   min_gini: 0.50
+  min_loco_drop: 0.02
   hints: [refund, cancel, closed, outcome, result, resolved, churned, approved, declined,
           defaulted, paid, claim, after, post, final, settled]
 high_cardinality_proxy:
@@ -13,13 +22,15 @@ high_cardinality_proxy:
 duplicate_rows:
   min_fraction: 0.05
   high_fraction: 0.20
+  hi_res_ratio: 0.50
+  min_hi_res_cols: 2
 temporal_leakage:
-  min_gap: 0.07
-  high_gap: 0.10
+  min_gap: 0.04
+  high_gap: 0.08
   max_candidates: 2
 group_leakage:
-  min_gap: 0.015
-  high_gap: 0.10
+  min_gap: 0.05
+  high_gap: 0.08
   max_candidates: 3
 id_leak:
   min_gini: 0.30
@@ -29,8 +40,18 @@ train_test_contamination:
 unit_mismatch:
   robust_z: 10.0
   min_fraction: 0.15
+  max_abs_skew: 1.5
+  ratio_tolerance: 0.1
 suspicious_column_name:
   max_length: 60
   patterns: ["ignore (all |any )?(previous|prior|above)", "system prompt", "instruction",
              "you are ", "assistant", "/scorer", "scorer_data", "https?://", "rm -", "<\\|",
              "```"]
+label_noise:
+  min_rate: 0.31
+  high_rate: 0.45
+  folds: 5
+  trees: 100
+  min_samples_leaf: 3
+  max_rows: 5000
+  max_suspects: 50

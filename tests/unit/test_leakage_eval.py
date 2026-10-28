@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import inspect
+import json
 from pathlib import Path
 
 import pytest
 
 from benchmarks import leakage_benchmark, tune_leakage
-from leakage import config
+from leakage import config, ledger
 from leakage.evaluate import list_variants, summarize, wilson
 
 
@@ -20,7 +21,7 @@ def test_list_variants_partitions(tmp_path: Path) -> None:
     from benchmarks.planted_bugs.generate import write_variants
 
     write_variants(tmp_path)
-    assert len(list_variants("dev", tmp_path)) == 24 and len(list_variants("eval", tmp_path)) == 24
+    assert all(len(list_variants(p, tmp_path)) == 24 for p in ("dev", "eval_v0", "eval2"))
 
 
 def test_wilson_interval() -> None:
@@ -79,6 +80,36 @@ def test_leakage_benchmark_refuses_unfrozen(
 def test_leakage_benchmark_refuses_second_eval(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    (tmp_path / "leakage_v0.json").write_text("{}")
+    frozen = tmp_path / "frozen"
+    frozen.write_text(config.thresholds_hash())
+    monkeypatch.setattr(config, "FROZEN_HASH_PATH", frozen)
     monkeypatch.setattr(leakage_benchmark, "RESULTS_DIR", tmp_path)
+    ledger_path = tmp_path / "ledger.json"
+    monkeypatch.setattr(ledger, "LEDGER_PATH", ledger_path)
+    ledger_path.write_text(json.dumps({config.thresholds_hash(): {"status": "spent"}}))
     assert leakage_benchmark.run_leakage_benchmark() == 2
+
+
+def test_ledger_claim_is_one_shot(tmp_path: Path) -> None:
+    path = tmp_path / "l.json"
+    ledger.claim("abc", "r.json", ["eval2"], path)
+    assert ledger.is_spent("abc", path)
+    with pytest.raises(ledger.EvalAlreadySpent):
+        ledger.claim("abc", "r.json", ["eval2"], path)
+    ledger.mark_infra_retry("abc", "disk full", path)
+    assert json.loads(path.read_text())["abc"]["infra_retries"] == ["disk full"]
+
+
+def test_v0_hash_is_recorded_as_spent() -> None:
+    led = json.loads(Path("benchmarks/eval_ledger.json").read_text())
+    assert any(v["status"] == "spent" and "leakage_v0" in v["result_file"] for v in led.values())
+
+
+def test_ledger_default_path_resolves_at_call_time(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression: a default bound at import time once let a test spend the real ledger slot."""
+    target = tmp_path / "late.json"
+    monkeypatch.setattr(ledger, "LEDGER_PATH", target)
+    ledger.claim("h1", "r.json", ["eval2"])
+    assert target.exists() and ledger.is_spent("h1")
