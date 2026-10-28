@@ -1,0 +1,94 @@
+# micro profile: postgres, redis, minio, mlflow (low RAM). full adds langfuse.
+# Usage: docker compose -f deploy/compose/docker-compose.yml --profile micro up -d --wait
+name: jmd
+
+x-micro: &micro
+  profiles: ["micro", "full"]
+  restart: unless-stopped
+
+services:
+  postgres:
+    <<: *micro
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jmd
+      POSTGRES_PASSWORD: jmd
+      POSTGRES_DB: jmd
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=50"]
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jmd -d jmd"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    <<: *micro
+    image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["6379:6379"]
+    mem_limit: 96m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    <<: *micro
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-jmdminio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-locally}
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["miniodata:/data"]
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  mlflow:
+    <<: *micro
+    build:
+      context: .
+      dockerfile: mlflow.Dockerfile
+    command:
+      - mlflow
+      - server
+      - --host=0.0.0.0
+      - --port=5000
+      - --backend-store-uri=postgresql+psycopg2://jmd:jmd@postgres:5432/jmd
+      - --default-artifact-root=/mlartifacts
+    ports: ["5000:5000"]
+    volumes: ["mlartifacts:/mlartifacts"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  langfuse:
+    profiles: ["full"]
+    image: langfuse/langfuse:2
+    environment:
+      DATABASE_URL: postgresql://jmd:jmd@postgres:5432/jmd
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-local-dev-only}
+      SALT: ${LANGFUSE_SALT:-local-dev-only}
+      TELEMETRY_ENABLED: "false"
+    ports: ["3000:3000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+
+volumes:
+  pgdata:
+  miniodata:
+  mlartifacts:

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Enable with: python scripts/tasks.py hooks
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --config .gitleaks.toml --no-banner || exit 1
+else
+  python scripts/secret_scan.py --staged || exit 1
+fi
