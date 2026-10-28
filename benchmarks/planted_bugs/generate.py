@@ -27,8 +27,10 @@ from apps.scorer.splits import frame_sha256
 
 BASE_SEED = 20260301
 N_ROWS = 1200
-VARIANTS_PER_TYPE = 6
+VARIANTS_PER_TYPE = 9
 DEV_VARIANTS = 3
+EVAL_V0_VARIANTS = 3  # variants 3-5: evaluated once in S4, spent
+EVAL2_STRENGTH_INDEX = (5, 3, 1)  # variants 6-8 reuse strengths of these base indices
 TARGET = "target"
 Builder = Callable[[np.random.Generator, pd.DataFrame, float], tuple[pd.DataFrame, list[str]]]
 
@@ -233,13 +235,20 @@ def variant_seed(variant_id: str) -> int:
 
 
 def partition_of(i: int) -> str:
-    return "dev" if i < DEV_VARIANTS else "eval"
+    if i < DEV_VARIANTS:
+        return "dev"
+    return "eval_v0" if i < DEV_VARIANTS + EVAL_V0_VARIANTS else "eval2"
+
+
+def strength_index(i: int) -> int:
+    """Variants 0-5 keep their original strengths; 6-8 are new seeds at old strengths."""
+    return i if i < 6 else EVAL2_STRENGTH_INDEX[i - 6]
 
 
 def build_variant(bug: BugType, i: int) -> dict[str, Any]:
     vid = f"{bug.name}_{i:02d}"
     lo, hi = STRENGTH[bug.name]
-    strength = lo + (hi - lo) * i / max(VARIANTS_PER_TYPE - 1, 1)
+    strength = lo + (hi - lo) * strength_index(i) / 5
     base = _base(np.random.default_rng(variant_seed(vid)), N_ROWS)
     bugged, cols = bug.bugged(np.random.default_rng(variant_seed(vid) + 1), base, strength)
     twin, _ = bug.twin(np.random.default_rng(variant_seed(vid) + 2), base, strength)
@@ -264,7 +273,9 @@ def naive_cv_auc(df: pd.DataFrame, seed: int = 0) -> float:
     return float(cross_val_score(model, x, df[TARGET], cv=cv, scoring="roc_auc").mean())
 
 
-def write_variants(out: Path, verify: bool = False) -> dict[str, Any]:
+def write_variants(
+    out: Path, verify: bool = False, verify_partitions: tuple[str, ...] = ("dev", "eval_v0")
+) -> dict[str, Any]:
     manifest: dict[str, Any] = {}
     failures: list[str] = []
     for bug in BUG_TYPES:
@@ -280,7 +291,7 @@ def write_variants(out: Path, verify: bool = False) -> dict[str, Any]:
                 "partition": v["labels"]["partition"],
                 "bug_type": bug.name,
             }
-            if verify and bug.leakage:
+            if verify and bug.leakage and v["labels"]["partition"] in verify_partitions:
                 b, t = naive_cv_auc(v["bugged"]), naive_cv_auc(v["twin"])
                 entry.update(naive_cv_bugged=round(b, 4), naive_cv_twin=round(t, 4))
                 if not b > t:

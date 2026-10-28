@@ -28,6 +28,7 @@ class FindingType(StrEnum):
     ID_LIKE = "id_like"
     UNIT_MISMATCH = "unit_mismatch"
     SUSPICIOUS_COLUMN_NAME = "suspicious_column_name"
+    LABEL_NOISE = "label_noise"
 
 
 # finding type -> the planted `expected_detector` family it counts toward in evaluation
@@ -43,6 +44,7 @@ FAMILY: dict[FindingType, str] = {
     FindingType.ID_LIKE: "mi_spike",
     FindingType.UNIT_MISMATCH: "consistency",
     FindingType.SUSPICIOUS_COLUMN_NAME: "injection",
+    FindingType.LABEL_NOISE: "label_noise",
 }
 
 
