@@ -58,3 +58,9 @@ Format: decision | alternatives | why.
 54. Policy runs before backend resolution in the MCP tool. | backend first | Refusals must work with no backend and cost nothing.
 55. open() with a non-literal path is a violation. | allow dynamic paths | A static check cannot prove a dynamic path is inside /workspace.
 56. Offer run_python/check_policy/install_allowed only; fresh workspace per run. | persistent workspace tools | PRD S10.5 requires a fresh sandbox per run.
+Updated rule: every Python-driven file edit must pass encoding='utf-8' (cp1252 corrupted STATE.md once).
+57. Reviewer is deterministic-only in this run; no LLM reviewer. | stub LLM reviewer | Nothing to verify without a model; the PRD says code decides.
+58. Injection oracle = simulated compliant agent vs structural guard; behaviour-change rate reported "not run". | fabricate an LLM rate | No LLM available; rule 1 forbids invented numbers.
+59. Flagged names are aliased (col_NNN), not deleted. | drop columns | The column may be a real feature; the alias map is server-side.
+60. Evasion payloads included in the suite and reported separately. | only template payloads | Template-only results would overstate the heuristic.
+61. Python-driven edits must avoid backslash-b in heredoc strings (turned into backspace characters once); use chr(92) or the Edit tool. | ignore | Corrupted a regex silently.
