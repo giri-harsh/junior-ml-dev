@@ -20,6 +20,8 @@ dependencies = [
     "flaml[automl]>=2.7.0",
     "lightgbm>=4.7.0",
     "mcp>=2.3.0",
+    "argon2-cffi>=25.1.0",
+    "pyjwt>=2.15.1",
 ]
 
 [dependency-groups]

@@ -64,3 +64,7 @@ Updated rule: every Python-driven file edit must pass encoding='utf-8' (cp1252 c
 59. Flagged names are aliased (col_NNN), not deleted. | drop columns | The column may be a real feature; the alias map is server-side.
 60. Evasion payloads included in the suite and reported separately. | only template payloads | Template-only results would overstate the heuristic.
 61. Python-driven edits must avoid backslash-b in heredoc strings (turned into backspace characters once); use chr(92) or the Edit tool. | ignore | Corrupted a regex silently.
+62. SQLite for approvals and audit in this run; Postgres variant documented, not run. | Postgres | No Postgres available; brief allows SQLite for unit tests, and these are the only implementations so far.
+63. Failed consume attempts (mismatch, forged) never burn the token; only a successful consume does. | burn on any attempt | Prevents an attacker from invalidating a legitimate approval by probing.
+64. Login and approvals return 503 when secrets are unset; no defaults. | dev defaults | Default credentials in a repo are a vulnerability.
+65. sqlite connections are wrapped in contextlib.closing. | `with sqlite3.connect()` | The context manager commits but does not close; it locked files on Windows.
