@@ -54,3 +54,7 @@ Format: decision | alternatives | why.
 50. Breaker counts failures per provider after retries are exhausted, not per attempt. | per attempt | A single 429 burst should not open the circuit on its own.
 51. Budget check reserves `max_tokens` before the call and charges actual usage after. | check after only | Gives a hard stop without overshoot.
 52. Caption prompts carry facts JSON plus capped, sanitised column names inside <untrusted> tags. | raw schema | Column names are untrusted data (PRD security invariant).
+53. Sandbox MCP refuses to execute unless JMD_SANDBOX is set (docker or local-unsafe). | default to subprocess | Shipping an unisolated code-execution tool on by default would be an RCE footgun.
+54. Policy runs before backend resolution in the MCP tool. | backend first | Refusals must work with no backend and cost nothing.
+55. open() with a non-literal path is a violation. | allow dynamic paths | A static check cannot prove a dynamic path is inside /workspace.
+56. Offer run_python/check_policy/install_allowed only; fresh workspace per run. | persistent workspace tools | PRD S10.5 requires a fresh sandbox per run.
