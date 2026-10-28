@@ -1,0 +1,14 @@
+# Source names are OpenML dataset names; dataset_id and licence are recorded at fetch time
+# (data/tasks/<name>/source.json), never hard-coded here.
+# role: dev (tuning allowed) | test (report) | p3_heldout (frozen; never used to tune prompts)
+tasks:
+  - {name: credit-g, source: openml, task_type: binary, target: class, metric: roc_auc, role: dev}
+  - {name: adult, source: openml, task_type: binary, target: class, metric: roc_auc, role: dev}
+  - {name: bank-marketing, source: openml, task_type: binary, target: Class, metric: pr_auc, role: test, imbalanced: true}
+  - {name: churn, source: openml, task_type: binary, target: class, metric: pr_auc, role: test, imbalanced: true}
+  - {name: blood-transfusion-service-center, source: openml, task_type: binary, target: Class, metric: pr_auc, role: p3_heldout, imbalanced: true}
+  - {name: segment, source: openml, task_type: multiclass, target: class, metric: f1_macro, role: dev}
+  - {name: vehicle, source: openml, task_type: multiclass, target: Class, metric: f1_macro, role: p3_heldout}
+  - {name: cpu_act, source: openml, task_type: regression, target: usr, metric: rmse, role: test}
+  - {name: house_16H, source: openml, task_type: regression, target: price, metric: rmse, role: dev}
+  - {name: wine_quality, source: openml, task_type: regression, target: quality, metric: mae, role: test}
