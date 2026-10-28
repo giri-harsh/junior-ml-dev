@@ -9,7 +9,7 @@ Updated: S5 start. Baseline: main @ tag s4-done, 101 tests green, ruff/mypy clea
 | S5 leakage precision + label_noise | done (pending merge) | s5-leakage-precision | s5-thresholds-frozen, s5-done |
 | S6 ingest + upload + Quality Scorecard | done | s6-ingest-quality | s6-done |
 | S7 insights + claim verifier | done | s7-insights-verifier | s7-done |
-| S8 LLM gateway (mock/recorded) | todo | | |
+| S8 LLM gateway (mock/recorded) | done | s8-llm-gateway | s8-done |
 | S9 sandbox interface + code policy | todo | | |
 | S10 reviewer checks + injection defence | todo | | |
 | S11 approvals + audit chain + harness state | todo | | |
@@ -22,7 +22,7 @@ Updated: S5 start. Baseline: main @ tag s4-done, 101 tests green, ruff/mypy clea
 | 0cde227f6327... (v1) | dev (record), eval2, real_heldout | leakage_v1.json | SPENT (run triggered early by a test bug; see ADR-007 lim. 6) |
 
 ## Last completed step
-S7 complete (caption_verify_v0: 0/807 unverified). Next: S8 LLM gateway.
+S8 complete (17 gateway tests). Next: S9 sandbox interface + code policy.
 
 ## Attempt counters / skipped
 none yet (see docs/SKIPPED.md when created)

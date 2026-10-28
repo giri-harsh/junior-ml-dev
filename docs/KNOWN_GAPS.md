@@ -10,3 +10,4 @@
 | Leakage detector residual false positives (group probe on predictive low-cardinality ints; ordinal targets read as classes) | ADR-007 limitations 1-2 | extend real_dev, add structural entity check, re-tune, re-freeze (new hash, new eval partition needed) |
 | ObjectStore is local filesystem only (MinIO/S3 STUB) | Docker/MinIO unavailable | implement `MinioObjectStore` against the protocol in `apps/api/store.py`, then `python scripts/tasks.py test-integration` |
 | Profile job runs as a FastAPI background task (arq worker STUB) | Redis unavailable | arq worker arrives with the harness sprint |
+| LLM providers never called for real (Groq/Gemini/Ollama) | no keys, no local model | set GROQ_API_KEY or GEMINI_API_KEY and record fixtures (ADR-010) |

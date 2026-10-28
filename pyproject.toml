@@ -39,7 +39,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["trajectory", "benchmarks", "apps", "datastory", "leakage", "mcp_servers"]
+packages = ["trajectory", "benchmarks", "apps", "datastory", "leakage", "mcp_servers", "harness"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -58,7 +58,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.11"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["trajectory", "benchmarks", "apps", "scripts", "datastory", "leakage", "mcp_servers"]
+files = ["trajectory", "benchmarks", "apps", "scripts", "datastory", "leakage", "mcp_servers", "harness"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
