@@ -1,0 +1,31 @@
+# junior-ml-dev
+
+The junior ML engineer that shows its work and catches its own mistakes.
+
+Status: Sprint 1 (foundations). No ML yet.
+
+## Results
+
+Every number here must come from a file in `benchmarks/results/`. Until then:
+
+| Metric | Value |
+|---|---|
+| Pass rate vs linear baseline | pending |
+| Normalized score vs FLAML | pending |
+| Leakage catch rate | pending |
+| False-alarm rate | pending |
+
+## Quick start
+
+```bash
+uv sync --group dev
+python scripts/tasks.py test      # unit tests
+python scripts/tasks.py lint      # ruff + mypy
+python scripts/tasks.py up        # docker compose micro profile (needs Docker)
+```
+
+## Configuration
+
+Copy `.env.example` to `.env`. Optional keys: `GROQ_API_KEY`, `GEMINI_API_KEY`, `E2B_API_KEY`. Without them the project uses mock and local fallbacks.
+
+Plan: `PRD.md`. Progress: `docs/STATE.md`. Decisions: `docs/DECISIONS.md`, `docs/adr/`.

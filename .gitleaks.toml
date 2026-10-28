@@ -1,0 +1,8 @@
+title = "junior-ml-dev gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fixtures build fake secrets at runtime; nothing secret-shaped is committed."
+paths = ['''uv\.lock''', '''\.env\.example''']
