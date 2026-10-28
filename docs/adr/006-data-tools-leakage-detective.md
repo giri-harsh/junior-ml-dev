@@ -31,5 +31,21 @@ Train/test contamination is covered by `train_test_contamination`, which needs `
 ## Guards (MCP layer)
 Path allowlist (resolved real path under configured roots, `scorer_data` always denied), extension allowlist (csv, parquet), 50 MB file cap, 50k-row cap with seeded sampling, cooperative time budget, structured logs and `TrajectoryEvent`s keyed by `run_id`.
 
-## Known limitations (filled in after the eval run)
-See the section appended below once `leakage_v0.json` exists.
+## Results (source: `benchmarks/results/leakage_v0.json`, seed 0, thresholds hash `2ca20d85b8f7...`)
+- Recall at family level, medium+high findings only: dev 21/24, eval 21/24. On the five leakage types alone: 15/15 on dev and 15/15 on eval. Per-type n is 3, so every per-type Wilson interval is wide (lower bounds about 0.44).
+- Clean-twin false alarms: 0/24 on dev, 0/24 on eval (Wilson 95% upper bound 0.138).
+- `label_noise` is 0/3 on both partitions: no detector exists (see the mapping table).
+- Thresholds were tuned on dev only: `temporal_leakage.min_gap` 0.04 -> 0.07 and `group_leakage.min_gap` 0.04 -> 0.015 (one iteration each, from the dev gap distributions). Eval ran once afterwards.
+
+## Known limitations
+1. **Small n.** Three variants per type per partition; the eval result says "no failures seen on these 15", not "high recall guaranteed".
+2. **Synthetic suite.** The planted bugs are simple additive shortcuts on a synthetic base. Recall on real leakage is untested.
+3. **Real-data false alarms.** On the 10 real tasks the detectors returned medium/high findings on every task (see `real_tasks` in the result file); none is a confirmed leak. Causes, not fixed because tuning on real tasks is outside this protocol:
+   - `group_leakage` treats any discrete column with 10..n/2 distinct values as a possible group (for example `duration`, `V1`, `occupation`). With the low dev-tuned gap of 0.015 it fires on ordinary features.
+   - `temporal_leakage` matched the substring `day` in `total_day_minutes`.
+   - `unit_mismatch` fires on heavy-tailed columns (robust-z rule); `target_leakage` fires on strong honest features (`cpu_act`).
+   - `duplicate_rows` fires on tables with naturally repeated rows (`wine_quality`, `blood-transfusion`).
+   These are precision problems of the heuristics, not evidence of leakage. A follow-up should add a real-data dev partition and require group candidates to have a name hint or exact repetition structure.
+4. **Single-frame view.** Train/test contamination needs `meta.holdout`; duplicate detection cannot say whether copies cross a split without it.
+5. **Cooperative timeout.** The time budget is checked between detector steps; a single long model fit is not interrupted.
+6. **Exact/rounded duplicate hashing**, not MinHash near-duplicates (PRD S8 names `datasketch`).

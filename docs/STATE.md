@@ -1,7 +1,7 @@
 # STATE (re-read at the start of every session)
 
 Source plan: `PRD.md` (S1–S28). Spec: **missing** (see DECISIONS #1).
-Current branch: `sprint-3-baselines-bugs`. S1, S2 merged to main; current sprint: **S3 Baselines + bug generator** (done, pending merge).
+Current branch: `main`. S1-S4 done and merged. Last tag: `s4-done`. S4 here = data-tools MCP + leakage detective (see DECISIONS #20); PRD S4 ingest/quality scorecard is not built.
 
 ## S1 — Foundations
 - [x] S1.1 skeleton, uv, ruff, mypy, pytest, Makefile + tasks.py
@@ -24,4 +24,4 @@ Current branch: `sprint-3-baselines-bugs`. S1, S2 merged to main; current sprint
 - "CI green on a PR" and "pushed fake secret caught by gitleaks in CI": need a GitHub remote (DECISIONS #11). Local equivalent: `test_secret_scan.py`.
 
 ## Next action
-Start S4 (ingest + profile + quality scorecard). Docker/remote items above remain open.
+Map PRD S4-S9 onto what exists (DECISIONS #20). Open gaps: docs/KNOWN_GAPS.md.
