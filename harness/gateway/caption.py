@@ -1,4 +1,4 @@
-"""Adapter: caption provider backed by the gateway. The prompt carries facts only, never raw rows."""
+"""Caption provider backed by the gateway. Prompts carry facts only, never raw rows."""
 
 from __future__ import annotations
 
