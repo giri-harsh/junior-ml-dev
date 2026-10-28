@@ -1,0 +1,167 @@
+{
+  "command": "python -m benchmarks.run_benchmark --baselines --time-budget 30",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "baselines; FLAML time_budget=30s/task, 3-fold CV, seed 0; scored via scorer code path (in-process)",
+    "sandbox": "none"
+  },
+  "date": "2026-10-28T16:39:19+00:00",
+  "git_sha": "bcf5f7ebddd33239f8b70898b543bddbd95c86ea",
+  "name": "baselines_v0",
+  "results": {
+    "aggregate": {
+      "excluded_tasks": [],
+      "normalized_linear_ci95": [
+        0.6130285926423727,
+        1.0441123841029978
+      ],
+      "normalized_linear_defined_n": 10,
+      "normalized_linear_mean": 0.8243786706386853
+    },
+    "flaml_time_budget_s": 30,
+    "per_task": {
+      "adult": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.19,
+        "flaml": 0.9123180192472774,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 31.03,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9107209768708732,
+        "linear_fit_s": 2.15,
+        "linear_normalized": 0.9961266733398657,
+        "metric": "roc_auc",
+        "role": "dev",
+        "task_type": "binary"
+      },
+      "bank-marketing": {
+        "dummy": 0.11699657193409267,
+        "dummy_fit_s": 0.19,
+        "flaml": 0.6341945587041549,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.66,
+        "flaml_time_budget_s": 30,
+        "linear": 0.547526435898891,
+        "linear_fit_s": 1.48,
+        "linear_normalized": 0.8324275712159818,
+        "metric": "pr_auc",
+        "role": "test",
+        "task_type": "binary"
+      },
+      "blood-transfusion-service-center": {
+        "dummy": 0.24,
+        "dummy_fit_s": 0.07,
+        "flaml": 0.4288981989540695,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.07,
+        "flaml_time_budget_s": 30,
+        "linear": 0.5162787513626425,
+        "linear_fit_s": 0.09,
+        "linear_normalized": 1.4625801245983265,
+        "metric": "pr_auc",
+        "role": "p3_heldout",
+        "task_type": "binary"
+      },
+      "churn": {
+        "dummy": 0.141,
+        "dummy_fit_s": 0.09,
+        "flaml": 0.8718780455448302,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.43,
+        "flaml_time_budget_s": 30,
+        "linear": 0.48802731725334736,
+        "linear_fit_s": 0.2,
+        "linear_normalized": 0.47480878563626466,
+        "metric": "pr_auc",
+        "role": "test",
+        "task_type": "binary"
+      },
+      "cpu_act": {
+        "dummy": 15.596632348851278,
+        "dummy_fit_s": 0.05,
+        "flaml": 2.528400086554057,
+        "flaml_best_estimator": "rf",
+        "flaml_fit_s": 31.79,
+        "flaml_time_budget_s": 30,
+        "linear": 8.561844555371705,
+        "linear_fit_s": 0.1,
+        "linear_normalized": 0.5383121184473768,
+        "metric": "rmse",
+        "role": "test",
+        "task_type": "regression"
+      },
+      "credit-g": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.61,
+        "flaml": 0.7253571428571429,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.84,
+        "flaml_time_budget_s": 30,
+        "linear": 0.7607142857142858,
+        "linear_fit_s": 0.26,
+        "linear_normalized": 1.1568938193343898,
+        "metric": "roc_auc",
+        "role": "dev",
+        "task_type": "binary"
+      },
+      "house_16H": {
+        "dummy": 51832.16194409982,
+        "dummy_fit_s": 0.11,
+        "flaml": 31903.66161941425,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.6,
+        "flaml_time_budget_s": 30,
+        "linear": 45330.00061485944,
+        "linear_fit_s": 0.14,
+        "linear_normalized": 0.32627449247578894,
+        "metric": "rmse",
+        "role": "dev",
+        "task_type": "regression"
+      },
+      "segment": {
+        "dummy": 0.03571428571428571,
+        "dummy_fit_s": 0.09,
+        "flaml": 0.9847807665185792,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.15,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9348113733783467,
+        "linear_fit_s": 0.19,
+        "linear_normalized": 0.9473489011034448,
+        "metric": "f1_macro",
+        "role": "dev",
+        "task_type": "multiclass"
+      },
+      "vehicle": {
+        "dummy": 0.102803738317757,
+        "dummy_fit_s": 0.08,
+        "flaml": 0.7696310277619045,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.05,
+        "flaml_time_budget_s": 30,
+        "linear": 0.8457117195693029,
+        "linear_fit_s": 0.16,
+        "linear_normalized": 1.1140935486770758,
+        "metric": "f1_macro",
+        "role": "p3_heldout",
+        "task_type": "multiclass"
+      },
+      "wine_quality": {
+        "dummy": 0.669613534435547,
+        "dummy_fit_s": 0.08,
+        "flaml": 0.3995613318813511,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.74,
+        "flaml_time_budget_s": 30,
+        "linear": 0.5629643372470357,
+        "linear_fit_s": 0.07,
+        "linear_normalized": 0.3949206715583381,
+        "metric": "mae",
+        "role": "test",
+        "task_type": "regression"
+      }
+    }
+  }
+}
