@@ -13,3 +13,4 @@ Format: decision | alternatives | why.
 9. langfuse pinned to v2 (single container + Postgres) in the `full` profile. | v3 (needs ClickHouse, Redis, S3) | RAM; v3 is too heavy for the machine.
 10. `/readyz` DB probe uses a 2 s connect timeout. | default OS timeout | A down DB made the test take 130 s on Windows.
 11. Git remote: `giri-harsh/junior-ml-dev` does not exist on GitHub; `gh` is authenticated. Creating a public repo is outward-facing, so S1 stays local until the user confirms visibility. | create now | Publishing is irreversible-ish and was not explicitly authorised for visibility.
+12. `.gitattributes` forces LF | CRLF autoconvert | Shell hook and compose files break with CRLF on Linux/CI.
