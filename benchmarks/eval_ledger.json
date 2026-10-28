@@ -1,0 +1,23 @@
+{
+  "0cde227f632732580cd5ea1eb2f6d1e8c965039ecddeb8cc209d4628dfff3bea": {
+    "infra_retries": [],
+    "partitions": [
+      "dev",
+      "eval2",
+      "real_heldout"
+    ],
+    "result_file": "benchmarks/results/leakage_v1.json",
+    "status": "spent"
+  },
+  "2ca20d85b8f759c9f95c20bb7568aea042d059026bbb3a2d897581487dce6b07": {
+    "infra_retries": [],
+    "note": "S4 v0 (tag s4-thresholds-frozen)",
+    "partitions": [
+      "dev",
+      "eval_v0",
+      "real_heldout"
+    ],
+    "result_file": "benchmarks/results/leakage_v0.json",
+    "status": "spent"
+  }
+}
