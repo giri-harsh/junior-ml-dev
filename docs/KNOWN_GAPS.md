@@ -7,4 +7,4 @@
 | gitleaks | binary not installed; regex fallback used | `gitleaks detect --config .gitleaks.toml --no-banner` |
 | CI workflow never executed | no GitHub remote | push the repo and open a PR |
 | MCP tool-manifest pinning (PRD S12.4) | scheduled for S12 | n/a |
-| Leakage detector precision on real data | see ADR-006 limitation 3 | add a real-data dev partition, re-tune, re-freeze |
+| Leakage detector residual false positives (group probe on predictive low-cardinality ints; ordinal targets read as classes) | ADR-007 limitations 1-2 | extend real_dev, add structural entity check, re-tune, re-freeze (new hash, new eval partition needed) |

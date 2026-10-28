@@ -32,3 +32,13 @@ Format: decision | alternatives | why.
 28. Real tasks run on the agent-visible train split with row_id dropped; all findings recorded unsuppressed. | hide noisy findings | Brief says do not suppress.
 29. Eval-once guard = frozen-hash assertion + refusal to overwrite leakage_v0.json. | convention only | Enforced in code and tested.
 30. MCP tool-manifest hash pinning deferred to S12. | add now | Out of S4 scope.
+31. Probes use difference-in-differences (cost of removing the column under random vs time/group CV), not a raw CV gap. | raw gap | A raw gap fires on any strongly predictive feature used as the sort key.
+32. Medium/high requires confirming evidence; name hints alone are LOW notes. | keep name-based medium | S4 produced 100% real-task false-alarm rate.
+33. Duplicates confirmed only with >=2 near-continuous matched columns. | conflicting-label rule | Natural repeats on low-resolution columns are common; copies of continuous values are not chance.
+34. Identifier = string, id-named, or contiguous integer range; time tokens drop `day`/`dt`. | structural unique-ratio only | Count-like unique integers (bytes read) are features.
+35. unit_mismatch = scale mixture (power-of-ten spread ratio, near-symmetric). | log-magnitude bimodality | The log test fired on every Gaussian column (tuning round 1).
+36. label_noise = confident learning, classification only; regression returns a LOW N/A finding. | skip regression silently | Brief asks for an explicit not-applicable finding.
+37. real_dev = 16 OpenML/sklearn tables disjoint from the 10 tasks, cached with hashes. | seaborn datasets | Already available through the same fetch path.
+38. Eval-once ledger keyed by thresholds hash, claimed before running, partial results resumable. | frozen-file check only | Survives crashes without allowing a second look.
+39. Spent v1 slot via test bug is disclosed, not rerun; thresholds unchanged. | rerun after tag | A rerun would only add a second look; the first run used the identical hash.
+40. wine_quality/churn false positives left unfixed after freeze (ADR-007 limitations 1-2). | retune | Brief forbids retuning after the freeze.

@@ -1,0 +1,14 @@
+{
+  "churn|group_leakage|number_customer_service_calls": {
+    "verdict": "false_positive",
+    "reason": "A 10-valued integer count of support calls, not an entity id. GroupKFold on a strongly predictive low-cardinality column hides that feature from every test fold by construction, so the difference-in-differences probe reads as a shortcut (gain_random 0.104 vs gain_group -0.001). The name token 'customer' is coincidental. Known precision gap of the probe."
+  },
+  "segment|duplicate_rows|": {
+    "verdict": "true_positive",
+    "reason": "139 exact duplicate rows (7.5%) matching on 5 near-continuous columns with consistent labels; chance collisions on near-continuous columns are negligible. Random CV can place copies on both sides of a split, so scores are inflated."
+  },
+  "wine_quality|label_noise|quality": {
+    "verdict": "false_positive",
+    "reason": "The target is an ordinal quality score (7 distinct integers) that the registry treats as regression, but task inference classed it as multiclass. Confusion between adjacent ordinal levels is read as label noise. Root cause: numeric targets with <=20 distinct values are inferred as classification."
+  }
+}
