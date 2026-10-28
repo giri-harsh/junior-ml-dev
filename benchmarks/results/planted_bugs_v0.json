@@ -1,0 +1,367 @@
+{
+  "command": "python -m benchmarks.planted_bugs.generate --out data/planted_bugs --verify --result-name planted_bugs_v0",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 30,
+    "notes": "naive RF 5-fold AUC",
+    "sandbox": "none"
+  },
+  "date": "2026-10-28T16:40:58+00:00",
+  "git_sha": "bcf5f7ebddd33239f8b70898b543bddbd95c86ea",
+  "name": "planted_bugs_v0",
+  "results": {
+    "all_bugged_gt_twin": true,
+    "leakage_pairs_checked": 30,
+    "variants": {
+      "duplicate_leak_00": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "b68c0451baea38bf9e740c7be7be094362180ff5b72cf4641f5514c30c01ccad",
+        "naive_cv_bugged": 0.906,
+        "naive_cv_twin": 0.7715,
+        "partition": "dev",
+        "twin_sha256": "2564d1a7ebe6d207b19d56b0391362daa80a13f89f5d60dba042de04a2fc1d8a"
+      },
+      "duplicate_leak_01": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "b10731cfca45063d7ed777cc77bd06777db719877b3950ab70479165510a0340",
+        "naive_cv_bugged": 0.9426,
+        "naive_cv_twin": 0.7489,
+        "partition": "dev",
+        "twin_sha256": "0a19a63d185c06e40d0e0d9410c7435843567a3097d83226737326cdf195ecd0"
+      },
+      "duplicate_leak_02": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "a119952a0c3ab8949ae1742ee01cf6f0cb7bd0ea7b2e10a5405cce0d3dd23d75",
+        "naive_cv_bugged": 0.9447,
+        "naive_cv_twin": 0.742,
+        "partition": "dev",
+        "twin_sha256": "143014dfb433885335deadacb0e02b2496be4116217dfc9409e908589a408169"
+      },
+      "duplicate_leak_03": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "35353eff076e759bd48a74a4ea78ebf16916203c40538ea2cad53d9099018a1c",
+        "naive_cv_bugged": 0.9622,
+        "naive_cv_twin": 0.8385,
+        "partition": "eval",
+        "twin_sha256": "1cce1a51c0c26b68fcccb4e62d3a442541f89a40bf59193efe27e377cca9f338"
+      },
+      "duplicate_leak_04": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "1ebc65c17f2f3149e8de5dc00eb52623a36bcfbb97ef6aaaaec8c2ab9d796c71",
+        "naive_cv_bugged": 0.9807,
+        "naive_cv_twin": 0.8307,
+        "partition": "eval",
+        "twin_sha256": "df10085b943db2cf663eeebc2c3db698b00525a4b776ff4c22fb98cc5ecc4cae"
+      },
+      "duplicate_leak_05": {
+        "bug_type": "duplicate_leak",
+        "bugged_sha256": "bc8e2dba9833b192faed93a1a387fa8f0d67ed71770423a6ae3f3693de08fcfa",
+        "naive_cv_bugged": 0.9904,
+        "naive_cv_twin": 0.8401,
+        "partition": "eval",
+        "twin_sha256": "84984ff6bbc720e2891a7c5c6e819cefd4e33189e074603000867f9d4a6f7e79"
+      },
+      "group_leak_00": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "c14cec15080671919efa85beb8406f88347794d9732a27eaab9d0398716e11d7",
+        "naive_cv_bugged": 0.944,
+        "naive_cv_twin": 0.929,
+        "partition": "dev",
+        "twin_sha256": "a628d2119dd4b2ab76cb22591037ace630eaf638c2bd54b9824a17cfa9b7782a"
+      },
+      "group_leak_01": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "2f589b6dd31dbfe4481a66fc1aa4af1ed7542fccdc56c5d99f479384780eb05d",
+        "naive_cv_bugged": 0.893,
+        "naive_cv_twin": 0.8622,
+        "partition": "dev",
+        "twin_sha256": "d21957a55990b64bd22a9820645c06a3bf74a2cdc9a2702df4bc3e7d0103bba8"
+      },
+      "group_leak_02": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "df5ad0a63b237149df602bd890cd3a0bbac6e9801e3ae9032c9da677d18d1115",
+        "naive_cv_bugged": 0.8516,
+        "naive_cv_twin": 0.801,
+        "partition": "dev",
+        "twin_sha256": "3223046e5bbe1378a19c1daa8450eac6bce2de976cab40d263bbafab6009f94f"
+      },
+      "group_leak_03": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "8e404a886da935b159f4818eedec3ca0aeb9893d77aaf7b4f7cf8ed0baed3c11",
+        "naive_cv_bugged": 0.8727,
+        "naive_cv_twin": 0.8151,
+        "partition": "eval",
+        "twin_sha256": "65eb52c3aed89361d88195827e05f901a7554abbed3fec58a9fb86d92adf1b73"
+      },
+      "group_leak_04": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "a9408423567e59bc2f54b14fd41735f196cb3251231ca1c0e9db35859c639c42",
+        "naive_cv_bugged": 0.8609,
+        "naive_cv_twin": 0.7555,
+        "partition": "eval",
+        "twin_sha256": "fe8f8a6875acca94cdea64fd2536b93e5b0063e86657a9bc914161eb7e221d6d"
+      },
+      "group_leak_05": {
+        "bug_type": "group_leak",
+        "bugged_sha256": "1b9536b2616061215b6f4413ac931759ba06b17f76616269c2921078f51bba9f",
+        "naive_cv_bugged": 0.9379,
+        "naive_cv_twin": 0.9039,
+        "partition": "eval",
+        "twin_sha256": "edbb511aa33ae8933f2240ffcf06735675b72db1444156855d1a37c9219858f5"
+      },
+      "id_correlated_00": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "d89047ff8f6c5e839572920016e1209952844d5a29a010c447a5debc94a041b0",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.841,
+        "partition": "dev",
+        "twin_sha256": "8bd25b5e0fc99f8e640f9c545ce12a890d445c17dd0cb78d22287dd695ebbcf6"
+      },
+      "id_correlated_01": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "1059b173fa9c6043e517b4bc25a28d3fbb847bb20b059a4f7cbe4a5d81ce46e8",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.8125,
+        "partition": "dev",
+        "twin_sha256": "d84598682c448a125701287ec843047d3c40927be1745493f0f5d52cfa543187"
+      },
+      "id_correlated_02": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "8374ceb85de7a0087f8fed14042f46958e1636baa86a5544db9f757e20fd8d51",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.9177,
+        "partition": "dev",
+        "twin_sha256": "5c9c7bb1d7412b8bbc6acd458014e8ed88442f37034f1bf60b1a21f6081971ea"
+      },
+      "id_correlated_03": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "15e4371a70870773aa4991f2d14bb3cf2c563d54ad29cfe42e793f3c1e7f6441",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.8253,
+        "partition": "eval",
+        "twin_sha256": "e38f5f87c218996a0b2b8619de12c08ef56853fced932b037eaff983208d2b95"
+      },
+      "id_correlated_04": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "13b94ebdf5d3be53a623a7525270eef8be12c1cc3df3d223ae58dda459f1cba6",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.9,
+        "partition": "eval",
+        "twin_sha256": "9fae9ac74bfaa9c1df6116a11b6d252a2466e72eaca8ba211d67703eeeb19b07"
+      },
+      "id_correlated_05": {
+        "bug_type": "id_correlated",
+        "bugged_sha256": "499de4247b7a112259b15f997f54d3fdb07daa15a2e10f684010c2f2ed80a3b9",
+        "naive_cv_bugged": 1.0,
+        "naive_cv_twin": 0.8258,
+        "partition": "eval",
+        "twin_sha256": "2401607114db44c4bdb94f5b5949f1326bfc4132df517cb1556cd9944802314f"
+      },
+      "label_noise_00": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "dd377ae9ffe0a1d7c00d610697ae4950f56fa12c33bc9f257193343b02fdf62a",
+        "partition": "dev",
+        "twin_sha256": "9bea08d95dadc076593bc8c9d93874b7be5fd03dcbac372a41aff3a5dba4867d"
+      },
+      "label_noise_01": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "a44b4fe6cba45d6957afa2c3905987e174036e62b8e31a555692d6a766819134",
+        "partition": "dev",
+        "twin_sha256": "b111f6c078317f01718d73d90a197e3dfe2325cf10416b8354265c0abe6411b4"
+      },
+      "label_noise_02": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "a89e4e15d26539fb5bf56b2296b6ff6b7381640d3aaadeb9bec64d4defcb0f90",
+        "partition": "dev",
+        "twin_sha256": "482b72348b255ee0aaaac502bea21fd800bd4e617a59908f3d40f2c20470b619"
+      },
+      "label_noise_03": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "338f85f327c252861bea817a5ccc0449d3b0af8e5ab45317bb7b492e7a7c92a8",
+        "partition": "eval",
+        "twin_sha256": "a27d77d6329c8be267222a2b59a6b69a738b566a314c3f338462d3358ad81a13"
+      },
+      "label_noise_04": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "29627c551ad8e91d0507f8b6bd6fd61601023192b5c9bfdd9207524a9361de08",
+        "partition": "eval",
+        "twin_sha256": "26d59513aebc0bc1417b1c038407c499dcc8e85452699c05a38aeb65a5b7f756"
+      },
+      "label_noise_05": {
+        "bug_type": "label_noise",
+        "bugged_sha256": "3f13b087d72863d5ef6151c8b69acb3b628febae45de0a38c2366478b1e2fe79",
+        "partition": "eval",
+        "twin_sha256": "f4f668f52ba8e7e584df5bc9a0749ff6e36f35a2c8396692d78bf317c0009250"
+      },
+      "poisoned_name_00": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "ce171c49983d7a36e57dd668241b4b23ef3927e6b441a8b0e7ec7fc7e674ab50",
+        "partition": "dev",
+        "twin_sha256": "b761f4f2993d3a9dcfd83e747652f24c730027cccb73918d503349aea11e7302"
+      },
+      "poisoned_name_01": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "fe52922b6bcc317d1cd0f2d40b78bcf8945d6df152b9962d48ed6b9ccfda877a",
+        "partition": "dev",
+        "twin_sha256": "a0e73f1a988ea843e7d95135af996211ba038f35d717c76ba60db4abc7cf4adb"
+      },
+      "poisoned_name_02": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "2228d1fe37e07b2fa80225f1084480a8a1e49a843892a975c56718beb80f7a16",
+        "partition": "dev",
+        "twin_sha256": "57bd957c885ab18fb18f349d156df03a1f818df88e856948e826459a1cb0b98a"
+      },
+      "poisoned_name_03": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "96d31ff909aa0dff6d6448aca0b27412d338cfeda5122fae1058c4579813e5c0",
+        "partition": "eval",
+        "twin_sha256": "91d2f8867c6a2b7df4328ccbec4c77686bb35d58e8dda7d4263675bd7b57d7dc"
+      },
+      "poisoned_name_04": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "2e1055ce23d2b4cb5d36fe8fa44bf72102f23f0d0847616ac30dd9972198ed0e",
+        "partition": "eval",
+        "twin_sha256": "0f57cc21eee115f194139319d46fea9398d5cb80087ec2117235cbc0aa0b729a"
+      },
+      "poisoned_name_05": {
+        "bug_type": "poisoned_name",
+        "bugged_sha256": "736d7540cfbec47b3a387eb0f893f243e4c8e7b1e1ff3f28e316cd7755599301",
+        "partition": "eval",
+        "twin_sha256": "f9836891d6ffd12c776285f1c886452edc4a78e88718386e700134197814d31b"
+      },
+      "target_proxy_00": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "4cce4a49585635ad49af136364fca27ccb404b8e950afe295b1cb048c612488a",
+        "naive_cv_bugged": 0.9545,
+        "naive_cv_twin": 0.877,
+        "partition": "dev",
+        "twin_sha256": "7418b24231493577affa940f3a9354fd81d9cfd32a9a3ab4fc46fb20719fc362"
+      },
+      "target_proxy_01": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "dc101866939049b0e4ac4e375c9044668091d1ecc6dd81fa859246cfafca394c",
+        "naive_cv_bugged": 0.9751,
+        "naive_cv_twin": 0.8953,
+        "partition": "dev",
+        "twin_sha256": "84af60587d5603921de076dcb094fd9c734d17f03aec1ec45ca19d84146594ff"
+      },
+      "target_proxy_02": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "b6c44f5c298bbf7b6df139e26ef4b65e553fb129dd04bcbfe94d8c6eb7c6b72d",
+        "naive_cv_bugged": 0.9709,
+        "naive_cv_twin": 0.8276,
+        "partition": "dev",
+        "twin_sha256": "2d35dac7a17b5c6c4e05c504c67bf4ddb9f9fe5cd282c41ec288a4ae14c52e69"
+      },
+      "target_proxy_03": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "8c2998047240324f60929825b8ca0d5cb7c6447d001533789955f38d08abcf1f",
+        "naive_cv_bugged": 0.9704,
+        "naive_cv_twin": 0.7704,
+        "partition": "eval",
+        "twin_sha256": "463bf21a0f547dbae6de520aab86cc6023d8e0221e072ffd5612c205dfd550b1"
+      },
+      "target_proxy_04": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "830402001840862bfed169c029ad428a66bfdd8e312e5cf526e846e71001d14c",
+        "naive_cv_bugged": 0.9804,
+        "naive_cv_twin": 0.8159,
+        "partition": "eval",
+        "twin_sha256": "56d53a016a760f26770c83bfcb6f1231d5e289b44d3c7968163d12f0c960ded8"
+      },
+      "target_proxy_05": {
+        "bug_type": "target_proxy",
+        "bugged_sha256": "80286f4fa286285c57c0914efefb4818bcf39b9af050ea35da52d0a8cf745fb7",
+        "naive_cv_bugged": 0.9972,
+        "naive_cv_twin": 0.8496,
+        "partition": "eval",
+        "twin_sha256": "7360362390fc5c854eccbd9d37b162d743997ac64fa29994a73bdbcbd00efec1"
+      },
+      "temporal_leak_00": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "2782ded1ca059ed259279478cf49c2d5f91302d1708a2b8d286d8779e76d5823",
+        "naive_cv_bugged": 0.8902,
+        "naive_cv_twin": 0.8316,
+        "partition": "dev",
+        "twin_sha256": "f672036fa04860b74a17864128cdb5577a9ef75b01e5025de19f068a836f220f"
+      },
+      "temporal_leak_01": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "f71b77ddb6679d63045ed748c58d7ce512da326d21d42b8a78877ff6ed73b8d6",
+        "naive_cv_bugged": 0.8826,
+        "naive_cv_twin": 0.7926,
+        "partition": "dev",
+        "twin_sha256": "77626096e4c8a28cfe0c07f9a8c0f16dda3cfe2a29a8922e05bc157d9ac1b0cf"
+      },
+      "temporal_leak_02": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "5b2ac90d1bcdbd176f9189b211e0b82f85a29a13ae4e8c7fa502e237e7b4acd1",
+        "naive_cv_bugged": 0.9055,
+        "naive_cv_twin": 0.8719,
+        "partition": "dev",
+        "twin_sha256": "6f7f6b27faf72c795c98356a34ab6b3acc6f03159a1277eb11a5686535cb647d"
+      },
+      "temporal_leak_03": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "b0d37694061a278cab3a995f9677ba78e816a790cf249282a4e7741de2d0bb62",
+        "naive_cv_bugged": 0.9321,
+        "naive_cv_twin": 0.819,
+        "partition": "eval",
+        "twin_sha256": "bb120288c3cbc5094013007ecae45716a605fbe9f76c07fcf04f55f915fa546e"
+      },
+      "temporal_leak_04": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "8093deff2604954555aa474f4ac7a63fe9a78d68c180eeb529c69fe44df5e2da",
+        "naive_cv_bugged": 0.906,
+        "naive_cv_twin": 0.813,
+        "partition": "eval",
+        "twin_sha256": "e3b97b6eb1e250ff2cdcdd1a6961b0c3d35a0cfee88762bb21a9c64ee2e67bb7"
+      },
+      "temporal_leak_05": {
+        "bug_type": "temporal_leak",
+        "bugged_sha256": "512ceb68782bb1e6405a2d39570ad34467fcb4dd07153251660ac16a948739e3",
+        "naive_cv_bugged": 0.9405,
+        "naive_cv_twin": 0.8931,
+        "partition": "eval",
+        "twin_sha256": "fe0aa5772f1f6735165cf205e86668fd0bc9fa4fcd868beeb367c2c47f861df3"
+      },
+      "unit_mismatch_00": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "e8a00a49d6baae79490d17999c38f1a4a971b5c2faa3a21a790228317a6cee39",
+        "partition": "dev",
+        "twin_sha256": "ed65cc93bace3f0d3a17616b58d31299f24e9edfa019d26fb50c2482e4d54d91"
+      },
+      "unit_mismatch_01": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "29208bb972d89ca7a08ee88df292be0cec859c3106204e0f60c003cfaef8171e",
+        "partition": "dev",
+        "twin_sha256": "7cc165371258a1a333ded570f35beb6bc0cbbf1d758cbf0ea95c7bb83fd12af8"
+      },
+      "unit_mismatch_02": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "b72f68fc069e59eee97f3743482ccb7383a794426fb30299056c3f60d74f0f92",
+        "partition": "dev",
+        "twin_sha256": "929db2fa011239459897845412367be3f3b6c169cc031d06266fea87edc6a174"
+      },
+      "unit_mismatch_03": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "dfd0b40dac6ca0a53e0808c8f4d0a3ad0f305afa67a8fbff61e9d6de066e4975",
+        "partition": "eval",
+        "twin_sha256": "4f57bddd2f3bb907f4c05c5f3c1fa9c7e86f43069e2260d880dbbbe93db9ca2f"
+      },
+      "unit_mismatch_04": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "871407d3797d91abec7b3034bc1d3ad43aed83d7b69c2e4213754c5721bfc5cf",
+        "partition": "eval",
+        "twin_sha256": "7edec42a76cad33d6b58ce2a38aa102e4b2833922b2e2d50da312d49bec361f6"
+      },
+      "unit_mismatch_05": {
+        "bug_type": "unit_mismatch",
+        "bugged_sha256": "c2c00cce30d7dbb1f9cb484513b38ba856b5ad87773d8f5fb54bfb0e97b40164",
+        "partition": "eval",
+        "twin_sha256": "212a86b24c344cb3d8f62d7cd584afe1eb7338ff554a9b2800fc6c9e0dbc4e14"
+      }
+    }
+  }
+}

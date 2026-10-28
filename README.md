@@ -15,6 +15,8 @@ Every number here must come from a file in `benchmarks/results/`. Until then:
 | Leakage catch rate | pending |
 | False-alarm rate | pending |
 
+Baselines (source: `benchmarks/results/baselines_v0.json`; 10 tasks, FLAML 30 s/task, no LLM): per-task dummy/linear/FLAML scores and the mean normalized linear score with a bootstrap CI are in that file.
+
 ## Quick start
 
 ```bash

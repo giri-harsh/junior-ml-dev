@@ -17,3 +17,7 @@ Format: decision | alternatives | why.
 13. Remote stays local by user choice (2026-10-28); revisit at M1.
 14. fetch_openml uses parser=liac-arff | parser=auto | The pandas ARFF parser raises TypeError on pandas 3 categorical columns; the fallback to synthetic hid it, so check source.json origin.
 15. DVC skipped; raw data cached in gitignored data/tasks/_raw | DVC remote | Adds a tool for no gain while remote is local-only; re-fetch is deterministic.
+16. Planted-bug generator uses synthetic base data (make_classification), not benchmark tasks. | derive from registry tasks | Keeps ground truth exact and runs in seconds; real-data bugs can be added in S25.
+17. temporal_leak and group_leak are additive shortcuts (rows assigned to time blocks/groups whose regime matches the label with probability s); features and labels untouched. | overwrite labels | The first attempt overwrote labels and made bugged variants score lower than twins.
+18. Baselines scored in-process through the scorer's FastAPI app (TestClient), not HTTP between containers. | HTTP | Same code path and auth, no Docker dependency.
+19. FLAML restricted to lgbm/xgboost/rf/extra_tree, 3-fold CV, seed 0, 30 s per task. | default estimators | Predictable runtime on 16 CPUs; budget recorded in the result conditions.
