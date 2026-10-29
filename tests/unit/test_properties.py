@@ -69,7 +69,10 @@ def test_pure_noise_only_ever_triggers_noise_or_duplicate_findings(df: pd.DataFr
     (a random binary target IS maximally noisy: the known weak-signal ambiguity, KNOWN_GAPS)."""
     findings, _ = detect_with_status(df, "target", DetectionMeta(seed=0, time_budget_s=30))
     kinds = {f.type for f in findings if f.severity != Severity.LOW}
-    assert kinds <= {FindingType.LABEL_NOISE, FindingType.DUPLICATE_ROWS}  # degenerate frames repeat
+    assert kinds <= {
+        FindingType.LABEL_NOISE,
+        FindingType.DUPLICATE_ROWS,
+    }  # degenerate frames repeat
 
 
 @SETTINGS

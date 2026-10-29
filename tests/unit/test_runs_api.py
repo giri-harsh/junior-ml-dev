@@ -28,6 +28,9 @@ def api(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]
     }.items():  # fmt: skip
         monkeypatch.setenv(k, v)
     datasets.set_store(LocalObjectStore(tmp_path / "store"))
+    from harness.security.ratelimit import RateLimiter
+
+    monkeypatch.setattr(runs, "limiter", RateLimiter(1000, 60.0))  # tests share one process
     assert runs.run_store().path == str(tmp_path / "runs.db")  # env binding took effect
     yield TestClient(app)
     datasets.set_store(None)
