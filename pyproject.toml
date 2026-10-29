@@ -67,6 +67,7 @@ extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501"]
+"scripts/render_results.py" = ["E501"]
 
 [[tool.mypy.overrides]]
 module = ["sklearn.*", "flaml.*", "joblib.*"]

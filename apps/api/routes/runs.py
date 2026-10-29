@@ -92,14 +92,45 @@ def execute_job(payload: dict[str, Any]) -> dict[str, Any]:
     if os.environ.get("APPROVAL_SECRET"):
         approvals = approval_store()
     runner = AgentRunner(
-        run_store(), ScriptedPlanner(),
-        run_root=_path("RUN_ROOT", "data/runs"), audit=audit_log(), approvals=approvals,
-    )  # fmt: skip
+        run_store(),
+        ScriptedPlanner(),
+        run_root=_path("RUN_ROOT", "data/runs"),
+        audit=audit_log(),
+        approvals=approvals,
+        approval_token=payload.get("approval_token"),
+    )
+
     return runner.run(cfg)
 
 
 def work_once() -> bool:
     return Worker(job_queue(), execute_job).run_once()
+
+
+class ResumeBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    approval_token: str = Field(min_length=10, max_length=2000)
+
+
+@router.post("/v1/runs/{run_id}/resume", status_code=202)
+def resume_run(
+    run_id: str, body: ResumeBody, admin: str = Depends(require_admin)
+) -> dict[str, str]:
+    """Continue a run that is `awaiting_approval`, supplying the single-use approval token."""
+    store = run_store()
+    if store.status(run_id) != "awaiting_approval":
+        raise HTTPException(409, "run is not awaiting approval")
+    cfg = store.config(run_id)
+    payload = {"config": cfg.model_dump(mode="json"), "approval_token": body.approval_token}
+    job_id = job_queue().enqueue(run_id, payload)
+    audit_log().append(admin, "run_resumed", {"run_id": run_id})
+    return {"run_id": run_id, "job_id": job_id}
+
+
+@router.get("/ui", include_in_schema=False)
+def ui() -> FileResponse:
+    return FileResponse(Path(__file__).resolve().parents[1] / "static" / "index.html")
 
 
 @router.get("/v1/runs/{run_id}")

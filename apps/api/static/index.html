@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>junior-ml-dev</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1f24; --muted:#59636e; --line:#d0d7de; --accent:#0b5fff; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1116; --fg:#e6edf3; --muted:#9198a1; --line:#30363d; --accent:#6ea8ff; --bad:#ff7b72; } }
+  body { background:var(--bg); color:var(--fg); font:15px/1.5 system-ui, sans-serif; margin:0; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.3rem; } h2 { font-size:1rem; margin-top:28px; }
+  fieldset { border:1px solid var(--line); border-radius:8px; margin:12px 0; padding:12px 16px; }
+  label { display:block; margin:8px 0 2px; color:var(--muted); font-size:.85rem; }
+  input, select, button { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
+  button { background:var(--accent); color:#fff; border-color:var(--accent); cursor:pointer; margin-top:10px; }
+  pre { background:transparent; border:1px solid var(--line); border-radius:8px; padding:10px; overflow:auto; white-space:pre-wrap; }
+  .err { color:var(--bad); } .note { color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>junior-ml-dev</h1>
+  <p class="note">Scripted planner (no LLM). Upload a CSV or Parquet file, start a run, read the report.</p>
+
+  <fieldset><legend>1. Sign in</legend>
+    <label for="user">User</label><input id="user" autocomplete="username">
+    <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password">
+    <div><button id="login">Sign in</button></div>
+  </fieldset>
+
+  <fieldset><legend>2. Dataset</legend>
+    <label for="file">File (.csv or .parquet)</label><input id="file" type="file" accept=".csv,.parquet">
+    <div><button id="upload">Upload</button></div>
+  </fieldset>
+
+  <fieldset><legend>3. Run</legend>
+    <label for="target">Target column</label><input id="target">
+    <label for="ttype">Task type</label>
+    <select id="ttype"><option>binary</option><option>multiclass</option><option>regression</option></select>
+    <label for="metric">Metric</label>
+    <select id="metric"><option>roc_auc</option><option>pr_auc</option><option>f1_macro</option><option>rmse</option><option>mae</option></select>
+    <label><input id="deploy" type="checkbox"> stage a deploy (needs approval)</label>
+    <div><button id="start">Start run</button></div>
+  </fieldset>
+
+  <h2>Status</h2>
+  <pre id="out" aria-live="polite">Not signed in.</pre>
+  <p id="links"></p>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let datasetId = null, runId = null, timer = null;
+const show = (v, bad) => { $("out").textContent = typeof v === "string" ? v : JSON.stringify(v, null, 2); $("out").className = bad ? "err" : ""; };
+async function call(path, opts) {
+  const r = await fetch(path, Object.assign({ credentials: "same-origin" }, opts));
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(path + " -> " + r.status + " " + JSON.stringify(body.detail || body));
+  return body;
+}
+$("login").onclick = async () => {
+  try { await call("/v1/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user: $("user").value, password: $("pw").value }) }); show("Signed in."); }
+  catch (e) { show(String(e), true); }
+};
+$("upload").onclick = async () => {
+  try {
+    const f = $("file").files[0]; if (!f) return show("Choose a file first.", true);
+    const fd = new FormData(); fd.append("file", f);
+    const r = await call("/v1/datasets", { method: "POST", body: fd });
+    datasetId = r.dataset_id; show("Uploaded. dataset_id=" + datasetId + " (profiling in the background)");
+  } catch (e) { show(String(e), true); }
+};
+$("start").onclick = async () => {
+  try {
+    if (!datasetId) return show("Upload a dataset first.", true);
+    const body = { dataset_id: datasetId, target: $("target").value, task_type: $("ttype").value, metric: $("metric").value, deploy: $("deploy").checked };
+    const r = await call("/v1/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    runId = r.run_id; show("Queued " + runId); poll();
+  } catch (e) { show(String(e), true); }
+};
+function poll() {
+  clearInterval(timer);
+  timer = setInterval(async () => {
+    try {
+      const r = await call("/v1/runs/" + runId); show(r);
+      const res = r.result || {};
+      if (res.status === "awaiting_approval") { clearInterval(timer); approvalPrompt(res.pending_approval.approval_id); }
+      if (["done", "budget_exhausted", "degenerate"].includes(r.status)) {
+        clearInterval(timer);
+        $("links").innerHTML = res.report ? '<a href="/v1/runs/' + encodeURIComponent(runId) + '/report" target="_blank" rel="noopener">Open report</a>' : "";
+      }
+    } catch (e) { if (!String(e).includes("404")) { show(String(e), true); clearInterval(timer); } }
+  }, 2000);
+}
+function approvalPrompt(approvalId) {
+  const b = document.createElement("button"); b.textContent = "Approve deploy (single use)";
+  b.onclick = async () => {
+    try {
+      const t = await call("/v1/approvals/" + encodeURIComponent(approvalId) + "/approve", { method: "POST" });
+      await call("/v1/runs/" + encodeURIComponent(runId) + "/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ approval_token: t.token }) });
+      b.remove(); poll();
+    } catch (e) { show(String(e), true); }
+  };
+  $("links").replaceChildren(b);
+}
+</script>
+</body>
+</html>
