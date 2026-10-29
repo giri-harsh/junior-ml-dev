@@ -1,0 +1,169 @@
+{
+  "command": "python -m benchmarks.run_benchmark --baselines --v4 --out-name baselines_v4",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "baselines; FLAML time_budget=30s/task, 3-fold CV, seed 0; scored via scorer code path (in-process)",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T16:24:29+00:00",
+  "git_sha": "fb3943f49bb998c26cff924e4f68b406d1022e90",
+  "name": "baselines_v4",
+  "results": {
+    "aggregate": {
+      "excluded_tasks": [
+        "ailerons"
+      ],
+      "normalized_linear_ci95": [
+        0.522155516031565,
+        0.8726529136652015
+      ],
+      "normalized_linear_defined_n": 9,
+      "normalized_linear_mean": 0.7082049485645909
+    },
+    "flaml_time_budget_s": 30,
+    "per_task": {
+      "Brazilian_houses": {
+        "dummy": 4627.934461028212,
+        "dummy_fit_s": 0.05,
+        "flaml": 298.7173314481274,
+        "flaml_best_estimator": "extra_tree",
+        "flaml_fit_s": 78.59,
+        "flaml_time_budget_s": 30,
+        "linear": 12.942712553276452,
+        "linear_fit_s": 0.1,
+        "linear_normalized": 1.0660106920815424,
+        "metric": "rmse",
+        "role": "v4_heldout",
+        "task_type": "regression"
+      },
+      "MagicTelescope": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.76,
+        "flaml": 0.9423044284178124,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.62,
+        "flaml_time_budget_s": 30,
+        "linear": 0.8441085761877227,
+        "linear_fit_s": 0.08,
+        "linear_normalized": 0.7779903480022785,
+        "metric": "roc_auc",
+        "role": "v4_heldout",
+        "task_type": "binary"
+      },
+      "ailerons": {
+        "dummy": 0.00040282137716465155,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.00015660921445797638,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.29,
+        "flaml_time_budget_s": 30,
+        "linear": 0.0001757591592577605,
+        "linear_fit_s": 0.07,
+        "linear_normalized": null,
+        "metric": "rmse",
+        "role": "v4_heldout",
+        "task_type": "regression"
+      },
+      "default-of-credit-card-clients": {
+        "dummy": 0.22116666666666668,
+        "dummy_fit_s": 0.09,
+        "flaml": 0.5704130890215269,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.14,
+        "flaml_time_budget_s": 30,
+        "linear": 0.5060568891576246,
+        "linear_fit_s": 0.14,
+        "linear_normalized": 0.8157283919188967,
+        "metric": "pr_auc",
+        "role": "v4_heldout",
+        "task_type": "binary"
+      },
+      "eeg-eye-state": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.9914991252344529,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.83,
+        "flaml_time_budget_s": 30,
+        "linear": 0.6075290631564965,
+        "linear_fit_s": 0.07,
+        "linear_normalized": 0.21877773048976107,
+        "metric": "roc_auc",
+        "role": "v4_heldout",
+        "task_type": "binary"
+      },
+      "houses": {
+        "dummy": 115371.94441308545,
+        "dummy_fit_s": 0.13,
+        "flaml": 46144.46299645399,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 31.83,
+        "flaml_time_budget_s": 30,
+        "linear": 70235.77062760164,
+        "linear_fit_s": 0.12,
+        "linear_normalized": 0.6519979184832823,
+        "metric": "rmse",
+        "role": "v4_heldout",
+        "task_type": "regression"
+      },
+      "jm1": {
+        "dummy": 0.19338539274230593,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.4541822267852181,
+        "flaml_best_estimator": "rf",
+        "flaml_fit_s": 30.94,
+        "flaml_time_budget_s": 30,
+        "linear": 0.4051456958896702,
+        "linear_fit_s": 0.08,
+        "linear_normalized": 0.8119742094435115,
+        "metric": "pr_auc",
+        "role": "v4_heldout",
+        "task_type": "binary"
+      },
+      "letter": {
+        "dummy": 0.0030118812247085128,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.9602811246886739,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 31.77,
+        "flaml_time_budget_s": 30,
+        "linear": 0.7736524008386552,
+        "linear_fit_s": 0.52,
+        "linear_normalized": 0.8050405096327071,
+        "metric": "f1_macro",
+        "role": "v4_heldout",
+        "task_type": "multiclass"
+      },
+      "pendigits": {
+        "dummy": 0.01886326194398682,
+        "dummy_fit_s": 0.07,
+        "flaml": 0.9949359876862859,
+        "flaml_best_estimator": "extra_tree",
+        "flaml_fit_s": 30.14,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9527202450734288,
+        "linear_fit_s": 0.2,
+        "linear_normalized": 0.9567493881352415,
+        "metric": "f1_macro",
+        "role": "v4_heldout",
+        "task_type": "multiclass"
+      },
+      "sulfur": {
+        "dummy": 0.05705754239040816,
+        "dummy_fit_s": 0.05,
+        "flaml": 0.023660368897162182,
+        "flaml_best_estimator": "extra_tree",
+        "flaml_fit_s": 30.15,
+        "flaml_time_budget_s": 30,
+        "linear": 0.04805448769388969,
+        "linear_fit_s": 0.04,
+        "linear_normalized": 0.269575348894097,
+        "metric": "rmse",
+        "role": "v4_heldout",
+        "task_type": "regression"
+      }
+    }
+  }
+}
