@@ -7,7 +7,7 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 > **Honest status.** The agent that runs today is **scripted** (a deterministic planner, no LLM). An LLM
 > planner exists behind the same interface and was exercised only with a **mock** provider; no real LLM
 > was ever called. Docker, Postgres, Redis, E2B and CI were never run on the development machine.
-> Numbers are in [docs/RESULTS.md](docs/RESULTS.md), generated from `benchmarks/results/*.json`.
+> Two held-out agent evaluations exist (v1 headline, v2 post-hoc), both scripted-planner. Numbers are in [docs/RESULTS.md](docs/RESULTS.md), generated from `benchmarks/results/*.json`.
 > What was not done, and how to resume it, is in [docs/SKIPPED.md](docs/SKIPPED.md) and
 > [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
 
@@ -40,6 +40,10 @@ Key properties, each backed by tests:
 - **Guardrails.** Code policy, deterministic reviewer checks, untrusted-data sanitiser, and a structural action guard that does not depend on the model behaving.
 - **Approvals.** Deploy needs a single-use token bound to (action, run, model); the run pauses as `awaiting_approval`.
 - **Integrity.** Benchmark numbers come from code-written JSON with a conditions block; the benchmark is evaluated once per frozen hash via a ledger written before the run.
+
+> **Sandbox warning.** The only sandbox that has run is the local subprocess backend. On Windows it
+> applies job-object limits (memory, process count, kill-on-close); it is **NOT isolation** (no
+> filesystem or network restriction). Docker and E2B backends exist as interfaces and are untested.
 
 ## Quick start
 

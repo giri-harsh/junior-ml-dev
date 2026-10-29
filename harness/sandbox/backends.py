@@ -20,6 +20,7 @@ from typing import Protocol
 from pydantic import BaseModel, ConfigDict
 
 from harness.policies.code_policy import PolicyResult, check_code
+from harness.sandbox import winjob
 
 ALLOWED_PACKAGES = {
     "scikit-learn", "lightgbm", "xgboost", "catboost", "optuna", "shap", "scipy", "pandas", "numpy",
@@ -80,7 +81,7 @@ def safe_relpath(rel: str) -> str:
 class SubprocessSandbox:
     """Fresh temp workspace per run, scrubbed environment, hard timeout. Dev/test only."""
 
-    name = "subprocess-UNISOLATED"
+    name = "subprocess-UNISOLATED"  # Windows job limits reduce blast radius; still not isolation
 
     def run_python(self, code: str, timeout_s: float, files: dict[str, bytes]) -> ExecResult:
         work = Path(tempfile.mkdtemp(prefix="jmd-sbx-"))
@@ -95,23 +96,27 @@ class SubprocessSandbox:
                 "PYTHONHASHSEED": "0",
             }
             t0 = time.perf_counter()
+            proc = subprocess.Popen(
+                [sys.executable, "-I", "-c", code],
+                cwd=work,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            job = winjob.assign(proc)  # Windows: memory + process-count limits, kill-on-close
             try:
-                p = subprocess.run(
-                    [sys.executable, "-I", "-c", code],
-                    cwd=work,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout_s,
-                )
-                out, err, rc, timed_out = p.stdout, p.stderr, p.returncode, False
-            except subprocess.TimeoutExpired as exc:
-                out = (
-                    (exc.stdout or b"").decode()
-                    if isinstance(exc.stdout, bytes)
-                    else (exc.stdout or "")
-                )
+                out, err = proc.communicate(timeout=timeout_s)
+                rc, timed_out = proc.returncode, False
+            except subprocess.TimeoutExpired:
+                if job:
+                    job.terminate()  # kills the whole tree, not just the direct child
+                proc.kill()
+                out, _ = proc.communicate()
                 err, rc, timed_out = "timeout", -9, True
+            finally:
+                if job:
+                    job.close()
             return ExecResult(
                 stdout=out[:MAX_OUTPUT],
                 stderr=err[:MAX_OUTPUT],

@@ -208,3 +208,28 @@ def test_ties_within_tolerance_go_to_the_simpler_model() -> None:
     models["l"]["val_score"] = 0.9000  # 1.1% below: a real difference
     assert simplicity_order(["h", "l", "r"], models) == ["h", "l", "r"]
     assert simplicity_order([], {}) == []
+
+
+def test_reviewer_does_not_approve_when_leakage_detection_failed() -> None:
+    from harness.agent.models import RunConfig, RunTask
+    from harness.agent.tools import ToolCtx, review
+
+    task = RunTask(name="t", data_path="x", target="y", task_type="binary", metric="roc_auc")
+    cfg = RunConfig(run_id="r", task=task)
+    state = {
+        "models": {
+            "l": {
+                "family": "linear",
+                "val_score": 0.9,
+                "train_score": 0.91,
+                "fit_on": "train_split",
+            },
+            "d": {"family": "dummy", "val_score": 0.5, "train_score": 0.5, "fit_on": "train_split"},
+        },
+        "leaderboard": [{"model_id": "l"}, {"model_id": "d"}],
+        "failures": {"detect_leakage": "GuardError: time budget of 60.0s exceeded"},
+        "findings": [],
+        "dropped": [],
+    }
+    res = review(ToolCtx(cfg, state), {})
+    assert res["verdict"] == "REQUEST_CHANGES" and not res["checks"]["leakage_checked"]["passed"]

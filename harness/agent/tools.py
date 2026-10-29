@@ -186,6 +186,10 @@ def review(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
                 m["val_score"], ref, dummy, t.metric, scale
             )
     findings = [Finding.model_validate(f) for f in st.get("findings", [])]
+    ran = "detect_leakage" not in st.get("failures", {})
+    checks["leakage_checked"] = CheckResult(
+        passed=ran, detail="leakage detection ran" if ran else "leakage detection FAILED; unchecked"
+    )
     checks["leakage_resolved"] = check_leakage_resolved(findings, set(st.get("dropped", [])))
     verdict = "APPROVE" if all(c.passed for c in checks.values()) else "REQUEST_CHANGES"
     return {

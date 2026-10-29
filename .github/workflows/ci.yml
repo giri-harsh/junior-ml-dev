@@ -1,8 +1,9 @@
 name: ci
 on:
   push:
-    branches: [main, "sprint-*"]
+    branches: [main, "s*"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   checks:
@@ -15,7 +16,33 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
-      - run: uv run pytest -m "not integration"
+      - run: uv run pytest -q -m "not integration and not infra"
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  compose-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          JWT_SECRET=x APPROVAL_SECRET=y docker compose -f deploy/compose/docker-compose.yml \
+            --profile app config --quiet
+
+  infra:
+    # real postgres/redis/minio/docker; the same tests auto-skip locally when services are absent
+    runs-on: ubuntu-latest
+    needs: checks
+    env:
+      JWT_SECRET: ci-only-not-a-secret-0123456789abcdef
+      APPROVAL_SECRET: ci-only-not-a-secret-fedcba9876543210
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --group dev --extra infra
+      - run: docker compose -f deploy/compose/docker-compose.yml --profile app up -d --wait
+      - run: uv run pytest -q -m infra
+      - if: failure()
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app logs --tail 60
+      - if: always()
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app down

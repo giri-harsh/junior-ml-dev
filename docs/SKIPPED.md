@@ -16,3 +16,10 @@ Docker, Postgres, Redis, E2B or an LLM key; none became reachable.
 | Load test, tracing backend (OTel), dashboards | skipped | Needs services; logs, per-step trace JSON and /metrics exist | PRD S24 |
 | Docker compose / container deploy start | NOT RUN | Docker unavailable | `docker compose -f data/deploy/<run>/<model>/docker-compose.yml up -d --build` |
 | Ablations and stress runs of the agent benchmark | skipped | Eval-once: only one frozen evaluation exists | new freeze hash needs a new, unseen partition |
+
+## Run 3 additions
+| Item | Status | Why | Resume |
+|---|---|---|---|
+| S18 real LLM planner (live run on <=3 dev tasks, llm_v1, injection suite with a real LLM in the loop, real fixtures) | NOT RUN | Probe: no GROQ/GEMINI/ANTHROPIC/OPENAI key, no Ollama. Planner, gateway, mock-tested structured output and fallback already exist | set `GROQ_API_KEY` (or Gemini), then run the LLM planner via `LLMPlanner(Gateway(default_chain(), mode="record", fixtures=...))` on dev tasks wdbc/kc1/sk_wine with <=50 calls/task, <=200 total; commit fixtures; rerun the injection suite with that gateway |
+| S19 Docker sandbox backend execution, E2B backend, scripted step that runs agent-written feature code in a sandbox | NOT RUN | No Docker, no E2B key | see KNOWN_GAPS (sandbox row) |
+| S17 live compose, Postgres/arq/MinIO verification, container deploy test | NOT RUN | No Docker | see KNOWN_GAPS (infra row) |

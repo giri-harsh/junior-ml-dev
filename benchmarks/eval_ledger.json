@@ -20,6 +20,23 @@
     "result_file": "benchmarks/results/leakage_v0.json",
     "status": "spent"
   },
+  "agent:197c7b2ba8702ef261b6158573ecc222f14576fbe12f998ecc4580ad88a6aa0e": {
+    "infra_retries": [],
+    "partitions": [
+      "credit-g",
+      "adult",
+      "bank-marketing",
+      "churn",
+      "blood-transfusion-service-center",
+      "segment",
+      "vehicle",
+      "cpu_act",
+      "house_16H",
+      "wine_quality"
+    ],
+    "result_file": "agent_v2.json",
+    "status": "evaluated"
+  },
   "agent:66e3796c63e0a1b44649b79d18a94f5ea4418f8879b863e967ec5cccc43ae28f": {
     "infra_retries": [],
     "partitions": [
