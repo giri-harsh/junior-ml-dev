@@ -527,8 +527,8 @@ def detect_label_noise(ctx: Context) -> list[Finding]:
         ]
     idx = subsample_indices(len(ctx.df), t["max_rows"], ctx.meta.seed)
     _, y = np.unique(ctx.y[idx].astype(int), return_inverse=True)
-    n_classes = int(y.max()) + 1
-    if n_classes < 2 or np.bincount(y).min() < t["folds"]:
+    n_classes = int(np.max(y)) + 1
+    if n_classes < 2 or int(np.min(np.bincount(y))) < t["folds"]:
         return []
     feats = [c for c in ctx.features if c not in ctx.roles.id_like]
     if not feats:

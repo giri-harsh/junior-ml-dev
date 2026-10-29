@@ -14,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import uuid
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
@@ -36,6 +37,7 @@ class ExecResult(BaseModel):
     exit_code: int
     timed_out: bool
     duration_s: float
+    files: dict[str, bytes] = {}  # workspace files named out_* written by the code (<= 50 MB each)
 
 
 class PolicyRefused(RuntimeError):
@@ -61,6 +63,17 @@ def run_checked(
     if not policy.allowed:
         raise PolicyRefused(policy)
     return backend.run_python(code, min(timeout_s, 300.0), files or {})
+
+
+MAX_OUT_FILE = 50 * 1024 * 1024
+
+
+def collect_outputs(work: Path) -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for p in sorted(work.glob("out_*")):
+        if p.is_file() and p.stat().st_size <= MAX_OUT_FILE:
+            out[p.name] = p.read_bytes()
+    return out
 
 
 def safe_relpath(rel: str) -> str:
@@ -123,6 +136,7 @@ class SubprocessSandbox:
                 exit_code=rc,
                 timed_out=timed_out,
                 duration_s=round(time.perf_counter() - t0, 3),
+                files=collect_outputs(work),
             )
         finally:
             shutil.rmtree(work, ignore_errors=True)
@@ -136,9 +150,10 @@ class LocalDockerBackend:
     ) -> None:
         self.image, self.cpus, self.memory = image, cpus, memory
 
-    def command(self, workspace: Path) -> list[str]:
+    def command(self, workspace: Path, name: str = "") -> list[str]:
+        named = ["--name", name] if name else []
         return [
-            "docker", "run", "--rm", "--network", "none", "--read-only",
+            "docker", "run", "--rm", *named, "--network", "none", "--read-only",
             "--user", "65534:65534", "--cpus", str(self.cpus), "--memory", self.memory,
             "--pids-limit", "128", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
             "--tmpfs", "/tmp:rw,size=64m", "-v", f"{workspace}:/workspace:rw", "-w", "/workspace",
@@ -149,26 +164,34 @@ class LocalDockerBackend:
         if shutil.which("docker") is None:
             raise RuntimeError("docker not available: LocalDockerBackend NOT RUN (see KNOWN_GAPS)")
         work = Path(tempfile.mkdtemp(prefix="jmd-docker-"))
+        name = f"jmd-sbx-{uuid.uuid4().hex[:12]}"
         try:
+            work.chmod(0o777)  # the container runs as uid 65534, not as the host user
             (work / "main.py").write_text(code, encoding="utf-8")
             for rel, data in files.items():
-                (work / safe_relpath(rel)).write_bytes(data)
+                target = work / safe_relpath(rel)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+                target.chmod(0o644)
             t0 = time.perf_counter()
             try:
                 p = subprocess.run(
-                    self.command(work), capture_output=True, text=True, timeout=timeout_s + 5
+                    self.command(work, name), capture_output=True, text=True, timeout=timeout_s
                 )
                 return ExecResult(
                     stdout=p.stdout[:MAX_OUTPUT], stderr=p.stderr[:MAX_OUTPUT],
                     exit_code=p.returncode, timed_out=False,
-                    duration_s=round(time.perf_counter() - t0, 3),
+                    duration_s=round(time.perf_counter() - t0, 3), files=collect_outputs(work),
                 )  # fmt: skip
             except subprocess.TimeoutExpired:
+                # killing the docker CLI would leave the container running: kill it by name
+                subprocess.run(["docker", "kill", name], capture_output=True, timeout=30)
                 return ExecResult(
                     stdout="", stderr="timeout", exit_code=-9, timed_out=True,
                     duration_s=round(time.perf_counter() - t0, 3),
                 )  # fmt: skip
         finally:
+            subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=30)
             shutil.rmtree(work, ignore_errors=True)
 
 
@@ -179,6 +202,16 @@ class E2BBackend:
 
     def run_python(self, code: str, timeout_s: float, files: dict[str, bytes]) -> ExecResult:
         raise NotImplementedError("E2BBackend is a STUB: needs the e2b SDK and E2B_API_KEY")
+
+
+def backend_from_env() -> SandboxBackend:
+    """JMD_SANDBOX=docker | local-unsafe (subprocess; NOT isolation). Unset: refuse."""
+    choice = os.environ.get("JMD_SANDBOX", "")
+    if choice == "docker":
+        return LocalDockerBackend()
+    if choice == "local-unsafe":
+        return SubprocessSandbox()
+    raise RuntimeError("no sandbox backend configured: set JMD_SANDBOX=docker")
 
 
 def package_allowed(pkg: str) -> bool:

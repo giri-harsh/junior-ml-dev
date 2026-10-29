@@ -100,43 +100,85 @@ def test_minio_object_store_roundtrip(minio_endpoint: str, monkeypatch: pytest.M
     assert store.exists(did)
 
 
+SUBMIT = """
+import numpy as np
+import pandas as pd
+from apps.api.routes import runs
+from harness.agent.models import RunBudget, RunConfig, RunTask
+
+r = np.random.default_rng(0)
+a = r.normal(size=3000)
+pd.DataFrame({"a": a, "b": r.normal(size=3000), "y": (a > 0).astype(int)}).to_parquet(
+    "/app/data/infra.parquet"
+)
+cfg = RunConfig(
+    run_id="infra-kill",
+    task=RunTask(name="t", data_path="/app/data/infra.parquet", target="y",
+                 task_type="binary", metric="roc_auc"),
+    budget=RunBudget(flaml_budget_s=20),
+)
+print(runs.job_queue().enqueue("infra-kill", {"config": cfg.model_dump(mode="json")}))
+"""
+
+REFERENCE = """
+import json
+from harness.agent.models import RunBudget, RunConfig, RunTask
+from harness.agent.planners import ScriptedPlanner
+from harness.agent.runner import AgentRunner
+from harness.agent.store import RunStore
+
+cfg = RunConfig(
+    run_id="infra-ref",
+    task=RunTask(name="t", data_path="/app/data/infra.parquet", target="y",
+                 task_type="binary", metric="roc_auc"),
+    budget=RunBudget(flaml_budget_s=20),
+)
+res = AgentRunner(RunStore("/tmp/ref.db"), ScriptedPlanner(), run_root="/tmp/refruns").run(cfg)
+print("RESULT " + json.dumps({k: res[k] for k in ("chosen_family", "val_score", "n_steps")}))
+"""
+
+
+def _exec(docker: str, script: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [docker, "compose", *COMPOSE, "exec", "-T", "api", "python", "-"],
+        input=script, capture_output=True, text=True, timeout=900,
+    )  # fmt: skip
+
+
+@pytest.mark.compose
 def test_killed_worker_container_resumes_without_repeating_steps(
     docker_bin: str, pg_url: str
 ) -> None:
-    """docker kill the worker mid-run, restart it, and check the checkpoints are contiguous."""
-    up = _compose(docker_bin, "up", "-d", "--wait", timeout=900)
+    """docker kill the worker mid-run, restart it, then compare with an uninterrupted run."""
+    up = _compose(docker_bin, "up", "-d", "--wait", timeout=1200)
     assert up.returncode == 0, up.stdout[-800:] + up.stderr[-800:]
     try:
-        # submit through the API container's own CLI so no cookie handling is needed here
-        sub = _compose(
-            docker_bin, "exec", "-T", "api", "python", "-c",
-            "import json,sys;from apps.api.routes import runs;"
-            "from harness.agent.models import *;import pandas as pd,numpy as np;"
-            "r=np.random.default_rng(0);a=r.normal(size=3000);"
-            "pd.DataFrame({'a':a,'b':r.normal(size=3000),'y':(a>0).astype(int)}).to_parquet('/app/data/infra.parquet');"
-            "cfg=RunConfig(run_id='infra-kill',task=RunTask(name='t',data_path='/app/data/infra.parquet',"
-            "target='y',task_type='binary',metric='roc_auc'),budget=RunBudget(flaml_budget_s=20));"
-            "print(runs.job_queue().enqueue('infra-kill',{'config':cfg.model_dump(mode='json')}))",
-        )  # fmt: skip
+        sub = _exec(docker_bin, SUBMIT)
         assert sub.returncode == 0, sub.stderr[-800:]
         store = SqlRunStore(pg_url)
-        deadline = time.time() + 120
+        deadline = time.time() + 180
         while time.time() < deadline and len(store.checkpoints("infra-kill")) < 4:
             time.sleep(1)
-        assert len(store.checkpoints("infra-kill")) >= 4, "worker never started the run"
-        subprocess.run([docker_bin, "kill", "jmd-worker-1"], check=True, capture_output=True)
         before = len(store.checkpoints("infra-kill"))
+        assert before >= 4, "worker never started the run"
+        subprocess.run([docker_bin, "kill", "jmd-worker-1"], check=True, capture_output=True)
+        assert store.status("infra-kill") == "running"  # killed mid-run, not finished
         _compose(docker_bin, "start", "worker")
-        deadline = (
-            time.time() + 600
-        )  # arq re-delivers after the dead worker's in-progress key expires
+        deadline = time.time() + 900  # arq re-delivers once the dead worker's key expires (30 s)
         while time.time() < deadline and store.status("infra-kill") != "done":
             time.sleep(5)
-        assert store.status("infra-kill") == "done", _compose(
-            docker_bin, "logs", "--tail", "40", "worker"
-        ).stdout
-        idxs = [r.idx for r, _ in store.checkpoints("infra-kill")]
-        assert idxs == list(range(len(idxs))) and len(idxs) > before
+        logs = _compose(docker_bin, "logs", "--tail", "40", "worker").stdout
+        assert store.status("infra-kill") == "done", logs
+        cps = [r for r, _ in store.checkpoints("infra-kill")]
+        assert [r.idx for r in cps] == list(range(len(cps))) and len(cps) > before
+        keys = [(r.step.tool, json.dumps(r.step.args, sort_keys=True)) for r in cps]
+        assert len(keys) == len(set(keys)), "a step ran twice"
+        ref = _exec(docker_bin, REFERENCE)
+        assert ref.returncode == 0, ref.stderr[-800:]
+        want = json.loads(ref.stdout.split("RESULT ", 1)[1])
+        got = store.result("infra-kill") or {}
+        assert got["chosen_family"] == want["chosen_family"]
+        assert got["val_score"] == want["val_score"]
     finally:
         _compose(docker_bin, "down")  # keep volumes
 

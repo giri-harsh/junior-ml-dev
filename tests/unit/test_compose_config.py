@@ -57,9 +57,21 @@ def test_dockerfile_and_ignore_exist_and_exclude_data() -> None:
 def test_ci_workflow_runs_lint_types_unit_tests_and_gitleaks() -> None:
     wf = yaml.safe_load(Path(".github/workflows/ci.yml").read_text(encoding="utf-8"))
     steps = " ".join(str(s) for s in wf["jobs"]["checks"]["steps"])
-    for needle in ("ruff check", "mypy", "pytest", "not infra", "gitleaks"):
+    for needle in ("ruff check", "ruff format --check", "mypy", "pytest", "not infra", "gitleaks"):
         assert needle in steps, needle
-    assert {"checks", "compose-validate", "infra"} <= set(wf["jobs"])
+    assert {"checks", "compose-validate"} <= set(wf["jobs"])
+    assert wf["concurrency"]["cancel-in-progress"] is True
+    assert all("timeout-minutes" in j for j in wf["jobs"].values())
+
+
+def test_infra_workflow_has_services_compose_and_timeouts() -> None:
+    wf = yaml.safe_load(Path(".github/workflows/infra.yml").read_text(encoding="utf-8"))
+    assert {"services", "compose"} <= set(wf["jobs"])
+    svc = wf["jobs"]["services"]
+    assert {"postgres", "redis"} <= set(svc["services"])
+    assert all("health-cmd" in s["options"] for s in svc["services"].values())
+    assert svc["timeout-minutes"] <= 30 and wf["jobs"]["compose"]["timeout-minutes"] <= 30
+    assert wf["concurrency"]["cancel-in-progress"] is True
 
 
 def test_minio_healthcheck_does_not_depend_on_curl() -> None:

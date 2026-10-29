@@ -19,6 +19,7 @@ TOOL_SERVER = {
     "package_model": "deploy",
     "deploy_local": "deploy",
     "check_code_policy": "sandbox-exec",
+    "engineer_features": "sandbox-exec",
     "decide_leakage": "agent",
     "review": "agent",
     "report": "agent",
@@ -57,6 +58,7 @@ class RunConfig(_Base):
     planner: Literal["scripted", "llm"] = "scripted"
     llm_mode: Literal["none", "mocked", "recorded", "real"] = "none"
     deploy: bool = False
+    sandbox_features: bool = False  # run agent-written feature code through the sandbox
     mode: Literal["dev", "benchmark", "test"] = "dev"
 
 
