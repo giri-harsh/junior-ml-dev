@@ -9,3 +9,4 @@ disk free 38.8 GB | cores 16 | RAM 15.6 GB
 | Sprint | Status | Next |
 |---|---|---|
 | S16 correctness | in progress | items 1-3 then 4, then v2 benchmark |
+S16: items 1-4,6 done on branch s16-correctness (detector fixes, FLAML refit+bundle, tie-break); dev partition rerun -> benchmarks/results/agent_dev_v1.json. NEXT: gate, merge, tag s16-done + agent-frozen-v2, run `python -m benchmarks.agent_benchmark --final --version v2` ONCE (resume only with --resume), then render results, then S17.
