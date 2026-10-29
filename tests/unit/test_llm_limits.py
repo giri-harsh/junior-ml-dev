@@ -168,3 +168,14 @@ def test_default_daily_cap_is_120() -> None:
     from harness.gateway.limits import DEFAULT_PER_DAY
 
     assert DEFAULT_PER_DAY == 120
+
+
+def test_locally_refused_calls_do_not_count_as_requests(tmp_path: Path) -> None:
+    c = Clock()
+    led = ledger(tmp_path, c, per_day=0)  # groq is capped from the start
+    capped = CappedProvider(MockProvider(lambda r, i: "x", name="groq"), "groq", led)
+    ok = MockProvider(lambda r, i: "from-fallback", name="gemini")
+    gw = Gateway(providers=[capped, ok], max_requests=2, sleep=c.sleep)
+    for i in range(2):
+        assert gw.complete(req(f"q{i}")).text == "from-fallback"
+    assert gw.stats["calls"] == 2  # two real requests, not four
