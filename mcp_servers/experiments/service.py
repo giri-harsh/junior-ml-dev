@@ -304,6 +304,8 @@ def _fit_flaml(
     xs = _stringify(x)
     for c in _cat_cols(x):
         xs[c] = xs[c].astype(pd.CategoricalDtype(sorted(xs[c].dropna().unique())))
+    cats = {c: list(xs[c].cat.categories) for c in _cat_cols(x)}
+    xs = _safe_names(xs)
     flaml_metric = {
         "roc_auc": "roc_auc",
         "pr_auc": "ap",
@@ -331,7 +333,7 @@ def _fit_flaml(
         n_splits=3,
         **search,
     )
-    return _FlamlModel(automl, {c: list(xs[c].cat.categories) for c in _cat_cols(x)}), {
+    return _FlamlModel(automl, cats), {
         "best_estimator": automl.best_estimator,
         "best_config": _jsonable(automl.best_config),
     }
@@ -339,6 +341,14 @@ def _fit_flaml(
 
 def _jsonable(cfg: dict[str, Any]) -> dict[str, Any]:
     return {k: (v.item() if hasattr(v, "item") else v) for k, v in cfg.items()}
+
+
+def _safe_names(df: pd.DataFrame) -> pd.DataFrame:
+    """LightGBM rejects feature names with JSON characters (e.g. 'fLength:'); FLAML sees positional
+    names instead. Callers always pass columns in the training order."""
+    out = df.copy()
+    out.columns = [f"f{i}" for i in range(out.shape[1])]
+    return out
 
 
 class _FlamlModel:
@@ -352,7 +362,7 @@ class _FlamlModel:
         xs = _stringify(x)
         for c, cats in self.cats.items():
             xs[c] = xs[c].astype(pd.CategoricalDtype(cats))
-        return xs
+        return _safe_names(xs)
 
     def predict(self, x: pd.DataFrame) -> Any:
         return self.automl.predict(self._prep(x))

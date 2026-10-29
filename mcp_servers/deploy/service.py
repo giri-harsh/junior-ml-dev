@@ -91,6 +91,7 @@ if REC["family"] == "flaml":  # bundle holds {"automl": fitted AutoML, "cats": t
             df = df.copy()
             for c, cats in _CATS.items():
                 df[c] = df[c].astype(pd.CategoricalDtype(cats))
+            df.columns = [f"f{i}" for i in range(df.shape[1])]  # as at training time
             return df
 
         def predict(self, df):

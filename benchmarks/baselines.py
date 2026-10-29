@@ -93,6 +93,9 @@ def _flaml_frames(x: pd.DataFrame, x_test: pd.DataFrame) -> tuple[pd.DataFrame, 
         dtype = pd.CategoricalDtype(sorted(xs[c].dropna().unique()))
         xs[c] = xs[c].astype(dtype)
         ts[c] = ts[c].astype(dtype)
+    # LightGBM rejects names with JSON characters (e.g. 'fLength:'): use positional names
+    xs.columns = [f"f{i}" for i in range(xs.shape[1])]
+    ts.columns = list(xs.columns)
     return xs, ts
 
 

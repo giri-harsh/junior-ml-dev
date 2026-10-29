@@ -262,3 +262,23 @@ def test_permutation_importance_finds_the_informative_feature(env: Path) -> None
     assert {i.feature for i in res.top[1:]} <= {"noise1", "noise2"}
     assert all(i.mean_drop < res.top[0].mean_drop for i in res.top[1:])
     assert res.n_eval == 150
+
+
+def test_flaml_accepts_feature_names_with_special_characters(env: Path) -> None:
+    rng = np.random.default_rng(9)
+    df = pd.DataFrame(
+        {
+            "fLength:": rng.normal(size=300),
+            'a"b{c}': rng.normal(size=300),
+            "cat:x": rng.choice(["u", "v"], 300),
+        }
+    )
+    df["y"] = (df["fLength:"] > 0).astype(int)
+    p = env / "names.csv"
+    df.to_csv(p, index=False)
+    rec = s.train_model(_req(str(p), family="flaml", time_budget_s=3, selection="cv"))
+    assert rec.val_score > 0.8 and "fLength:" in rec.features
+    ev = s.evaluate_model(
+        s.EvalRequest(run_id="r1", model_id=rec.model_id, data_path=str(p), target="y")
+    )
+    assert ev.score > 0.8
