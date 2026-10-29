@@ -194,3 +194,17 @@ def test_resume_after_hard_kill_matches_uninterrupted_run(env: Path, tmp_path: P
         RunStore(tmp_path / "c.db"), ScriptedPlanner(), run_root=tmp_path / "cr"
     ).run(clean_cfg)
     assert out["val_score"] == clean["val_score"] and out["chosen_family"] == clean["chosen_family"]
+
+
+def test_ties_within_tolerance_go_to_the_simpler_model() -> None:
+    from harness.agent.tools import simplicity_order
+
+    models = {
+        "h": {"family": "hgb", "val_score": 0.9100},
+        "l": {"family": "linear", "val_score": 0.9080},  # 0.2% below best: a tie
+        "r": {"family": "rf", "val_score": 0.8900},
+    }
+    assert simplicity_order(["h", "l", "r"], models) == ["l", "h", "r"]
+    models["l"]["val_score"] = 0.9000  # 1.1% below: a real difference
+    assert simplicity_order(["h", "l", "r"], models) == ["h", "l", "r"]
+    assert simplicity_order([], {}) == []

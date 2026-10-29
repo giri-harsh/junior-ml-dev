@@ -20,6 +20,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import joblib
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -79,6 +80,26 @@ from pydantic import BaseModel
 HERE = Path(__file__).parent
 REC = json.loads((HERE / "model_record.json").read_text(encoding="utf-8"))
 MODEL = joblib.load(HERE / "model.joblib")
+if REC["family"] == "flaml":  # bundle holds {"automl": fitted AutoML, "cats": training categories}
+    _AUTOML, _CATS = MODEL["automl"], MODEL["cats"]
+
+    class _FlamlAdapter:
+        classes_ = getattr(_AUTOML, "classes_", None)
+
+        @staticmethod
+        def _prep(df):
+            df = df.copy()
+            for c, cats in _CATS.items():
+                df[c] = df[c].astype(pd.CategoricalDtype(cats))
+            return df
+
+        def predict(self, df):
+            return _AUTOML.predict(self._prep(df))
+
+        def predict_proba(self, df):
+            return _AUTOML.predict_proba(self._prep(df))
+
+    MODEL = _FlamlAdapter()
 app = FastAPI(title="junior-ml-dev predict service")
 
 
@@ -158,17 +179,22 @@ def package_model(req: PackageRequest) -> PackageResult:
         src = ex.model_path(req.run_id, req.model_id)
     except ex.ExperimentError as exc:
         raise DeployError(str(exc)) from None
-    if rec.family == "flaml":
-        raise DeployError("FLAML models are not bundled (needs repo classes); use an sklearn model")
     out = deploy_root() / req.run_id / req.model_id
     out.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(src, out / "model.joblib")
+    if rec.family == "flaml":  # repo wrapper class is not bundled: ship the fitted AutoML + cats
+        wrapper = ex._load_model(req.run_id, req.model_id)
+        joblib.dump({"automl": wrapper.automl, "cats": wrapper.cats}, out / "model.joblib")
+    else:
+        shutil.copyfile(src, out / "model.joblib")
     (out / "model_record.json").write_text(rec.model_dump_json(indent=2), encoding="utf-8")
     (out / "app.py").write_text(APP_TEMPLATE, encoding="utf-8")
     (out / "Dockerfile").write_text(DOCKERFILE, encoding="utf-8")
     (out / "docker-compose.yml").write_text(COMPOSE, encoding="utf-8")
     (out / "requirements.txt").write_text(
-        _pin(["scikit-learn", "pandas", "numpy", "joblib", "fastapi", "uvicorn", "pydantic"]),
+        _pin(
+            ["scikit-learn", "pandas", "numpy", "joblib", "fastapi", "uvicorn", "pydantic"]
+            + (["flaml", "lightgbm", "xgboost", "scipy"] if rec.family == "flaml" else [])
+        ),
         encoding="utf-8",
     )
     (out / "model_card.md").write_text(_card(rec), encoding="utf-8")

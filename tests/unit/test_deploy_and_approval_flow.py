@@ -155,3 +155,53 @@ def test_deploy_without_approval_store_is_a_recorded_failure_not_a_crash(
     )
     assert res["status"] == "done"
     assert any("approval_required" in v for v in res["failures"].values())
+
+
+def test_flaml_model_bundle_predicts_identically_in_a_fresh_process(
+    env: Path, tmp_path: Path
+) -> None:  # noqa: F811
+    import subprocess
+    import sys
+
+    import pandas as pd
+
+    csv = make_csv(env)
+    rec = ex.train_model(
+        ex.TrainRequest(
+            data_path=str(csv),
+            target="y",
+            task_type="binary",
+            metric="roc_auc",
+            run_id="r1",
+            family="flaml",
+            time_budget_s=3,
+        )  # fmt: skip
+    )
+    full = ex.refit_full(ex.RefitRequest(run_id="r1", model_id=rec.model_id))
+    res = dp.package_model(dp.PackageRequest(run_id="r1", model_id=full.model_id))
+    bundle = Path(res.bundle_dir)
+    reqs = (bundle / "requirements.txt").read_text()
+    assert all(f"{p}==" in reqs for p in ("flaml", "lightgbm", "xgboost"))
+    feats = pd.read_csv(csv).drop(columns=["y"]).head(20)
+    feats_path = env / "twenty.csv"
+    feats.to_csv(feats_path, index=False)
+    want = pd.read_csv(
+        ex.predict(
+            ex.PredictRequest(run_id="r1", model_id=full.model_id, features_path=str(feats_path))
+        ).out_path
+    )["pred"].to_numpy()
+    rows = tmp_path / "rows.json"
+    rows.write_text(json.dumps({"rows": json.loads(feats.to_json(orient="records"))}))
+    out = tmp_path / "got.json"
+    script = (
+        "import importlib.util, json, sys\n"
+        "from fastapi.testclient import TestClient\n"
+        f"spec = importlib.util.spec_from_file_location('b', r'{bundle / 'app.py'}')\n"
+        "m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)\n"
+        f"r = TestClient(m.app).post('/predict', json=json.load(open(r'{rows}')))\n"
+        f"json.dump(r.json(), open(r'{out}', 'w'))\n"
+    )
+    proc = subprocess.run([sys.executable, "-I", "-c", script], capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr[-600:]
+    got = json.loads(out.read_text())["predictions"]
+    assert len(got) == 20 and got == pytest.approx(want.tolist())

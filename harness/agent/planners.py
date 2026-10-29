@@ -63,11 +63,8 @@ def _tail_steps(cfg: RunConfig, state: dict[str, Any]) -> list[Step]:
     chosen = state.get("chosen")
     steps: list[Step] = []
     if chosen:
-        fam = state.get("models", {}).get(chosen, {}).get("family")
-        final = chosen
-        if fam != "flaml":
-            steps.append(Step(tool="refit_full", args={"model_id": chosen}, reason="refit on all"))
-            final = f"{chosen}-full"
+        steps.append(Step(tool="refit_full", args={"model_id": chosen}, reason="refit on all"))
+        final = f"{chosen}-full"
         if cfg.task.test_features_path:
             steps.append(Step(tool="predict", args={"model_id": final}, reason="test predictions"))
         if cfg.deploy:

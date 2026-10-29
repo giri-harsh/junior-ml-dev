@@ -142,10 +142,24 @@ def check_code_policy(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
 
 
 # --- reviewer (deterministic checks only) ---------------------------------------------------
+COMPLEXITY = {"dummy": 0, "linear": 1, "rf": 2, "hgb": 3, "flaml": 4}
+TIE_REL = 0.005  # fixed a priori: validation scores within 0.5% of the best are a tie
+
+
+def simplicity_order(board: list[str], models: dict[str, dict[str, Any]]) -> list[str]:
+    """Validation score only; models within TIE_REL of the best are ordered simplest first."""
+    if not board:
+        return board
+    best = models[board[0]]["val_score"]
+    tied = [m for m in board if abs(models[m]["val_score"] - best) <= TIE_REL * abs(best)]
+    tied.sort(key=lambda m: (COMPLEXITY.get(models[m]["family"], 9), board.index(m)))
+    return tied + [m for m in board if m not in tied]
+
+
 def review(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     st, t = ctx.state, ctx.cfg.task
     models: dict[str, dict[str, Any]] = st.get("models", {})
-    board = [r["model_id"] for r in st.get("leaderboard", [])]
+    board = simplicity_order([r["model_id"] for r in st.get("leaderboard", [])], models)
     higher = t.metric not in {"rmse", "mae"}
     by_family = {m["family"]: m for m in models.values() if m["fit_on"] == "train_split"}
     dummy = by_family.get("dummy", {}).get("val_score")
