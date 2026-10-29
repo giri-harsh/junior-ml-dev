@@ -1,0 +1,133 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\llm_bakeoff.py",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 4,
+    "notes": "DEV partition bake-off, 2 tasks x 2 provider families, cloud APIs only",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T04:49:33+00:00",
+  "git_sha": "08ba84f8a8f9951c0292a9725a4b08b836919d74",
+  "name": "llm_bakeoff",
+  "results": {
+    "gemini": {
+      "aggregate": {
+        "fallbacks": 2,
+        "first_try": 4,
+        "first_try_valid_rate": 0.8,
+        "passes": 2,
+        "repairs": 1,
+        "requests": 6,
+        "structured": 5,
+        "tokens": 1684
+      },
+      "per_task": {
+        "sk_wine": {
+          "agent": 1.0,
+          "decisions": [
+            {
+              "action": "train",
+              "family": "hgb",
+              "reason": "Linear model achieved high validation f1_macro (0.9213) with potential overfitting (train 1.0). Transitioning to Histogram Gradient Boosting (hgb) to capture non-linear patterns and robustly improve performance."
+            },
+            {
+              "action": "tune",
+              "family": "hgb",
+              "reason": "Linear and histogram-based gradient boosting have both achieved a validation f1_macro of 0.9213 with default parameters. Tuning hgb should help improve performance further while leveraging tree-based non-linear modeling."
+            },
+            {
+              "action": "tune",
+              "family": "hgb",
+              "reason": "Both linear and hgb models achieved strong validation performance (0.9213 f1_macro) with overfitting on the training set. Tuning the histogram-based gradient boosting model is a good next step to improve generalization."
+            },
+            {
+              "action": "tune",
+              "family": "rf",
+              "reason": "Random forest achieved the highest validation f1_macro score of 0.9602 and should be tuned next."
+            }
+          ],
+          "family": "rf",
+          "linear": 1.0,
+          "passes_vs_linear": true,
+          "steps": 14
+        },
+        "wdbc": {
+          "agent": 0.9916764018691588,
+          "decisions": [
+            {
+              "action": "finish",
+              "family": null,
+              "reason": "Linear model has already achieved a validation roc_auc of 1.0, indicating the task is likely trivial or separable, requiring no further modeling."
+            }
+          ],
+          "family": "linear",
+          "linear": 0.9916764018691588,
+          "passes_vs_linear": true,
+          "steps": 10
+        }
+      }
+    },
+    "groq": {
+      "aggregate": {
+        "fallbacks": 1,
+        "first_try": 5,
+        "first_try_valid_rate": 1.0,
+        "passes": 2,
+        "repairs": 0,
+        "requests": 5,
+        "structured": 5,
+        "tokens": 1677
+      },
+      "per_task": {
+        "sk_wine": {
+          "agent": 1.0,
+          "decisions": [
+            {
+              "action": "tune",
+              "family": "linear",
+              "reason": "Linear model already shows strong performance (0.9213 f1_macro) but could be further improved with hyperparameter tuning before exploring other families."
+            },
+            {
+              "action": "tune",
+              "family": "hgb",
+              "reason": "The best validation f1_macro (0.9213) is achieved by both linear and hgb models. To potentially improve further, we should tune the hgb model, which often benefits from hyperparameter optimization."
+            },
+            {
+              "action": "train",
+              "family": "rf",
+              "reason": "Current best validation f1_macro is 0.9213 from linear and hgb; trying a new family (random forest) may improve performance."
+            },
+            {
+              "action": "finish",
+              "family": "rf",
+              "reason": "The random forest model already achieves the highest validation F1 (0.9602), leaving little incentive to continue training or tuning."
+            }
+          ],
+          "family": "rf",
+          "linear": 1.0,
+          "passes_vs_linear": true,
+          "steps": 13
+        },
+        "wdbc": {
+          "agent": 0.9916764018691588,
+          "decisions": [
+            {
+              "action": "finish",
+              "family": null,
+              "reason": "The linear model already achieves perfect validation ROC AUC (1.0), so no further training or tuning is needed."
+            }
+          ],
+          "family": "linear",
+          "linear": 0.9916764018691588,
+          "passes_vs_linear": true,
+          "steps": 10
+        }
+      }
+    },
+    "requests_used_today": {
+      "gemini": 8,
+      "groq": 7
+    }
+  }
+}

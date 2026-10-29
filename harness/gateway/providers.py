@@ -72,7 +72,9 @@ class OpenAICompatProvider:
         usd_per_1k_tokens: float = 0.0,
         transport: httpx.BaseTransport | None = None,
         timeout_s: float = 30.0,
+        extra_body: dict[str, Any] | None = None,
     ) -> None:
+        self.extra_body = extra_body or {}
         self.name, self.base_url, self.model = name, base_url.rstrip("/"), model
         self.api_key_env, self.paid, self.price = api_key_env, paid, usd_per_1k_tokens
         self._client = httpx.Client(transport=transport, timeout=timeout_s)
@@ -89,6 +91,7 @@ class OpenAICompatProvider:
             "messages": [m.model_dump() for m in req.messages],
             "temperature": req.temperature,
             "max_tokens": req.max_tokens,
+            **self.extra_body,
         }
         try:
             resp = self._client.post(
@@ -124,7 +127,9 @@ class GeminiProvider:
         model: str = "gemini-2.0-flash",
         transport: httpx.BaseTransport | None = None,
         timeout_s: float = 30.0,
+        thinking_budget: int | None = None,
     ) -> None:
+        self.thinking_budget = thinking_budget
         self.name, self.model = "gemini", model
         self._client = httpx.Client(transport=transport, timeout=timeout_s)
 
@@ -137,7 +142,7 @@ class GeminiProvider:
             "https://generativelanguage.googleapis.com/v1beta/models/"
             f"{req.model or self.model}:generateContent"
         )
-        body = {
+        body: dict[str, Any] = {
             "contents": [
                 {
                     "role": "model" if m.role == "assistant" else "user",
@@ -147,6 +152,8 @@ class GeminiProvider:
             ],
             "generationConfig": {"temperature": req.temperature, "maxOutputTokens": req.max_tokens},
         }
+        if self.thinking_budget is not None:  # 2.5-series: thinking tokens eat the output budget
+            body["generationConfig"]["thinkingConfig"] = {"thinkingBudget": self.thinking_budget}
         try:
             resp = self._client.post(url, json=body, headers={"x-goog-api-key": key})
         except httpx.HTTPError as exc:

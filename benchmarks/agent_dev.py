@@ -101,14 +101,23 @@ def references(
     return out
 
 
-def run_agent(name: str, spec: dict[str, Any], target: str, flaml_budget: float) -> dict[str, Any]:
+def run_agent(
+    name: str,
+    spec: dict[str, Any],
+    target: str,
+    flaml_budget: float,
+    planner: Any = None,
+    tag: str = "dev",
+) -> dict[str, Any]:
     from harness.agent.models import RunBudget, RunConfig, RunTask
     from harness.agent.planners import ScriptedPlanner
     from harness.agent.runner import AgentRunner
     from harness.agent.store import RunStore
 
     cfg = RunConfig(
-        run_id=f"dev-{name}",
+        run_id=f"{tag}-{name}",
+        planner="llm" if planner is not None else "scripted",
+        llm_mode="real" if planner is not None else "none",
         task=RunTask(
             name=name, data_path=str(spec["dir"] / "train.parquet"), target=target,
             task_type=spec["task_type"], metric=spec["metric"], seed=SEED,
@@ -116,7 +125,9 @@ def run_agent(name: str, spec: dict[str, Any], target: str, flaml_budget: float)
         ),
         budget=RunBudget(flaml_budget_s=flaml_budget), mode="dev",
     )  # fmt: skip
-    runner = AgentRunner(RunStore(WORK / "runs.db"), ScriptedPlanner(), run_root=WORK / "runs")
+    runner = AgentRunner(
+        RunStore(WORK / "runs.db"), planner or ScriptedPlanner(), run_root=WORK / "runs"
+    )
     res = runner.run(cfg)
     res["test_score"] = score_predictions(spec, pd.read_csv(res["predictions_path"]))
     return res

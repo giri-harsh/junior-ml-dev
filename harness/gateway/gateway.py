@@ -127,7 +127,10 @@ class Gateway:
             p.name: CircuitBreaker(self.breaker_threshold, self.breaker_reset_s, self.clock)
             for p in self.providers
         }
-        self.stats = {"calls": 0, "cache_hits": 0, "retries": 0, "fallbacks": 0}
+        self.stats = {
+            "calls": 0, "cache_hits": 0, "retries": 0, "fallbacks": 0,
+            "structured": 0, "structured_first_try_valid": 0, "repairs": 0, "structured_failed": 0,
+        }  # fmt: skip
 
     def _emit(self, **ev: object) -> None:
         if self.on_event:
@@ -207,12 +210,18 @@ class Gateway:
         """Parse JSON into `model_cls`; on failure ask the model to repair (bounded)."""
         messages = list(req.messages)
         last_error = ""
-        for _ in range(repair_retries + 1):
+        self.stats["structured"] += 1
+        for attempt in range(repair_retries + 1):
             resp = self.complete(req.model_copy(update={"messages": messages}))
             try:
-                return model_cls.model_validate_json(_extract_json(resp.text))
+                parsed = model_cls.model_validate_json(_extract_json(resp.text))
+                if attempt == 0:
+                    self.stats["structured_first_try_valid"] += 1
+                return parsed
             except (ValidationError, ValueError) as exc:
                 last_error = str(exc)[:300]
+                if attempt < repair_retries:
+                    self.stats["repairs"] += 1
                 messages = [
                     *messages,
                     Message(role="assistant", content=resp.text),
@@ -222,6 +231,7 @@ class Gateway:
                         f"Error: {last_error}",
                     ),
                 ]
+        self.stats["structured_failed"] += 1
         raise StructuredOutputError(f"no valid output after {repair_retries} repairs: {last_error}")
 
 
