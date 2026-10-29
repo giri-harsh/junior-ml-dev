@@ -28,7 +28,7 @@ import pandas as pd
 
 from benchmarks.metrics import bootstrap_ci, normalized_score, paired_bootstrap_ci, passes
 from benchmarks.results_writer import RESULTS_DIR, Conditions, write_result
-from benchmarks.tasks.registry import TaskSpec, load_registry
+from benchmarks.tasks.registry import TaskSpec, load_registry, load_registry_v3
 from leakage import ledger
 from leakage.evaluate import wilson
 
@@ -38,6 +38,9 @@ FREEZE_FILES = [
     "harness/policies/code_policy.py", "mcp_servers/experiments/service.py",
     "mcp_servers/data_tools/service.py", "leakage/thresholds.frozen.sha256",
     "leakage/detectors.py", "datastory/roles.py",
+    "harness/gateway/gateway.py", "harness/gateway/limits.py", "harness/gateway/live.py",
+    "harness/gateway/providers.py", "harness/gateway/models.py", "harness/policies/untrusted.py",
+    "benchmarks/tasks/registry_v3.yaml",
 ]  # fmt: skip
 RESULT_NAME = "agent_v1"
 FLAML_BUDGET_S = 30.0
@@ -98,6 +101,8 @@ def run_benchmark(
     result_name: str = RESULT_NAME,
     prior: dict[str, Any] | None = None,
     label: str = "",
+    planner: str = "scripted",
+    llm: str = "none",
 ) -> Path:
     key = f"agent:{digest}"
     partial = out_dir / f"{result_name}.partial.json"
@@ -125,8 +130,13 @@ def run_benchmark(
             "agent_normalized": norm, "linear_normalized": ref["linear_normalized"],
             "passes_vs_linear": passes(r["agent"], ref["linear"], spec.metric, r.get("scale")),
         }  # fmt: skip
+    who = (
+        "SCRIPTED planner, no LLM (not an LLM-agent result)"
+        if planner == "scripted"
+        else f"LLM planner (real cloud LLM: {llm})"
+    )
     notes = (
-        "SCRIPTED planner, no LLM (not an LLM-agent result); scorer-service test scores; "
+        f"{who}; scorer-service test scores; "
         f"freeze hash {digest}; agent FLAML budget {FLAML_BUDGET_S}s inside its search, baseline "
         f"FLAML 30s (baselines_v0.json); references are code-written results, not re-run here. "
         f"{label} {(meta or {}).get('extra', '')}"
@@ -146,8 +156,10 @@ def run_benchmark(
     path = write_result(
         result_name,
         {"per_task": per, "aggregate": agg, "freeze_hash": digest,
-         "planner": "scripted", "llm": "none", "meta": meta or {}},
-        Conditions(llm="none", sandbox="none", n=len(per), notes=notes),
+         "planner": planner, "llm": llm, "meta": meta or {}},
+        Conditions(
+            llm="real" if llm == "real" else "none", sandbox="none", n=len(per), notes=notes
+        ),
         out_dir=out_dir,
     )  # fmt: skip
     ledger.mark(key, "evaluated", ledger_path)
@@ -159,7 +171,12 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 # --- the real thing ------------------------------------------------------------------------
-def real_run_one(spec: TaskSpec, work: Path, version: str = "") -> dict[str, Any]:
+def real_run_one(
+    spec: TaskSpec,
+    work: Path,
+    version: str = "",
+    planner_factory: Callable[[], Any] | None = None,
+) -> dict[str, Any]:
     from benchmarks.baselines import DATA_ROOT, SCORER_ROOT, score_via_scorer
     from harness.agent.models import RunBudget, RunConfig, RunTask
     from harness.agent.planners import ScriptedPlanner
@@ -176,11 +193,12 @@ def real_run_one(spec: TaskSpec, work: Path, version: str = "") -> dict[str, Any
             task_type=spec.task_type, metric=spec.metric, test_features_path=str(feats),
         ),
         budget=RunBudget(flaml_budget_s=FLAML_BUDGET_S), mode="benchmark",
+        planner="llm" if planner_factory else "scripted",
+        llm_mode="real" if planner_factory else "none",
     )  # fmt: skip
     t0 = time.perf_counter()
-    res = AgentRunner(RunStore(work / "runs.db"), ScriptedPlanner(), run_root=work / "runs").run(
-        cfg
-    )
+    planner = planner_factory() if planner_factory else ScriptedPlanner()
+    res = AgentRunner(RunStore(work / "runs.db"), planner, run_root=work / "runs").run(cfg)
     if not res.get("predictions_path"):
         raise RuntimeError(f"{spec.name}: agent produced no predictions ({res['status']})")
     preds = pd.read_csv(res["predictions_path"])
@@ -195,38 +213,102 @@ def real_run_one(spec: TaskSpec, work: Path, version: str = "") -> dict[str, Any
         "wall_s": round(time.perf_counter() - t0, 1), "tokens": res["tokens"],
         "cost_usd": res["cost_usd"], "dropped": res["dropped"], "reviewer": res["review"],
         "failures": res["failures"], "scale": scale,
+        "leakage_checked": "detect_leakage" not in res["failures"],
+        **(llm_stats(planner) if planner_factory else {}),
     }  # fmt: skip
+
+
+def llm_stats(planner: Any) -> dict[str, Any]:
+    gw = planner.gateway
+    s = gw.stats
+    return {
+        "llm_requests": s["calls"] - s["cache_hits"] - s["fixture_hits"],
+        "llm_cached": s["cache_hits"] + s["fixture_hits"],
+        "llm_structured": s["structured"],
+        "llm_first_try_valid": s["structured_first_try_valid"],
+        "llm_repairs": s["repairs"],
+        "llm_fallbacks": planner.fallbacks,
+        "llm_decisions": planner.decisions,
+        "llm_tokens": gw.budget.used_tokens,
+        "llm_providers": sorted({getattr(p, "name", "?") for p in gw.providers}),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--final", action="store_true", required=True)
     ap.add_argument("--resume", action="store_true")
-    ap.add_argument("--version", choices=["v1", "v2"], default="v1")
+    ap.add_argument("--version", choices=["v1", "v2", "v3"], default="v1")
+    ap.add_argument("--planner", choices=["scripted", "llm"], default="scripted")
     args = ap.parse_args(argv)
-    v2 = args.version == "v2"
-    name = "agent_v2" if v2 else RESULT_NAME
-    tag = "agent-frozen-v2" if v2 else FROZEN_TAG
+    v2, v3 = args.version == "v2", args.version == "v3"
+    use_llm = args.planner == "llm"
+    if use_llm and not v3:
+        raise SystemExit("the LLM planner is only evaluated on the v3 partition")
+    suffix = f"_{args.planner}" if v3 else ""
+    name = f"agent_v3{suffix}" if v3 else "agent_v2" if v2 else RESULT_NAME
+    tag = "agent-frozen-v3" if v3 else "agent-frozen-v2" if v2 else FROZEN_TAG
     from harness.agent.models import RunBudget
-    from harness.agent.planners import ScriptedPlanner
+    from harness.agent.planners import LLMPlanner, ScriptedPlanner
 
     head = assert_frozen_checkout(tag)
     budget = RunBudget(flaml_budget_s=FLAML_BUDGET_S).model_dump()
-    digest = freeze_hash(budget, ScriptedPlanner().config_fingerprint())
-    base = json.loads((RESULTS_DIR / "baselines_v0.json").read_text(encoding="utf-8"))
+    factory: Callable[[], Any] | None = None
+    if use_llm:
+        from harness.gateway.live import (
+            GEMINI_MODEL,
+            GROQ_FALLBACK,
+            GROQ_PRIMARY,
+            build_live_gateway,
+        )
+
+        cassette = Path("tests/cassettes/v3_llm.jsonl")
+        fp = LLMPlanner(build_live_gateway(cassette)).config_fingerprint()
+        fp["providers"] = ["groq", "gemini"]
+        fp["models"] = [GROQ_PRIMARY, GROQ_FALLBACK, GEMINI_MODEL]
+
+        def factory() -> Any:
+            return LLMPlanner(build_live_gateway(cassette))
+
+    else:
+        fp = ScriptedPlanner().config_fingerprint()
+    if v3:
+        fp["partition"] = "v3"
+    digest = freeze_hash(budget, fp)
+    base_name = "baselines_v3" if v3 else "baselines_v0"
+    base = json.loads((RESULTS_DIR / f"{base_name}.json").read_text(encoding="utf-8"))
     refs = {k: v for k, v in base["results"]["per_task"].items()}
-    specs = load_registry()
-    work = Path("data/agent_bench_v2" if v2 else "data/agent_bench")
+    specs = load_registry_v3() if v3 else load_registry()
+    work = Path(f"data/agent_bench_{args.version}{suffix}" if v2 or v3 else "data/agent_bench")
     work.mkdir(parents=True, exist_ok=True)
     prior = None
+    label = ""
     if v2:
         v1 = json.loads((RESULTS_DIR / "agent_v1.json").read_text(encoding="utf-8"))
         prior = v1["results"]["per_task"]
+        label = "v2 - post-hoc, fixes informed by v1 failures."
+    if use_llm:  # paired LLM-minus-scripted on the same partition
+        sp = RESULTS_DIR / "agent_v3_scripted.json"
+        if sp.exists():
+            prior = json.loads(sp.read_text(encoding="utf-8"))["results"]["per_task"]
+    if v3:
+        label = f"v3 unseen partition, {args.planner} planner."
+    run_tag = f"{args.version}{args.planner[0]}" if v3 else "v2" if v2 else ""
+    if use_llm:
+        from harness.gateway.limits import UsageLedger
+        from harness.gateway.live import USAGE_PATH
+
+        used = UsageLedger(USAGE_PATH)
+        left = 150 - max(used.used("groq"), used.used("gemini"))
+        if left < 30 and not args.resume:
+            raise SystemExit(
+                f"refusing to start: only {left} requests left today on the best provider"
+            )
     path = run_benchmark(
-        specs, lambda s: real_run_one(s, work, "v2" if v2 else ""), refs, digest=digest,
-        ledger_path=ledger.LEDGER_PATH, out_dir=RESULTS_DIR, resume=args.resume,
-        meta={"git_sha": head}, result_name=name, prior=prior,
-        label="v2 - post-hoc, fixes informed by v1 failures." if v2 else "",
+        specs, lambda s: real_run_one(s, work, run_tag, factory),
+        refs, digest=digest, ledger_path=ledger.LEDGER_PATH, out_dir=RESULTS_DIR,
+        resume=args.resume, meta={"git_sha": head}, result_name=name, prior=prior, label=label,
+        planner=args.planner, llm="real" if use_llm else "none",
     )  # fmt: skip
     print(path)
     return 0

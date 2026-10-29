@@ -51,6 +51,7 @@ testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 markers = [
   "integration: needs docker compose services (run via `python scripts/tasks.py test-integration`)",
+  "llm: live cloud LLM calls (Groq/Gemini); auto-skipped without keys; counts against daily caps",
   "infra: needs postgres/redis/minio/docker; auto-skipped when unreachable (python scripts/tasks.py test-infra)",
 ]
 

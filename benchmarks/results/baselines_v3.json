@@ -1,0 +1,167 @@
+{
+  "command": "python -m benchmarks.run_benchmark --baselines --v3 --out-name baselines_v3",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "baselines; FLAML time_budget=30s/task, 3-fold CV, seed 0; scored via scorer code path (in-process)",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T04:59:42+00:00",
+  "git_sha": "5ba5b55bc8a13f6b3dfa3d2da125db16010d5253",
+  "name": "baselines_v3",
+  "results": {
+    "aggregate": {
+      "excluded_tasks": [],
+      "normalized_linear_ci95": [
+        0.7282170778415533,
+        0.9333735903156545
+      ],
+      "normalized_linear_defined_n": 10,
+      "normalized_linear_mean": 0.8348936673142907
+    },
+    "flaml_time_budget_s": 30,
+    "per_task": {
+      "climate-model-simulation-crashes": {
+        "dummy": 0.9166666666666666,
+        "dummy_fit_s": 0.09,
+        "flaml": 0.9638836673880563,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.11,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9657424982468519,
+        "linear_fit_s": 0.05,
+        "linear_normalized": 1.0393678300272364,
+        "metric": "pr_auc",
+        "role": "v3_heldout",
+        "task_type": "binary"
+      },
+      "cmc": {
+        "dummy": 0.1995249406175772,
+        "dummy_fit_s": 0.07,
+        "flaml": 0.5117325005760963,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 28.44,
+        "flaml_time_budget_s": 30,
+        "linear": 0.4860071882634332,
+        "linear_fit_s": 0.11,
+        "linear_normalized": 0.9176018917796832,
+        "metric": "f1_macro",
+        "role": "v3_heldout",
+        "task_type": "multiclass"
+      },
+      "credit-approval": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.18,
+        "flaml": 0.9621034703001916,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.22,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9486906536086864,
+        "linear_fit_s": 0.06,
+        "linear_normalized": 0.9709744298548723,
+        "metric": "roc_auc",
+        "role": "v3_heldout",
+        "task_type": "binary"
+      },
+      "kr-vs-kp": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.08,
+        "flaml": 1.0,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.24,
+        "flaml_time_budget_s": 30,
+        "linear": 0.995841650033267,
+        "linear_fit_s": 0.29,
+        "linear_normalized": 0.9916833000665339,
+        "metric": "roc_auc",
+        "role": "v3_heldout",
+        "task_type": "binary"
+      },
+      "optdigits": {
+        "dummy": 0.01841680129240711,
+        "dummy_fit_s": 0.08,
+        "flaml": 0.9866914347190049,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.87,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9769443810370632,
+        "linear_fit_s": 0.22,
+        "linear_normalized": 0.9899335856321587,
+        "metric": "f1_macro",
+        "role": "v3_heldout",
+        "task_type": "multiclass"
+      },
+      "ozone-level-8hr": {
+        "dummy": 0.0631163708086785,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.5793964371925436,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.82,
+        "flaml_time_budget_s": 30,
+        "linear": 0.4781013583016761,
+        "linear_fit_s": 0.11,
+        "linear_normalized": 0.8037981989109909,
+        "metric": "pr_auc",
+        "role": "v3_heldout",
+        "task_type": "binary"
+      },
+      "pc1": {
+        "dummy": 0.06756756756756757,
+        "dummy_fit_s": 0.05,
+        "flaml": 0.3329636577782358,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.05,
+        "flaml_time_budget_s": 30,
+        "linear": 0.2325801366145876,
+        "linear_fit_s": 0.06,
+        "linear_normalized": 0.6217596081239743,
+        "metric": "pr_auc",
+        "role": "v3_heldout",
+        "task_type": "binary"
+      },
+      "puma8NH": {
+        "dummy": 5.605722545059826,
+        "dummy_fit_s": 0.05,
+        "flaml": 3.0520164569855344,
+        "flaml_best_estimator": "extra_tree",
+        "flaml_fit_s": 30.78,
+        "flaml_time_budget_s": 30,
+        "linear": 4.30752451767151,
+        "linear_fit_s": 0.04,
+        "linear_normalized": 0.5083584338271543,
+        "metric": "rmse",
+        "role": "v3_heldout",
+        "task_type": "regression"
+      },
+      "space_ga": {
+        "dummy": 0.19644903208328804,
+        "dummy_fit_s": 0.05,
+        "flaml": 0.10540141268234426,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.1,
+        "flaml_time_budget_s": 30,
+        "linear": 0.1312620611034355,
+        "linear_fit_s": 0.04,
+        "linear_normalized": 0.7159656826697528,
+        "metric": "rmse",
+        "role": "v3_heldout",
+        "task_type": "regression"
+      },
+      "vowel": {
+        "dummy": 0.01515151515151515,
+        "dummy_fit_s": 0.06,
+        "flaml": 0.9592467945409122,
+        "flaml_best_estimator": "extra_tree",
+        "flaml_fit_s": 30.2,
+        "flaml_time_budget_s": 30,
+        "linear": 0.7605088019948701,
+        "linear_fit_s": 0.11,
+        "linear_normalized": 0.7894937122505498,
+        "metric": "f1_macro",
+        "role": "v3_heldout",
+        "task_type": "multiclass"
+      }
+    }
+  }
+}

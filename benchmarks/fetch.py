@@ -15,7 +15,7 @@ import pandas as pd
 from sklearn.datasets import fetch_openml, make_classification, make_regression
 
 from apps.scorer.splits import write_split
-from benchmarks.tasks.registry import TaskSpec, get_task, load_registry
+from benchmarks.tasks.registry import TaskSpec, get_task, load_registry, load_registry_v3
 
 DATA_ROOT = Path("data/tasks")
 SCORER_ROOT = Path("scorer_data")
@@ -77,8 +77,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--all", action="store_true")
     p.add_argument("--task")
     p.add_argument("--synthetic", action="store_true")
+    p.add_argument("--v3", action="store_true", help="fetch the v3 partition")
     a = p.parse_args(argv)
-    specs = load_registry() if a.all else [get_task(a.task)] if a.task else []
+    specs = (
+        load_registry_v3()
+        if a.v3
+        else load_registry()
+        if a.all
+        else [get_task(a.task)]
+        if a.task
+        else []
+    )
     if not specs:
         p.error("need --all or --task")
     for s in specs:

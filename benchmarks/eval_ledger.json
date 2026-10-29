@@ -53,5 +53,15 @@
     ],
     "result_file": "agent_v1.json",
     "status": "evaluated"
+  },
+  "leakage-code:ca7877a74c002512b92206c38bcf43e06d9281e05a97a09d8e9f1cd1b2934c31": {
+    "infra_retries": [],
+    "partitions": [
+      "dev",
+      "eval3",
+      "real_v3"
+    ],
+    "result_file": "benchmarks/results/leakage_v2.json",
+    "status": "spent"
   }
 }

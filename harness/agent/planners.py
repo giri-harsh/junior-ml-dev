@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict
 from harness.agent.models import RunConfig, Step
 from harness.gateway.gateway import Gateway
 from harness.gateway.models import LLMRequest, Message, StructuredOutputError
+from harness.policies.untrusted import is_flagged
 
 PLANNER_VERSION = "scripted-1"
 SEARCH_KEYS = ("train:hgb", "train:rf", "tune:hgb", "train:flaml")
@@ -154,14 +155,19 @@ class LLMPlanner:
             done = state.setdefault("done", [])
             done.extend(step_key(s) for s in _search_steps(cfg) if step_key(s) not in done)
             return self.fallback.next_step(cfg, state)
+        summary = self._summary(cfg, state)
+        if is_flagged(summary):  # defence in depth: the summary holds only numbers and families
+            self.fallbacks += 1
+            self.decisions.append({"llm_skipped": "injection scanner flagged the prompt"})
+            return scripted
         try:
             prop = self.gateway.complete_structured(
                 LLMRequest(
                     messages=[
                         Message(role="system", content=SYSTEM_PROMPT),
-                        Message(role="user", content=self._summary(cfg, state)),
+                        Message(role="user", content=summary),
                     ],
-                    max_tokens=200,
+                    max_tokens=1024,
                 ),
                 Proposal,
             )
