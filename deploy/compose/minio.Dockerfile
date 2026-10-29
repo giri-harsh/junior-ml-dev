@@ -1,8 +1,6 @@
-# MinIO's public images are not reliably pullable; build from the official release binary.
-FROM debian:12-slim
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sSfL -o /usr/local/bin/minio https://dl.min.io/server/minio/release/linux-amd64/minio \
-    && chmod +x /usr/local/bin/minio
-EXPOSE 9000 9001
-ENTRYPOINT ["minio"]
+# S3-compatible endpoint for dev/CI. MinIO stopped publishing pullable images and binaries, so the
+# service named `minio` is a moto S3 server (same S3 API; real MinIO is NOT verified here).
+FROM python:3.12-slim
+RUN pip install --no-cache-dir "moto[server]>=5,<6"
+EXPOSE 9000
+CMD ["moto_server", "-H", "0.0.0.0", "-p", "9000"]

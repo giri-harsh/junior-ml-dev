@@ -146,16 +146,16 @@ def _exec(docker: str, script: str) -> subprocess.CompletedProcess[str]:
 
 
 @pytest.mark.compose
-def test_killed_worker_container_resumes_without_repeating_steps(
-    docker_bin: str, pg_url: str
-) -> None:
+def test_killed_worker_container_resumes_without_repeating_steps(docker_bin: str) -> None:
     """docker kill the worker mid-run, restart it, then compare with an uninterrupted run."""
     up = _compose(docker_bin, "up", "-d", "--wait", timeout=1200)
     assert up.returncode == 0, up.stdout[-800:] + up.stderr[-800:]
     try:
         sub = _exec(docker_bin, SUBMIT)
         assert sub.returncode == 0, sub.stderr[-800:]
-        store = SqlRunStore(pg_url)
+        from tests.infra.conftest import PG_URL
+
+        store = SqlRunStore(PG_URL)  # compose publishes postgres on localhost:5432
         deadline = time.time() + 180
         while time.time() < deadline and len(store.checkpoints("infra-kill")) < 4:
             time.sleep(1)
