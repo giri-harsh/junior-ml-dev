@@ -59,9 +59,11 @@ class UsageLedger:
             data = self._load()
             day = data.setdefault(self.today(), {})
             if day.get(family, 0) >= self.per_day:
-                raise ProviderError(
+                err = ProviderError(
                     f"daily cap of {self.per_day} requests reached for {family}", retryable=False
                 )
+                err.not_sent = True  # type: ignore[attr-defined]  # nothing left the process
+                raise err
             wait = self._last.get(family, -1e18) + self.min_interval_s - self.clock()
             if wait > 0:
                 self.sleep(wait)

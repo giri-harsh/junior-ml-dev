@@ -203,6 +203,8 @@ class Gateway:
             try:
                 return p.complete(req)
             except ProviderError as exc:
+                if getattr(exc, "not_sent", False):
+                    self.stats["calls"] -= 1  # a locally refused call is not a request
                 if not exc.retryable or attempt == self.max_retries:
                     raise
                 self.stats["retries"] += 1

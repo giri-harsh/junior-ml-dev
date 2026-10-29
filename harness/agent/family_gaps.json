@@ -1,0 +1,34 @@
+{
+ "flaml": {
+  "n": 5,
+  "range": [
+   0.009,
+   0.79
+  ],
+  "source": "dev runs (5 real_dev tasks), S22 llm2-cv session"
+ },
+ "hgb": {
+  "n": 10,
+  "range": [
+   0.012,
+   1.446
+  ],
+  "source": "dev runs (5 real_dev tasks), S22 llm2-cv session"
+ },
+ "linear": {
+  "n": 5,
+  "range": [
+   0.001,
+   0.097
+  ],
+  "source": "dev runs (5 real_dev tasks), S22 llm2-cv session"
+ },
+ "rf": {
+  "n": 5,
+  "range": [
+   0.011,
+   1.648
+  ],
+  "source": "dev runs (5 real_dev tasks), S22 llm2-cv session"
+ }
+}
