@@ -11,31 +11,32 @@ from typing import Any
 import pandas as pd
 
 from benchmarks.results_writer import Conditions, write_result
-from benchmarks.tasks.registry import load_registry_v4
-from leakage.detectors import detect
+from benchmarks.tasks.registry import partition
+from leakage.detectors import detect_with_status
 from leakage.models import DetectionMeta, Severity
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    name = (argv or sys.argv[1:] or ["v4"])[0]
     tasks: dict[str, Any] = {}
-    for spec in load_registry_v4():
+    for spec in partition(name):
         df = pd.read_parquet(Path("data/tasks") / spec.name / "train.parquet").drop(
             columns=["row_id"], errors="ignore"
         )
-        fs = detect(df, spec.target, DetectionMeta(seed=0))
+        fs, partial = detect_with_status(df, spec.target, DetectionMeta(seed=0))
         mh = [f.model_dump(mode="json") for f in fs if f.severity != Severity.LOW]
         for f in mh:
             f["evidence"] = {k: v for k, v in f["evidence"].items() if k != "suspect_indices"}
-        tasks[spec.name] = {"n_rows": len(df), "medium_high": mh}
-        print(f"{spec.name:34s} medium+high={len(mh)}", flush=True)
+        tasks[spec.name] = {"n_rows": len(df), "medium_high": mh, "partial": partial}
+        print(f"{spec.name:34s} medium+high={len(mh)} partial={partial}", flush=True)
     write_result(
-        "leakage_v4_scan",
+        f"leakage_{name}_scan",
         {"tasks": tasks},
         Conditions(
             llm="none",
             sandbox="none",
             n=len(tasks),
-            notes="scan of unseen v4 data; hand-adjudicated",
+            notes=f"leakage v3 scan of unseen {name} data; hand-adjudicated",
         ),
     )
     return 0

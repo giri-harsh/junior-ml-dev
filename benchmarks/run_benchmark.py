@@ -14,7 +14,7 @@ from typing import Any
 from benchmarks.baselines import fit_predict, score_via_scorer
 from benchmarks.metrics import bootstrap_ci, normalized_score
 from benchmarks.results_writer import Conditions, write_result
-from benchmarks.tasks.registry import TaskSpec, load_registry, load_registry_v3, load_registry_v4
+from benchmarks.tasks.registry import TaskSpec, load_registry, partition
 
 
 def run_baselines_for_task(spec: TaskSpec, time_budget: int) -> dict[str, Any]:
@@ -51,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out-name", default="baselines_v0")
     p.add_argument("--v3", action="store_true", help="the unseen v3 partition")
     p.add_argument("--v4", action="store_true", help="the unseen v4 partition")
+    p.add_argument("--v5", action="store_true", help="the unseen v5 partition")
     a = p.parse_args(argv)
     if a.leakage:
         from benchmarks.leakage_benchmark import run_leakage_benchmark
@@ -59,7 +60,8 @@ def main(argv: list[str] | None = None) -> int:
     if not a.baselines:
         p.error("need --baselines or --leakage")
     wanted = {t for t in a.tasks.split(",") if t}
-    pool = load_registry_v4() if a.v4 else load_registry_v3() if a.v3 else load_registry()
+    named = "v5" if a.v5 else "v4" if a.v4 else "v3" if a.v3 else None
+    pool = partition(named) if named else load_registry()
     specs = [s for s in pool if not wanted or s.name in wanted]
     per_task: dict[str, dict[str, Any]] = {}
     for s in specs:

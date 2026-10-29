@@ -1,0 +1,100 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\leakage_scan.py v5",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "leakage v3 scan of unseen v5 data; hand-adjudicated",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T19:18:27+00:00",
+  "git_sha": "726925ff1fca4f14c139dd21a3ff5e659744f0b2",
+  "name": "leakage_v5_scan",
+  "results": {
+    "tasks": {
+      "Amazon_employee_access": {
+        "medium_high": [],
+        "n_rows": 26215,
+        "partial": [
+          "rows sampled to 20000"
+        ]
+      },
+      "MiamiHousing2016": {
+        "medium_high": [],
+        "n_rows": 11145,
+        "partial": [
+          "group: stopped at its time slice"
+        ]
+      },
+      "diamonds": {
+        "medium_high": [],
+        "n_rows": 43152,
+        "partial": [
+          "rows sampled to 20000"
+        ]
+      },
+      "electricity": {
+        "medium_high": [],
+        "n_rows": 36249,
+        "partial": [
+          "rows sampled to 20000"
+        ]
+      },
+      "fried": {
+        "medium_high": [],
+        "n_rows": 32614,
+        "partial": [
+          "rows sampled to 20000"
+        ]
+      },
+      "gas-drift": {
+        "medium_high": [],
+        "n_rows": 11128,
+        "partial": [
+          "columns reduced to the 120 most target-associated of 128",
+          "rows sampled to 4958 to bound cost"
+        ]
+      },
+      "house_8L": {
+        "medium_high": [],
+        "n_rows": 18227,
+        "partial": []
+      },
+      "mozilla4": {
+        "medium_high": [
+          {
+            "columns": [
+              "start"
+            ],
+            "confidence": 0.6788757287187741,
+            "evidence": {
+              "dominance": 0.4153,
+              "loco_drop": 0.1449,
+              "second_best_gini": 0.4384,
+              "single_feature_gini": 0.8537
+            },
+            "severity": "medium",
+            "type": "target_leakage"
+          }
+        ],
+        "n_rows": 12436,
+        "partial": []
+      },
+      "nomao": {
+        "medium_high": [],
+        "n_rows": 27572,
+        "partial": [
+          "rows sampled to 20000",
+          "rows sampled to 5042 to bound cost"
+        ]
+      },
+      "sylva_prior": {
+        "medium_high": [],
+        "n_rows": 11516,
+        "partial": [
+          "rows sampled to 5504 to bound cost"
+        ]
+      }
+    }
+  }
+}

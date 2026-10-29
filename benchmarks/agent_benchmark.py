@@ -28,7 +28,7 @@ import pandas as pd
 
 from benchmarks.metrics import bootstrap_ci, normalized_score, paired_bootstrap_ci, passes
 from benchmarks.results_writer import RESULTS_DIR, Conditions, write_result
-from benchmarks.tasks.registry import TaskSpec, load_registry, load_registry_v3, load_registry_v4
+from benchmarks.tasks.registry import TaskSpec, load_registry, partition
 from leakage import ledger
 from leakage.evaluate import wilson
 
@@ -41,6 +41,7 @@ FREEZE_FILES = [
     "harness/gateway/gateway.py", "harness/gateway/limits.py", "harness/gateway/live.py",
     "harness/gateway/providers.py", "harness/gateway/models.py", "harness/policies/untrusted.py",
     "benchmarks/tasks/registry_v3.yaml", "benchmarks/tasks/registry_v4.yaml",
+    "benchmarks/tasks/registry_v5.yaml",
 ]  # fmt: skip
 RESULT_NAME = "agent_v1"
 FLAML_BUDGET_S = 30.0
@@ -238,10 +239,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--final", action="store_true", required=True)
     ap.add_argument("--resume", action="store_true")
-    ap.add_argument("--version", choices=["v1", "v2", "v3", "v4"], default="v1")
+    ap.add_argument("--version", choices=["v1", "v2", "v3", "v4", "v5"], default="v1")
     ap.add_argument("--planner", choices=["scripted", "llm"], default="scripted")
     args = ap.parse_args(argv)
-    v2, v3 = args.version == "v2", args.version in ("v3", "v4")  # v3 = a fresh partition
+    v2, v3 = args.version == "v2", args.version in ("v3", "v4", "v5")  # v3 = a fresh partition
     use_llm = args.planner == "llm"
     if use_llm and not v3:
         raise SystemExit("the LLM planner is only evaluated on fresh partitions (v3, v4)")
@@ -263,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
         cassette = Path(f"tests/cassettes/{args.version}_llm.jsonl")
-        llm_ver = 2 if args.version == "v4" else 1  # v3 ran planner v1; v4 runs the S22 planner v2
+        llm_ver = 1 if args.version == "v3" else 2  # v3 ran planner v1; v4+ run planner v2
         fp = LLMPlanner(build_live_gateway(cassette), version=llm_ver).config_fingerprint()
         fp["providers"] = ["groq", "gemini"]
         fp["models"] = [GROQ_PRIMARY, GROQ_FALLBACK, GEMINI_MODEL]
@@ -279,11 +280,7 @@ def main(argv: list[str] | None = None) -> int:
     base_name = f"baselines_{args.version}" if v3 else "baselines_v0"
     base = json.loads((RESULTS_DIR / f"{base_name}.json").read_text(encoding="utf-8"))
     refs = {k: v for k, v in base["results"]["per_task"].items()}
-    specs = (
-        (load_registry_v4() if args.version == "v4" else load_registry_v3())
-        if v3
-        else load_registry()
-    )
+    specs = partition(args.version) if v3 else load_registry()
     work = Path(f"data/agent_bench_{args.version}{suffix}" if v2 or v3 else "data/agent_bench")
     work.mkdir(parents=True, exist_ok=True)
     prior = None
