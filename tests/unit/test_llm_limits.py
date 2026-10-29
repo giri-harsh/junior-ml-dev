@@ -141,3 +141,30 @@ def test_env_loader_reads_only_the_allowlist(
     assert os.environ["GROQ_API_KEY"] == "g-1"
     assert "POSTGRES_PASSWORD" not in os.environ and "QDRANT_API_KEY" not in os.environ
     monkeypatch.delenv("GROQ_API_KEY")
+
+
+def test_request_cap_counts_repairs_and_retries(tmp_path: Path) -> None:
+    """Run 5's critic used 31 of 30 because a repair round trip was not counted. The cap is now
+    enforced per provider attempt inside the gateway."""
+    from pydantic import BaseModel
+
+    from harness.gateway.models import BudgetExceeded, StructuredOutputError
+
+    class Out(BaseModel):
+        ok: bool
+
+    gw = Gateway(
+        providers=[MockProvider(lambda r, i: "not json")], max_requests=3, sleep=lambda s: None
+    )
+    with pytest.raises((StructuredOutputError, BudgetExceeded)):
+        gw.complete_structured(req("x"), Out, repair_retries=5)
+    assert gw.stats["calls"] == 3  # never a 4th request
+    with pytest.raises(BudgetExceeded):
+        gw.complete(req("another prompt"))
+    assert gw.stats["calls"] == 3
+
+
+def test_default_daily_cap_is_120() -> None:
+    from harness.gateway.limits import DEFAULT_PER_DAY
+
+    assert DEFAULT_PER_DAY == 120

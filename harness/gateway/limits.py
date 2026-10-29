@@ -19,7 +19,7 @@ from pathlib import Path
 from harness.gateway.models import LLMRequest, LLMResponse, ProviderError
 from harness.gateway.providers import Provider
 
-DEFAULT_PER_DAY = 150
+DEFAULT_PER_DAY = 120  # run 6 policy (the keys also serve a live demo)
 DEFAULT_MIN_INTERVAL_S = 2.0
 
 
