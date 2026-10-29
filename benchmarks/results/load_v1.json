@@ -1,0 +1,219 @@
+{
+  "command": "/home/runner/work/junior-ml-dev/junior-ml-dev/benchmarks/load/summarize.py load-out --ci-run-id 40945724068 --out-dir load-out",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "runnervm48cm3",
+    "n": 3,
+    "notes": "locust against the predict-service container and the API container (docker compose app profile) on a GitHub-hosted ubuntu runner; CI run 40945724068; 20 s per level; not a capacity claim for other hardware",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T20:07:34+00:00",
+  "git_sha": "705cbdffb501cad5eae0bc457992828c58cbf591",
+  "name": "load_v1",
+  "results": {
+    "ci_run_id": "40945724068",
+    "concurrency": {
+      "100": {
+        "aggregate": {
+          "error_rate": 0.17783094098883573,
+          "failures": 223,
+          "p50_ms": 140.0,
+          "p95_ms": 6700.0,
+          "p99_ms": 9600.0,
+          "requests": 1254,
+          "rps": 65.70537456396927
+        },
+        "endpoints": {
+          "api audit (auth)": {
+            "error_rate": 0.0430622009569378,
+            "failures": 9,
+            "p50_ms": 110.0,
+            "p95_ms": 260.0,
+            "p99_ms": 550.0,
+            "requests": 209,
+            "rps": 10.950895760661545
+          },
+          "api healthz": {
+            "error_rate": 0.025896414342629483,
+            "failures": 13,
+            "p50_ms": 64.0,
+            "p95_ms": 210.0,
+            "p99_ms": 330.0,
+            "requests": 502,
+            "rps": 26.303108477761224
+          },
+          "api metrics": {
+            "error_rate": 0.6860068259385665,
+            "failures": 201,
+            "p50_ms": 220.0,
+            "p95_ms": 1200.0,
+            "p99_ms": 1500.0,
+            "requests": 293,
+            "rps": 15.352212717099677
+          },
+          "login": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 9600.0,
+            "p95_ms": 9800.0,
+            "p99_ms": 9900.0,
+            "requests": 25,
+            "rps": 1.3099157608446823
+          },
+          "predict (3 rows)": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 6000.0,
+            "p95_ms": 7100.0,
+            "p99_ms": 7400.0,
+            "requests": 206,
+            "rps": 10.793705869360183
+          },
+          "predict health": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 2600.0,
+            "p95_ms": 3800.0,
+            "p99_ms": 3800.0,
+            "requests": 19,
+            "rps": 0.9955359782419586
+          }
+        }
+      },
+      "25": {
+        "aggregate": {
+          "error_rate": 0.0,
+          "failures": 0,
+          "p50_ms": 26.0,
+          "p95_ms": 1500.0,
+          "p99_ms": 1600.0,
+          "requests": 1429,
+          "rps": 75.06336997319633
+        },
+        "endpoints": {
+          "api audit (auth)": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 10.0,
+            "p95_ms": 54.0,
+            "p99_ms": 120.0,
+            "requests": 237,
+            "rps": 12.449278295064751
+          },
+          "api healthz": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 5.0,
+            "p95_ms": 34.0,
+            "p99_ms": 83.0,
+            "requests": 570,
+            "rps": 29.941302228636744
+          },
+          "api metrics": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 76.0,
+            "p95_ms": 260.0,
+            "p99_ms": 480.0,
+            "requests": 338,
+            "rps": 17.75466693557758
+          },
+          "login": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 1600.0,
+            "p95_ms": 1600.0,
+            "p99_ms": 1600.0,
+            "requests": 6,
+            "rps": 0.31517160240670256
+          },
+          "predict (3 rows)": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 1400.0,
+            "p95_ms": 1600.0,
+            "p99_ms": 1600.0,
+            "requests": 244,
+            "rps": 12.81697849787257
+          },
+          "predict health": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 79.0,
+            "p95_ms": 160.0,
+            "p99_ms": 300.0,
+            "requests": 34,
+            "rps": 1.785972413637981
+          }
+        }
+      },
+      "5": {
+        "aggregate": {
+          "error_rate": 0.0,
+          "failures": 0,
+          "p50_ms": 140.0,
+          "p95_ms": 210.0,
+          "p99_ms": 240.0,
+          "requests": 689,
+          "rps": 36.22922347524184
+        },
+        "endpoints": {
+          "api audit (auth)": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 6.0,
+            "p95_ms": 13.0,
+            "p99_ms": 21.0,
+            "requests": 56,
+            "rps": 2.9446103259993364
+          },
+          "api healthz": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 4.0,
+            "p95_ms": 6.0,
+            "p99_ms": 19.0,
+            "requests": 152,
+            "rps": 7.9925137419981995
+          },
+          "api metrics": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 30.0,
+            "p95_ms": 120.0,
+            "p99_ms": 490.0,
+            "requests": 68,
+            "rps": 3.5755982529991943
+          },
+          "login": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 240.0,
+            "p95_ms": 240.0,
+            "p99_ms": 240.0,
+            "requests": 1,
+            "rps": 0.05258232724998815
+          },
+          "predict (3 rows)": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 170.0,
+            "p95_ms": 220.0,
+            "p99_ms": 240.0,
+            "requests": 372,
+            "rps": 19.560625736995593
+          },
+          "predict health": {
+            "error_rate": 0.0,
+            "failures": 0,
+            "p50_ms": 7.0,
+            "p95_ms": 18.0,
+            "p99_ms": 21.0,
+            "requests": 40,
+            "rps": 2.103293089999526
+          }
+        }
+      }
+    }
+  }
+}
