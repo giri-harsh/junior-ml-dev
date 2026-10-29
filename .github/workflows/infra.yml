@@ -44,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with: {enable-cache: true}
       - run: uv sync --python 3.11 --group dev --extra infra
-      - name: MinIO (docker run: service containers cannot pass a command)
+      - name: MinIO via docker run (service containers cannot pass a command)
         run: |
           docker run -d --name minio -p 9000:9000 \
             -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
