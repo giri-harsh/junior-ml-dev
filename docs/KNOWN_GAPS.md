@@ -13,3 +13,6 @@
 | LLM providers never called for real (Groq/Gemini/Ollama) | no keys, no local model | set GROQ_API_KEY or GEMINI_API_KEY and record fixtures (ADR-010) |
 | Sandbox egress/FS-escape/fork-bomb tests; LocalDockerBackend execution; E2B backend | no Docker, no E2B key | build image, set JMD_SANDBOX=docker, add integration tests (marker `integration`) |
 | Approvals/audit run on SQLite; Postgres + REVOKE variant not run; audit covers login and approvals only | no Postgres | port the two stores to Postgres, add integration tests, wire audit into every tool call |
+| deploy: containers never started; FLAML models not bundleable | Docker unavailable; FLAML object needs repo classes | `docker compose -f data/deploy/<run>/<model>/docker-compose.yml up -d --build` then `curl localhost:8000/health` |
+| Job queue is SQLite (arq + Redis STUB) | Redis/Postgres unavailable | implement `ArqJobQueue`, run tests/unit/test_queue.py contract against it |
+| Agent tools run in-process (trusted service code); agent-written code path (sandbox-exec run_python) is not exercised by the scripted planner | no Docker/E2B isolation | set JMD_SANDBOX=docker once an image exists |

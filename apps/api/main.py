@@ -7,11 +7,13 @@ from sqlalchemy import text
 
 from apps.api.routes.admin import router as admin_router
 from apps.api.routes.datasets import router as datasets_router
+from apps.api.routes.runs import router as runs_router
 from trajectory.db import make_engine
 
 app = FastAPI(title="junior-ml-dev", version="0.1.0")
 app.include_router(datasets_router)
 app.include_router(admin_router)
+app.include_router(runs_router)
 
 
 @app.get("/healthz")

@@ -96,6 +96,7 @@ class ModelRecord(_Base):
     metric: Metric
     target: str
     features: list[str]
+    cat_features: list[str] = Field(default_factory=list)
     dropped: list[str]
     positive_label: str | None
     val_score: float
@@ -424,7 +425,8 @@ def train_model(req: TrainRequest) -> ModelRecord:
         model_id=_model_id(req.family, req.model_dump_json()),
         run_id=req.run_id, family=req.family, params={**req.params, **info},
         task_type=req.task_type, metric=req.metric, target=req.target,
-        features=list(x.columns), dropped=dropped, positive_label=positive,
+        features=list(x.columns), cat_features=_cat_cols(x), dropped=dropped,
+        positive_label=positive,
         val_score=val, train_score=tr, n_train=len(xt), n_val=len(xv),
         fit_on="train_split", fit_s=round(fit_s, 3), seed=req.seed, data_path=req.data_path,
     )  # fmt: skip
