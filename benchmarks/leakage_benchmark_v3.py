@@ -11,8 +11,8 @@ import json
 import sys
 from typing import Any
 
-from benchmarks.leakage_benchmark_v2 import RESULTS_DIR, SEED, code_hash
-from benchmarks.results_writer import Conditions, write_result
+from benchmarks.leakage_benchmark_v2 import SEED, code_hash
+from benchmarks.results_writer import RESULTS_DIR, Conditions, write_result
 from leakage import ledger
 from leakage.config import load_thresholds
 from leakage.evaluate import run_partition
