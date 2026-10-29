@@ -20,6 +20,13 @@ Docker, Postgres, Redis, E2B or an LLM key; none became reachable.
 ## Run 3 additions
 | Item | Status | Why | Resume |
 |---|---|---|---|
-| S18 real LLM planner (live run on <=3 dev tasks, llm_v1, injection suite with a real LLM in the loop, real fixtures) | NOT RUN | Probe: no GROQ/GEMINI/ANTHROPIC/OPENAI key, no Ollama. Planner, gateway, mock-tested structured output and fallback already exist | set `GROQ_API_KEY` (or Gemini), then run the LLM planner via `LLMPlanner(Gateway(default_chain(), mode="record", fixtures=...))` on dev tasks wdbc/kc1/sk_wine with <=50 calls/task, <=200 total; commit fixtures; rerun the injection suite with that gateway |
+| S18 real LLM planner | DONE in run 4 (Groq gpt-oss primary, Gemini fallback; v3 LLM arm, bake-off, real-LLM injection eval; cassettes in tests/cassettes) | | |
 | S19 Docker sandbox backend execution, E2B backend, scripted step that runs agent-written feature code in a sandbox | NOT RUN | No Docker, no E2B key | see KNOWN_GAPS (sandbox row) |
 | S17 live compose, Postgres/arq/MinIO verification, container deploy test | NOT RUN | No Docker | see KNOWN_GAPS (infra row) |
+
+## Run 4 additions
+| Item | Status | Why | Resume |
+|---|---|---|---|
+| Docker work (compose up app, test-infra, docker-kill resume, container deploy) | WALL: Docker Desktop not installed | Run-4 rules forbid installing system software | install Docker Desktop yourself, then `python scripts/tasks.py up app` and `python scripts/tasks.py test-infra` |
+| E2B backend | WALL: no E2B_API_KEY | needs an account/key | create a key at e2b.dev, set E2B_API_KEY, run the sandbox test suite against the E2B backend |
+| v3 re-evaluation after any further change | not allowed | eval-once | needs a new unseen partition (v4) |

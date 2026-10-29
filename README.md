@@ -4,10 +4,10 @@ A junior ML engineer that shows its work and catches its own mistakes: it profil
 checks for leakage before modelling, trains and compares models against baselines, has a deterministic
 reviewer sign off, and writes a report plus a model card. Deployment is gated by a single-use approval.
 
-> **Honest status.** The agent that runs today is **scripted** (a deterministic planner, no LLM). An LLM
-> planner exists behind the same interface and was exercised only with a **mock** provider; no real LLM
-> was ever called. Docker, Postgres, Redis, E2B and CI were never run on the development machine.
-> Two held-out agent evaluations exist (v1 headline, v2 post-hoc), both scripted-planner. Numbers are in [docs/RESULTS.md](docs/RESULTS.md), generated from `benchmarks/results/*.json`.
+> **Honest status.** Two planners exist: a **scripted** one (deterministic, no LLM) and an **LLM** planner
+> (Groq gpt-oss, Gemini fallback; cloud APIs only, hard-capped at 150 requests/day and 1 per 2 s per
+> provider). Both were evaluated once on an unseen 10-task partition (v3); see docs/RESULTS.md. Docker, Postgres, Redis, E2B and CI were never run on the development machine.
+> Held-out agent evaluations: v1 (headline) and v2 (post-hoc), both scripted; v3 (unseen), scripted and real-LLM. Numbers are in [docs/RESULTS.md](docs/RESULTS.md), generated from `benchmarks/results/*.json`.
 > What was not done, and how to resume it, is in [docs/SKIPPED.md](docs/SKIPPED.md) and
 > [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
 

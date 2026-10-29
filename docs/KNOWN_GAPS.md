@@ -22,3 +22,6 @@
 | CI workflow (ruff, mypy, unit pytest, gitleaks, compose config, infra job) only parsed as YAML; `act` absent | no GitHub remote | push and open a PR |
 | v2 post-hoc fixes not evaluated on held-out: strict id naming for numeric group candidates; reviewer `leakage_checked` | eval-once | needs a new freeze hash and an unseen partition |
 | In v2 cpu_act, detect_leakage exceeded its 60 s budget (machine under light load); that run had no leakage check and the then-reviewer approved | timing sensitivity | rerun forbidden by eval-once; v3 would also raise the budget |
+| LLM planner uses the LLM only for model-search choices; 21 of 35 proposals in the v3 LLM run were unusable (repeat or invalid family) and fell back to the script; it stopped the search early on kr-vs-kp and vowel and lost score there | design: prompts hold only numbers/family names | give the planner richer state (e.g. which families remain), still without dataset text |
+| Free-tier keys are shared with a live demo: caps (150/day, 1 per 2 s per family) are enforced in code, usage persists in data/llm_usage.json (UTC day) | policy | raise only with the owner's agreement |
+| v3 test sets are small (108-1639 rows): CIs are wide and per-task differences below ~0.02 are noise | dataset sizes | add larger unseen tasks in a future partition |

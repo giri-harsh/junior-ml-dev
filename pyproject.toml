@@ -37,6 +37,8 @@ dev = [
     "hypothesis>=6.100",
     "pandas-stubs>=3.0.5.260914",
     "types-pyyaml>=6.0.12.20260906",
+    "fakeredis>=2.40.0",
+    "pytest-timeout>=2.4.0",
 ]
 
 [build-system]
@@ -49,6 +51,7 @@ packages = ["trajectory", "benchmarks", "apps", "datastory", "leakage", "mcp_ser
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+timeout = 300
 markers = [
   "integration: needs docker compose services (run via `python scripts/tasks.py test-integration`)",
   "llm: live cloud LLM calls (Groq/Gemini); auto-skipped without keys; counts against daily caps",
