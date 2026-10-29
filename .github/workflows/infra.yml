@@ -44,11 +44,12 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with: {enable-cache: true}
       - run: uv sync --python 3.11 --group dev --extra infra
-      - name: MinIO via docker run (service containers cannot pass a command)
+      - name: MinIO (official binary; the Docker Hub and quay images are not pullable)
         run: |
-          docker run -d --name minio -p 9000:9000 \
-            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
-            quay.io/minio/minio:latest server /data
+          curl -sSfL -o minio https://dl.min.io/server/minio/release/linux-amd64/minio
+          chmod +x minio
+          mkdir -p /tmp/minio-data
+          nohup ./minio server /tmp/minio-data > /tmp/minio.log 2>&1 &
           for i in $(seq 1 30); do
             curl -sf http://localhost:9000/minio/health/live && break || sleep 2
           done

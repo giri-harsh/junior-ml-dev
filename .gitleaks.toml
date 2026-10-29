@@ -5,4 +5,5 @@ useDefault = true
 
 [allowlist]
 description = "Fixtures build fake secrets at runtime; nothing secret-shaped is committed."
-paths = ['''uv\.lock''', '''\.env\.example''']
+paths = ['''uv\.lock''', '''\.env\.example''', '''tests/cassettes/.*\.jsonl''']
+# cassette lines are {"key": <sha256 of the request>, "response": ...}: a hash, not a credential

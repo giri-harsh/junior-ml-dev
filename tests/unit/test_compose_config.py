@@ -74,6 +74,8 @@ def test_infra_workflow_has_services_compose_and_timeouts() -> None:
     assert wf["concurrency"]["cancel-in-progress"] is True
 
 
-def test_minio_healthcheck_does_not_depend_on_curl() -> None:
-    test = _load()["services"]["minio"]["healthcheck"]["test"]
-    assert "curl" not in test and test[:2] == ["CMD", "mc"]
+def test_minio_is_built_from_the_release_binary_with_a_curl_healthcheck() -> None:
+    svc = _load()["services"]["minio"]
+    assert svc["build"]["dockerfile"] == "minio.Dockerfile"
+    assert svc["healthcheck"]["test"][:2] == ["CMD", "curl"]
+    assert "curl" in Path("deploy/compose/minio.Dockerfile").read_text()
