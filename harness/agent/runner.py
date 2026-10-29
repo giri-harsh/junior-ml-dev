@@ -19,6 +19,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from harness.agent.deploy_tools import REGISTRY as DEPLOY_REGISTRY
 from harness.agent.models import RunConfig, Step, StepRecord
 from harness.agent.planners import Planner, step_key
 from harness.agent.report import write_report
@@ -60,7 +61,7 @@ class AgentRunner:
         self.store, self.planner = store, planner
         self.run_root = Path(run_root)
         self.audit, self.approvals, self.token = audit, approvals, approval_token
-        self.tools = {**REGISTRY, **(extra_tools or {})}
+        self.tools = {**REGISTRY, **DEPLOY_REGISTRY, **(extra_tools or {})}
         self.clock = clock
         self.crash_after = crash_after
         self.log = configure("agent")
@@ -88,6 +89,10 @@ class AgentRunner:
             if not decision.allowed:
                 return f"blocked:{decision.rule}"
             ctx.extra.update(approvals=self.approvals, token=self.token, payload=payload)
+            if cfg.mode != "dev" and self.audit is not None:  # never silent
+                self.audit.append(
+                    f"agent:{cfg.run_id}", "preseeded_approval_used", {"mode": cfg.mode, **payload}
+                )
         return None
 
     def _execute(
@@ -186,6 +191,11 @@ class AgentRunner:
             step = self.planner.next_step(cfg, state)
             if step is None:
                 break
+            if step.tool in RISKY_TOOLS and self.token is None and self.approvals is not None:
+                pending = self._request_approval(cfg, step)
+                return self._finish(
+                    cfg, state, records, resumed, spent_before + (self.clock() - start), pending
+                )
             if step.tool == "compare_models":
                 idx = self._ensure_baselines(cfg, state, records)
             rec = self._execute(cfg, step, idx, state, records, usage0)
@@ -194,6 +204,17 @@ class AgentRunner:
             if self.crash_after is not None and len(records) >= self.crash_after:
                 os._exit(137)  # failure injection: simulate a hard kill after a checkpoint
         return self._finish(cfg, state, records, resumed, spent_before + (self.clock() - start))
+
+    def _request_approval(self, cfg: RunConfig, step: Step) -> dict[str, Any]:
+        assert self.approvals is not None
+        payload = {"model_id": step.args.get("model_id")}
+        prior = (self.store.result(cfg.run_id) or {}).get("pending_approval")
+        if prior and prior.get("payload") == payload:
+            return dict(prior)
+        aid = self.approvals.request("deploy", cfg.run_id, payload)
+        if self.audit is not None:
+            self.audit.append(f"agent:{cfg.run_id}", "approval_requested", {"id": aid, **payload})
+        return {"approval_id": aid, "action": "deploy", "payload": payload}
 
     def _ensure_baselines(
         self, cfg: RunConfig, state: dict[str, Any], records: list[StepRecord]
@@ -220,6 +241,7 @@ class AgentRunner:
         records: list[StepRecord],
         resumed: bool,
         elapsed: float,
+        awaiting: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         chosen = state.get("chosen")
         m = state["models"].get(chosen or "", {})
@@ -228,6 +250,8 @@ class AgentRunner:
             if chosen is None
             else ("budget_exhausted" if state.get("budget_exhausted") else "done")
         )
+        if awaiting is not None:
+            status = "awaiting_approval"
         trace = {
             "run_id": cfg.run_id, "planner": self.planner.name, "resumed": resumed,
             "steps": [
@@ -253,6 +277,7 @@ class AgentRunner:
             "cost_usd": round(sum(r.cost_usd for r in records), 6),
             "latency_s": round(elapsed, 3), "report": state.get("report"),
             "trace_path": str(out_dir / "trace.json"),
+            "pending_approval": awaiting,
         }  # fmt: skip
         self.store.set_status(cfg.run_id, status, result)
         return result
