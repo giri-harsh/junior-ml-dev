@@ -1,0 +1,121 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\agent_dev.py --flaml-budget 15",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 5,
+    "notes": "DEV partition (real_dev, 70/30 split seed 0); scripted planner, NO LLM; references fit on the same 70%; design decisions may use these numbers",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T03:21:14+00:00",
+  "git_sha": "0756d28db1c59df3dc21ed303e373fd3a55973fd",
+  "name": "agent_dev_v0",
+  "results": {
+    "aggregate": {
+      "agent_minus_linear_paired_ci95": [
+        0.1230004641577489,
+        0.0,
+        0.3690013924732467
+      ],
+      "agent_normalized_mean_ci95": [
+        1.2031640955362115,
+        1.0306894022200856,
+        1.4663498167881026
+      ],
+      "linear_normalized_mean_ci95": [
+        1.0801636313784626,
+        0.6875287247555424,
+        1.457226667134924
+      ],
+      "n_defined": 5
+    },
+    "flaml_budget_s": 15.0,
+    "per_task": {
+      "kc1": {
+        "agent": 0.45604700947359045,
+        "agent_family": "linear",
+        "agent_latency_s": 56.782,
+        "agent_normalized": 1.174158000123424,
+        "agent_steps": 14,
+        "dropped": [],
+        "dummy": 0.15481832543443919,
+        "flaml": 0.4113670045793984,
+        "linear": 0.45604700947359045,
+        "linear_normalized": 1.174158000123424,
+        "metric": "pr_auc",
+        "reviewer": "APPROVE",
+        "status": "done",
+        "task_type": "binary",
+        "wall_s": 72.7
+      },
+      "kin8nm": {
+        "agent": 0.1121391121142643,
+        "agent_family": "flaml",
+        "agent_latency_s": 26.016,
+        "agent_normalized": 1.011542750061336,
+        "agent_steps": 13,
+        "dropped": [],
+        "dummy": 0.26271090910541095,
+        "flaml": 0.11385729220981602,
+        "linear": 0.20368443196285385,
+        "linear_normalized": 0.39654042927259153,
+        "metric": "rmse",
+        "reviewer": "APPROVE",
+        "status": "done",
+        "task_type": "regression",
+        "wall_s": 41.9
+      },
+      "sk_diabetes_reg": {
+        "agent": 55.71063404799804,
+        "agent_family": "linear",
+        "agent_latency_s": 16.734,
+        "agent_normalized": 1.7280068040891619,
+        "agent_steps": 14,
+        "dropped": [],
+        "dummy": 71.42474026082621,
+        "flaml": 62.33096460228005,
+        "linear": 55.71063404799804,
+        "linear_normalized": 1.7280068040891619,
+        "metric": "rmse",
+        "reviewer": "APPROVE",
+        "status": "done",
+        "task_type": "regression",
+        "wall_s": 32.1
+      },
+      "sk_wine": {
+        "agent": 1.0,
+        "agent_family": "rf",
+        "agent_latency_s": 29.016,
+        "agent_normalized": 1.0738643358365136,
+        "agent_steps": 14,
+        "dropped": [],
+        "dummy": 0.18666666666666668,
+        "flaml": 0.9440559440559441,
+        "linear": 1.0,
+        "linear_normalized": 1.0738643358365136,
+        "metric": "f1_macro",
+        "reviewer": "APPROVE",
+        "status": "done",
+        "task_type": "multiclass",
+        "wall_s": 44.7
+      },
+      "wdbc": {
+        "agent": 0.9916764018691588,
+        "agent_family": "linear",
+        "agent_latency_s": 32.844,
+        "agent_normalized": 1.0282485875706213,
+        "agent_steps": 14,
+        "dropped": [],
+        "dummy": 0.5,
+        "flaml": 0.978168808411215,
+        "linear": 0.9916764018691588,
+        "linear_normalized": 1.0282485875706213,
+        "metric": "roc_auc",
+        "reviewer": "APPROVE",
+        "status": "done",
+        "task_type": "binary",
+        "wall_s": 50.4
+      }
+    }
+  }
+}

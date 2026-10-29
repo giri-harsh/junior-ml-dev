@@ -6,6 +6,7 @@ through these helpers, inside delimited UNTRUSTED slots; flagged names are repla
 
 from __future__ import annotations
 
+import base64
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -31,6 +32,9 @@ SIGNALS: list[tuple[re.Pattern[str], float]] = [
     (re.compile(r"(change|set|switch)\s+(the\s+)?target", re.I), 0.5),
     (re.compile(r"```|<\||\|>|</?untrusted", re.I), 0.5),
     (re.compile(r"\b(base64|eval|exec)\b", re.I), 0.3),
+    # added from DEV evasion cases only (see benchmarks/injection/evasion.py)
+    (re.compile(r"\bignora\s+(\w+\s+){0,2}(instrucciones|istruzioni|instru..es)\b", re.I), 0.7),
+    (re.compile(r"\bpay no (heed|attention) to\b", re.I), 0.5),
 ]  # fmt: skip
 
 
@@ -42,9 +46,64 @@ def sanitize_text(value: object, max_len: int = MAX_CELL) -> str:
     return text[:max_len]
 
 
-def injection_score(value: object) -> float:
-    text = sanitize_text(value, max_len=10_000)
+def _score_text(text: str) -> float:
     return min(1.0, sum(w for pat, w in SIGNALS if pat.search(text)))
+
+
+def injection_score_v0(value: object) -> float:
+    """The original single-view scorer, kept so before/after numbers stay reproducible."""
+    return _score_text(sanitize_text(value, max_len=10_000))
+
+
+_LEET = str.maketrans(
+    {"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"}
+)
+_B64 = re.compile(r"[A-Za-z0-9+/]{16,}={0,2}")
+_SINGLE_CHARS = re.compile(r"(?:\S )+\S")
+_WIDE_GAP = re.compile(r"\s{2,}")
+_INNER_SEP = re.compile(r"(?<=[^\W_])[-._](?=[^\W_])")
+
+
+def _keep_ws(value: object, max_len: int = 10_000) -> str:
+    text = unicodedata.normalize("NFKC", str(value))
+    return _CONTROL.sub(" ", _INVISIBLE.sub("", text))[:max_len]
+
+
+def _join_spaced(text: str) -> str:
+    """'i g n o r e   a l l' -> 'ignore all' (words split on 2+ spaces, letters on one)."""
+    parts = [p.replace(" ", "") if _SINGLE_CHARS.fullmatch(p) else p for p in _WIDE_GAP.split(text)]
+    return " ".join(parts)
+
+
+def _decoded_chunks(text: str) -> list[str]:
+    out = []
+    for m in _B64.finditer(text):
+        try:
+            raw = base64.b64decode(m.group(0), validate=True).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if raw.isprintable():
+            out.append(raw)
+    return out
+
+
+def views(value: object) -> list[str]:
+    """Text views a payload may hide in: as-is, leet-folded, letter-joined, de-separated,
+    reversed, and base64-decoded. Each is scored independently; the maximum counts."""
+    raw = _keep_ws(value)
+    base = sanitize_text(raw, 10_000)
+    leet = raw.lower().translate(_LEET)
+    out = [base, sanitize_text(leet, 10_000)]
+    for v in (raw, leet):
+        out.append(sanitize_text(_INNER_SEP.sub("", _join_spaced(v)), 10_000))
+    out.append(base[::-1])
+    out.append(" ".join(w[::-1] for w in base.split()))  # each word reversed in place
+    out += [sanitize_text(d, 10_000) for d in _decoded_chunks(raw)]
+    return out
+
+
+def injection_score(value: object) -> float:
+    return max(_score_text(v) for v in views(value))
 
 
 def is_flagged(value: object) -> bool:

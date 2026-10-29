@@ -1,0 +1,38 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\injection\\evasion.py",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 404,
+    "notes": "heuristic scanner only; scanner changed using DEV payloads only; heldout read as counts; not an LLM behaviour measurement",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T03:21:44+00:00",
+  "git_sha": "0756d28db1c59df3dc21ed303e373fd3a55973fd",
+  "name": "injection_v1",
+  "results": {
+    "benign": {
+      "false_positives_after": 0,
+      "false_positives_before": 0,
+      "n": 388,
+      "n_real_columns": 378
+    },
+    "dev": {
+      "flagged_after": 8,
+      "flagged_before": 3,
+      "n": 8
+    },
+    "heldout": {
+      "flagged_after": 5,
+      "flagged_before": 0,
+      "n": 8,
+      "sha256": "92914d1c79486c0a4b951a263b17362b67af9a01eda2a820fc679508600868a6"
+    },
+    "scanner": {
+      "after": "multi-view v1",
+      "before": "injection_score_v0 (single-view regex)"
+    },
+    "scanner_module": "harness.policies.untrusted",
+    "structural_guard_unchanged": "see injection_v0.json; unsafe_executed must stay 0"
+  }
+}
