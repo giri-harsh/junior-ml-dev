@@ -1,0 +1,84 @@
+name: infra
+on:
+  push:
+    branches: [main]
+    paths:
+      - "harness/**"
+      - "apps/**"
+      - "mcp_servers/**"
+      - "deploy/**"
+      - "tests/infra/**"
+      - ".github/workflows/infra.yml"
+      - "pyproject.toml"
+      - "uv.lock"
+  workflow_dispatch:
+
+concurrency:
+  group: infra-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  services:
+    # Postgres store, arq worker, MinIO store, generated predict-service container, Docker sandbox
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env: {POSTGRES_USER: jmd, POSTGRES_PASSWORD: jmd, POSTGRES_DB: jmd}
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jmd -d jmd" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 20
+    env:
+      MINIO_ROOT_USER: jmdminio
+      MINIO_ROOT_PASSWORD: ci-throwaway-minio-pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with: {enable-cache: true}
+      - run: uv sync --python 3.11 --group dev --extra infra
+      - name: MinIO (docker run: service containers cannot pass a command)
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+            minio/minio:RELEASE.2024-06-13T22-53-53Z server /data
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && break || sleep 2
+          done
+      - name: Build sandbox image
+        run: docker build -t jmd-sandbox:latest deploy/sandbox
+      - run: uv run pytest -m "infra and not compose" tests/infra -v --timeout 900 -p no:cacheprovider
+      - if: failure()
+        run: docker ps -a | tail -10
+
+  compose:
+    # real arq worker container killed mid-run, resumed, compared with an uninterrupted run
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ARQ_JOB_TIMEOUT: "30"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with: {enable-cache: true}
+      - run: uv sync --python 3.11 --group dev --extra infra
+      - name: Throwaway secrets for this run only
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          echo "APPROVAL_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          echo "SCORER_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+      - run: docker compose -f deploy/compose/docker-compose.yml --profile app config --quiet
+      - run: uv run pytest -m compose tests/infra -v --timeout 1500 -p no:cacheprovider
+      - if: failure()
+        run: |
+          docker compose -f deploy/compose/docker-compose.yml --profile app ps || true
+          docker compose -f deploy/compose/docker-compose.yml --profile app logs --tail 40 api worker || true
+      - if: always()
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app down -v || true

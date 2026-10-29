@@ -41,6 +41,11 @@ def _stage_steps(cfg: RunConfig, state: dict[str, Any], exhausted: bool) -> list
         Step(tool="profile_dataset", reason="profile the data", critical=False),
         Step(tool="detect_leakage", reason="check for leakage before modelling"),
         Step(tool="decide_leakage", reason="drop implicated columns, record the decision"),
+        *(
+            [Step(tool="engineer_features", reason="agent-written feature code, sandboxed")]
+            if cfg.sandbox_features
+            else []
+        ),
         Step(tool="train_model", args={"family": "dummy"}, reason="floor baseline"),
         Step(tool="train_model", args={"family": "linear"}, reason="linear baseline"),
     ]

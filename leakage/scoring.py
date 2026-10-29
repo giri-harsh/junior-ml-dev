@@ -49,7 +49,7 @@ def encode_features(df: pd.DataFrame, cols: list[str]) -> np.ndarray:
 def random_splits(y: np.ndarray, task: str, seed: int, k: int = 5) -> list[Split]:
     if task != "regression":
         _, counts = np.unique(y, return_counts=True)
-        if counts.min() >= k:
+        if int(np.min(counts)) >= k:
             return list(StratifiedKFold(k, shuffle=True, random_state=seed).split(y, y))
     return list(KFold(k, shuffle=True, random_state=seed).split(y))
 

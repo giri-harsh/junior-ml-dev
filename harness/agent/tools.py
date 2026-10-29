@@ -47,9 +47,13 @@ Reducer = Callable[[dict[str, Any], dict[str, Any], dict[str, Any]], None]  # st
 def _spec(ctx: ToolCtx) -> dict[str, Any]:
     t = ctx.cfg.task
     return {
-        "data_path": t.data_path, "target": t.target, "task_type": t.task_type,
-        "metric": t.metric, "seed": t.seed, "drop_columns": list(ctx.state.get("dropped", [])),
-    }  # fmt: skip
+        "data_path": ctx.state.get("data_path_override", t.data_path),
+        "target": t.target,
+        "task_type": t.task_type,
+        "metric": t.metric,
+        "seed": t.seed,
+        "drop_columns": list(ctx.state.get("dropped", [])),
+    }
 
 
 # --- data-tools -----------------------------------------------------------------------------
@@ -126,7 +130,7 @@ def refit_full(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
 
 
 def predict(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
-    path = ctx.cfg.task.test_features_path
+    path = ctx.state.get("test_path_override", ctx.cfg.task.test_features_path)
     if not path:
         raise ex.ExperimentError("no test features configured")
     res = ex.predict(
@@ -139,6 +143,85 @@ def predict(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
 def check_code_policy(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     res = check_code(str(args.get("code", "")))
     return {"allowed": res.allowed, "violations": [str(v) for v in res.violations][:10]}
+
+
+FEATURE_CODE = """
+import numpy as np
+import pandas as pd
+from pathlib import Path
+
+TARGET = {target!r}
+
+
+def add_features(df):
+    out = df.copy()
+    cols = [
+        c for c in out.columns
+        if c not in (TARGET, "row_id")
+        and pd.api.types.is_numeric_dtype(out[c])
+        and out[c].nunique() > 10
+    ]
+    for c in cols[:8]:
+        s = out[c]
+        if s.notna().any() and s.min() >= 0 and abs(s.skew()) > 1.0:
+            out["fe_log1p_" + c] = np.log1p(s)
+    return out
+
+
+train = add_features(pd.read_parquet("train.parquet"))
+train.to_parquet("out_train.parquet")
+if Path("test.parquet").exists():
+    add_features(pd.read_parquet("test.parquet")).to_parquet("out_test.parquet")
+print(len(train.columns))
+"""
+
+
+def engineer_features(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
+    """Run agent-written feature code in the sandbox on train (+ test features), then train on it.
+
+    The code is policy-checked, executed in the configured sandbox (JMD_SANDBOX), and sees only the
+    files handed to it. The same function is applied to the test features, never to labels.
+    """
+    import io
+
+    import pandas as pd
+
+    from harness.sandbox.backends import backend_from_env, run_checked
+
+    t = ctx.cfg.task
+    code = FEATURE_CODE.format(target=t.target)
+    df, _ = dt.load_frame(t.data_path, ex.MAX_ROWS, t.seed)
+    files = {"train.parquet": _parquet(df)}
+    if t.test_features_path:
+        test, _ = dt.load_frame(t.test_features_path, ex.MAX_ROWS, t.seed)
+        files["test.parquet"] = _parquet(test)
+    res = run_checked(backend_from_env(), code, 120.0, files)
+    if res.exit_code != 0 or "out_train.parquet" not in res.files:
+        raise ex.ExperimentError(f"feature code failed: {res.stderr[-200:]}")
+    out_dir = dt.allowed_roots()[0] / "engineered" / ctx.cfg.run_id
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "train.parquet").write_bytes(res.files["out_train.parquet"])
+    result = {
+        "data_path": str(out_dir / "train.parquet"),
+        "n_columns_before": int(df.shape[1]),
+        "n_columns_after": int(
+            pd.read_parquet(io.BytesIO(res.files["out_train.parquet"])).shape[1]
+        ),
+        "sandbox": type(backend_from_env()).__name__,
+        "duration_s": res.duration_s,
+    }
+    if "out_test.parquet" in res.files:
+        (out_dir / "test.parquet").write_bytes(res.files["out_test.parquet"])
+        result["test_path"] = str(out_dir / "test.parquet")
+    return result
+
+
+def _parquet(df: Any) -> bytes:
+    import io
+
+    buf = io.BytesIO()
+    df.to_parquet(buf)
+    return buf.getvalue()
 
 
 # --- reviewer (deterministic checks only) ---------------------------------------------------
@@ -238,6 +321,13 @@ def _r_predict(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) ->
     st["predictions_path"] = res["out_path"]
 
 
+def _r_features(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
+    st["data_path_override"] = res["data_path"]
+    if "test_path" in res:
+        st["test_path_override"] = res["test_path"]
+    st["engineered"] = {k: res[k] for k in ("n_columns_before", "n_columns_after", "sandbox")}
+
+
 def _r_nothing(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
     return None
 
@@ -253,4 +343,5 @@ REGISTRY: dict[str, tuple[Tool, Reducer]] = {
     "refit_full": (refit_full, _r_refit),
     "predict": (predict, _r_predict),
     "check_code_policy": (check_code_policy, _r_nothing),
+    "engineer_features": (engineer_features, _r_features),
 }

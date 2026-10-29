@@ -55,6 +55,7 @@ timeout = 300
 markers = [
   "integration: needs docker compose services (run via `python scripts/tasks.py test-integration`)",
   "llm: live cloud LLM calls (Groq/Gemini); auto-skipped without keys; counts against daily caps",
+  "compose: infra test that starts the compose app profile itself (own CI job)",
   "infra: needs postgres/redis/minio/docker; auto-skipped when unreachable (python scripts/tasks.py test-infra)",
 ]
 
