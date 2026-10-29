@@ -1,0 +1,192 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\critic_eval.py",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 19,
+    "notes": "REAL LLM critic (advisory) vs rule-based reviewer on v4 runs; the critic never sees the rule verdict",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T17:20:53+00:00",
+  "git_sha": "1b234126845e5186a187dbf3582e9ee4ef2f16cb",
+  "name": "critic_v4",
+  "results": {
+    "agree": 9,
+    "agreement_rate": 0.47368421052631576,
+    "agreement_wilson95": [
+      0.27329505487448547,
+      0.6829251748817489
+    ],
+    "confusion": {
+      "rule=APPROVE|critic=APPROVE": 8,
+      "rule=APPROVE|critic=REQUEST_CHANGES": 10,
+      "rule=REQUEST_CHANGES|critic=REQUEST_CHANGES": 1
+    },
+    "n_runs": 19,
+    "n_valid": 19,
+    "requests": 31,
+    "rows": [
+      {
+        "arm": "scripted",
+        "concerns": [
+          "Train score of 1.0 for the chosen rf model is far above the cross-validation score (0.9346), indicating severe overfitting.",
+          "Train scores for hgb and flaml models also show a large gap compared to cross-validation scores."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "MagicTelescope"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [
+          "The chosen model (hgb, cv=0.4136) is not clearly better than the linear baseline (cv=0.4047) when considering the standard error (se=0.0078).",
+          "The train score for the chosen model (0.7423) is far above its cross-validation score (0.4136), indicating significant overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "jm1"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "eeg-eye-state"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "default-of-credit-card-clients"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "pendigits"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [
+          "Train score (1.0) is far above cross-validation score (0.9598), indicating potential overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "letter"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [
+          "Steps failed during the run.",
+          "Leakage detection did not run.",
+          "Chosen model is not clearly better than the linear baseline within standard error."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "REQUEST_CHANGES",
+        "task": "ailerons"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "sulfur"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "Brazilian_houses"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "houses"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "The train score for the chosen random forest model is 1.0, which is far above the cross-validation score of 0.9346, indicating severe overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "MagicTelescope"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "Train score (0.7423) is far above the cross-validation score (0.4136) for the chosen model, indicating severe overfitting.",
+          "The chosen model (hgb, cv: 0.4136, se: 0.0078) is not clearly better than the linear baseline (cv: 0.4047, se: 0.0074) within standard error bounds."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "jm1"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "Train score (1.0 for random forest, 0.9982 for hgb) is far above the cross-validation score (~0.98), indicating potential overfitting.",
+          "Suspiciously high performance (ROC-AUC > 0.98) combined with a massive gap between train and CV scores strongly suggests potential data leakage despite leakage detection running."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "eeg-eye-state"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "Chosen model (hgb CV: 0.5532, se: 0.0079) is not clearly better than the linear baseline (CV: 0.5023, se: 0.0073) within standard error margins."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "default-of-credit-card-clients"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "Train score (1.0) is suspiciously far above the cross-validation score (0.9935) and linear baseline, indicating potential overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "pendigits"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "The train score (1.0) for the chosen random forest model is suspiciously far above the cross-validation score (0.9598), indicating severe overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "letter"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "ailerons"
+      },
+      {
+        "arm": "llm",
+        "concerns": [
+          "Train score (0.0073) is far below cross-validation score (0.0201), indicating potential overfitting in the chosen random forest model."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "rule": "APPROVE",
+        "task": "sulfur"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "Brazilian_houses"
+      }
+    ]
+  }
+}

@@ -4,11 +4,21 @@ A junior ML engineer that shows its work and catches its own mistakes: it profil
 checks for leakage before modelling, trains and compares models against baselines, has a deterministic
 reviewer sign off, and writes a report plus a model card. Deployment is gated by a single-use approval.
 
-> **Honest status.** Two planners exist: a **scripted** one (deterministic, no LLM) and an **LLM** planner
-> (Groq gpt-oss, Gemini fallback; cloud APIs only, hard-capped at 150 requests/day and 1 per 2 s per
-> provider). Both were evaluated once on an unseen 10-task partition (v3); see docs/RESULTS.md. Docker, Postgres, Redis, E2B and CI were never run on the development machine.
-> Held-out agent evaluations: v1 (headline) and v2 (post-hoc), both scripted; v3 (unseen), scripted and real-LLM. Numbers are in [docs/RESULTS.md](docs/RESULTS.md), generated from `benchmarks/results/*.json`.
-> What was not done, and how to resume it, is in [docs/SKIPPED.md](docs/SKIPPED.md) and
+[![ci](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/ci.yml)
+[![infra](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml/badge.svg)](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml)
+
+> **Status (honest).** Two planners: a **scripted** one (deterministic, no LLM) and an **LLM** one
+> (Groq gpt-oss, Gemini fallback; cloud APIs only, hard-capped at 150 requests/day and 1 per 2 s
+> per provider). Headline = **v4**: 10 unseen OpenML tasks with >= 2,000 test rows each, each arm
+> evaluated once (scripted and LLM planner v2); v1-v3 are historical. Numbers: [docs/RESULTS.md](docs/RESULTS.md),
+> generated from `benchmarks/results/*.json`. What is verified where: the **ci** badge runs lint,
+> types, unit tests and gitleaks; the **infra** badge runs real Postgres, an arq worker container
+> that is `docker kill`ed mid-run and resumed, a generated predict-service container, and the Docker
+> sandbox suite (network blocked, read-only root, fork bomb contained, timeout kills the container).
+> Honest limits: the S3 service in CI/compose is a moto stand-in (MinIO no longer publishes pullable
+> images/binaries), E2B was never run (no key), the local subprocess sandbox is **not** isolation,
+> v4 per-task differences below ~0.02 are noise, and the LLM critic is advisory (it disagreed with
+> the rule-based reviewer on about half the runs). Gaps and resume steps: [docs/SKIPPED.md](docs/SKIPPED.md),
 > [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
 
 ## Architecture
@@ -23,12 +33,14 @@ flowchart LR
     R -->|guard + audit + checkpoint| T[Tool adapters]
     T --> DT[data-tools MCP: profile, leakage, story]
     T --> EX[experiments MCP: train, tune, compare, predict]
-    T --> SB[sandbox-exec MCP: code policy, run_python]
+    T --> SB[sandbox-exec MCP: code policy, Docker sandbox, engineer_features]
     T --> DP[deploy MCP: package, deploy_local]
     R --> S[(Run store: step checkpoints)]
     R --> A[(Hash-chained audit log)]
     DP -. single-use token .-> AP[(Approval store)]
-    R --> REP[Report: markdown + HTML + model card]
+    R --> REP[Report: markdown + HTML + model card + permutation importance]
+    R -. spans .-> OT[OpenTelemetry: console or OTLP]
+    CR[LLM critic, advisory] -. reads symbolic run summary .-> R
     SC[Scorer service: hidden labels] -. benchmark only .-> R
 ```
 
