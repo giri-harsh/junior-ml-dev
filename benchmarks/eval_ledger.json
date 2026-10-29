@@ -20,6 +20,23 @@
     "result_file": "benchmarks/results/leakage_v0.json",
     "status": "spent"
   },
+  "agent:0bb5a4f3064bbba4a543cdbb41e0f68bed2383e09de2674ac9c719dca063ae82": {
+    "infra_retries": [],
+    "partitions": [
+      "credit-approval",
+      "kr-vs-kp",
+      "ozone-level-8hr",
+      "pc1",
+      "climate-model-simulation-crashes",
+      "cmc",
+      "vowel",
+      "optdigits",
+      "space_ga",
+      "puma8NH"
+    ],
+    "result_file": "agent_v3_scripted.json",
+    "status": "evaluated"
+  },
   "agent:197c7b2ba8702ef261b6158573ecc222f14576fbe12f998ecc4580ad88a6aa0e": {
     "infra_retries": [],
     "partitions": [

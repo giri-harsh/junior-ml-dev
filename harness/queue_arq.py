@@ -69,18 +69,36 @@ class ArqJobQueue:
         raise NotImplementedError("arq records failures itself")
 
 
+RETRY_DELAY_S = int(os.environ.get("ARQ_RETRY_DELAY_S", "5"))
+
+
 async def run_agent(ctx: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
+    """Run (or resume) one agent run. Unexpected errors are retried with a delay, up to max_tries.
+
+    The runner checkpoints every step, so a retry or a re-delivery after a killed worker continues
+    from the last completed step instead of starting over.
+    """
+    from arq import Retry
+
     from apps.api.routes.runs import execute_job
 
-    return await asyncio.to_thread(execute_job, payload)
+    try:
+        return await asyncio.to_thread(execute_job, payload)
+    except Exception as exc:
+        if ctx.get("job_try", 1) < WorkerSettings.max_tries:
+            raise Retry(defer=RETRY_DELAY_S) from exc
+        raise
 
 
 class WorkerSettings:
     functions = [run_agent]
+    # Explicit timeout/retry policy (all overridable through the environment).
     max_tries = int(os.environ.get("ARQ_MAX_TRIES", "3"))
-    job_timeout = int(os.environ.get("ARQ_JOB_TIMEOUT", "3600"))
-    retry_jobs = True
+    job_timeout = int(os.environ.get("ARQ_JOB_TIMEOUT", "3600"))  # also sets the re-delivery delay
+    retry_jobs = True  # jobs interrupted by a worker shutdown are retried
+    max_jobs = int(os.environ.get("ARQ_MAX_JOBS", "2"))
     keep_result = 3600
+    health_check_interval = 15
 
     try:
         redis_settings = _redis_settings()

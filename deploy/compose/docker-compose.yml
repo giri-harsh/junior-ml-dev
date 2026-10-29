@@ -47,7 +47,8 @@ services:
     volumes: ["miniodata:/data"]
     mem_limit: 256m
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      # `mc ready local` is the check in MinIO's container docs; the image ships mc but not curl.
+      test: ["CMD", "mc", "ready", "local"]
       interval: 10s
       timeout: 3s
       retries: 10
