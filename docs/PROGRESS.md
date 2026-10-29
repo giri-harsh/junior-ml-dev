@@ -27,4 +27,5 @@ RUN 5 COMPLETE: S21-S24 done and pushed; see docs/AUTOPILOT_REPORT_RUN5.md. CI r
 ## RUN 6 (S25-S30 + stretch) - started 2026-10-30
 Budgets: CI runs used 0->2 (S25 push); LLM requests today: see data/llm_usage.json (cap 120/family/UTC day).
 S25 DONE (tag s25-done): leakage v3 (linear_combination detector, adaptive bounded detection, eval4: recall 29/30, twin FA 0/30). Cap bug fixed (gateway max_requests).
-NEXT: S26 critic calibration (dev only, <=40 requests): benchmarks/critic_calibration.py, harness/agent/critic.py v2.
+NEXT: S28 non-LLM parts now (v5 partition, baselines, freeze, scripted arm); LLM parts (S27 injection rerun, v5 LLM arm, critic eval) after UTC reset at 00:00 UTC (05:30 IST): Gemini 107/120 and Groq 120/120 used on 2026-10-29 UTC.
+S26 DONE (tag s26-done).
