@@ -24,7 +24,10 @@ def ci(v: list[float] | None) -> str:
 
 def section_agent(lines: list[str], name: str = "agent_v1", heading: str = "") -> None:
     d = load(name)
-    lines += [heading or "## Agent benchmark v1 (headline; 10 tasks, scorer-service test scores)", ""]
+    lines += [
+        heading or "## Agent benchmark v1 (headline; 10 tasks, scorer-service test scores)",
+        "",
+    ]
     if d is None:
         lines += [f"**NOT RUN** (`benchmarks/results/{name}.json` does not exist).", ""]
         return
@@ -117,7 +120,8 @@ def main() -> int:
     ]
     section_agent(lines)
     section_agent(
-        lines, "agent_v2",
+        lines,
+        "agent_v2",
         "## Agent benchmark v2 (post-hoc, fixes informed by v1 failures; second and last held-out evaluation)",
     )
     section_dev(lines)
