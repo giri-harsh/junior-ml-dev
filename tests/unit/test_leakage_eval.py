@@ -21,7 +21,7 @@ def test_list_variants_partitions(tmp_path: Path) -> None:
     from benchmarks.planted_bugs.generate import write_variants
 
     write_variants(tmp_path)
-    assert all(len(list_variants(p, tmp_path)) == 24 for p in ("dev", "eval_v0", "eval2"))
+    assert all(len(list_variants(p, tmp_path)) == 24 for p in ("eval_v0", "eval2", "eval3"))
 
 
 def test_wilson_interval() -> None:

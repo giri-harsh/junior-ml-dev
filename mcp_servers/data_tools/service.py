@@ -21,8 +21,8 @@ from datastory.models import DatasetProfile, SampleInfo, StoryResult
 from datastory.profile import profile_frame
 from datastory.story import build_story
 from leakage.config import load_thresholds, thresholds_hash
-from leakage.detectors import detect
-from leakage.models import DetectionMeta, DetectionTimeout, Finding, Severity
+from leakage.detectors import detect_with_status
+from leakage.models import DetectionMeta, Finding, Severity
 from trajectory.emit import emit
 from trajectory.models import EventKind
 
@@ -128,6 +128,8 @@ class LeakageResult(_Base):
     counts: dict[str, int]
     thresholds_sha256: str
     sample: SampleInfo
+    partial: bool = False  # detection was bounded (sampled or a detector ran out of time)
+    partial_reasons: list[str] = Field(default_factory=list)
 
 
 class ProfileResult(_Base):
@@ -161,16 +163,14 @@ def detect_leakage(req: LeakageRequest) -> LeakageResult:
     if req.target not in df.columns:
         raise GuardError(f"target {req.target!r} not in columns")
     meta = DetectionMeta(seed=req.seed, time_budget_s=req.time_budget_s)
-    try:
-        findings = detect(df, req.target, meta, load_thresholds())
-    except DetectionTimeout:
-        _event(run_id, "detect_leakage", {"status": "timeout"})
-        raise GuardError(f"time budget of {req.time_budget_s}s exceeded") from None
+    findings, reasons = detect_with_status(df, req.target, meta, load_thresholds())
     counts = {s.value: sum(f.severity == s for f in findings) for s in Severity}
     from leakage.scoring import infer_task
 
     task = infer_task(df[req.target].dropna())
-    _event(run_id, "detect_leakage", {"findings": len(findings), **counts})
+    _event(
+        run_id, "detect_leakage", {"findings": len(findings), "partial": bool(reasons), **counts}
+    )
     return LeakageResult(
         run_id=run_id,
         target=req.target,
@@ -179,6 +179,8 @@ def detect_leakage(req: LeakageRequest) -> LeakageResult:
         counts=counts,
         thresholds_sha256=thresholds_hash(),
         sample=sample,
+        partial=bool(reasons),
+        partial_reasons=reasons,
     )
 
 
