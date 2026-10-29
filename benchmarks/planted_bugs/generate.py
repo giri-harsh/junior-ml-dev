@@ -27,7 +27,7 @@ from apps.scorer.splits import frame_sha256
 
 BASE_SEED = 20260301
 N_ROWS = 1200
-VARIANTS_PER_TYPE = 9
+VARIANTS_PER_TYPE = 12  # 0-2 dev, 3-5 eval_v0, 6-8 eval2, 9-11 eval3 (new in run 4)
 DEV_VARIANTS = 3
 EVAL_V0_VARIANTS = 3  # variants 3-5: evaluated once in S4, spent
 EVAL2_STRENGTH_INDEX = (5, 3, 1)  # variants 6-8 reuse strengths of these base indices
@@ -237,12 +237,16 @@ def variant_seed(variant_id: str) -> int:
 def partition_of(i: int) -> str:
     if i < DEV_VARIANTS:
         return "dev"
-    return "eval_v0" if i < DEV_VARIANTS + EVAL_V0_VARIANTS else "eval2"
+    if i < DEV_VARIANTS + EVAL_V0_VARIANTS:
+        return "eval_v0"
+    return "eval2" if i < 9 else "eval3"
 
 
 def strength_index(i: int) -> int:
     """Variants 0-5 keep their original strengths; 6-8 are new seeds at old strengths."""
-    return i if i < 6 else EVAL2_STRENGTH_INDEX[i - 6]
+    if i < 6:
+        return i
+    return EVAL2_STRENGTH_INDEX[(i - 6) % 3]  # eval2 and eval3 reuse the strengths, new seeds
 
 
 def build_variant(bug: BugType, i: int) -> dict[str, Any]:

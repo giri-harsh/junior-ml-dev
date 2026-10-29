@@ -1,0 +1,13 @@
+# v3 partition: 10 OpenML datasets chosen AFTER the v1/v2 evaluations, disjoint from the 10 original
+# tasks and from real_dev. Never used for design decisions. Evaluated once per frozen hash.
+tasks:
+  - {name: credit-approval, source: openml, task_type: binary, target: class, metric: roc_auc, role: v3_heldout}
+  - {name: kr-vs-kp, source: openml, task_type: binary, target: class, metric: roc_auc, role: v3_heldout}
+  - {name: ozone-level-8hr, source: openml, task_type: binary, target: Class, metric: pr_auc, role: v3_heldout, imbalanced: true}
+  - {name: pc1, source: openml, task_type: binary, target: defects, metric: pr_auc, role: v3_heldout, imbalanced: true}
+  - {name: climate-model-simulation-crashes, source: openml, task_type: binary, target: Class, metric: pr_auc, role: v3_heldout, imbalanced: true}
+  - {name: cmc, source: openml, task_type: multiclass, target: Contraceptive_method_used, metric: f1_macro, role: v3_heldout}
+  - {name: vowel, source: openml, task_type: multiclass, target: Class, metric: f1_macro, role: v3_heldout}
+  - {name: optdigits, source: openml, task_type: multiclass, target: class, metric: f1_macro, role: v3_heldout}
+  - {name: space_ga, source: openml, task_type: regression, target: ln(VOTES/POP), metric: rmse, role: v3_heldout}
+  - {name: puma8NH, source: openml, task_type: regression, target: thetadd3, metric: rmse, role: v3_heldout}
