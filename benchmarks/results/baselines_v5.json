@@ -1,0 +1,167 @@
+{
+  "command": "python -m benchmarks.run_benchmark --baselines --v5 --out-name baselines_v5",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "baselines; FLAML time_budget=30s/task, 3-fold CV, seed 0; scored via scorer code path (in-process)",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T19:25:07+00:00",
+  "git_sha": "e033df21a19b75b3231dd8d261344ccb61e48848",
+  "name": "baselines_v5",
+  "results": {
+    "aggregate": {
+      "excluded_tasks": [],
+      "normalized_linear_ci95": [
+        0.6797164973528163,
+        0.9082284415444873
+      ],
+      "normalized_linear_defined_n": 10,
+      "normalized_linear_mean": 0.7980717677850974
+    },
+    "flaml_time_budget_s": 30,
+    "per_task": {
+      "Amazon_employee_access": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.12,
+        "flaml": 0.8506329249142747,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 31.14,
+        "flaml_time_budget_s": 30,
+        "linear": 0.8414636855992222,
+        "linear_fit_s": 0.85,
+        "linear_normalized": 0.9738494628897324,
+        "metric": "roc_auc",
+        "role": "v5_heldout",
+        "task_type": "binary"
+      },
+      "MiamiHousing2016": {
+        "dummy": 306306.72526188183,
+        "dummy_fit_s": 0.06,
+        "flaml": 88422.45571350984,
+        "flaml_best_estimator": "rf",
+        "flaml_fit_s": 36.02,
+        "flaml_time_budget_s": 30,
+        "linear": 163816.8929486055,
+        "linear_fit_s": 0.08,
+        "linear_normalized": 0.6539702595723299,
+        "metric": "rmse",
+        "role": "v5_heldout",
+        "task_type": "regression"
+      },
+      "diamonds": {
+        "dummy": 3974.0257563994037,
+        "dummy_fit_s": 0.08,
+        "flaml": 531.7146400494928,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 35.79,
+        "flaml_time_budget_s": 30,
+        "linear": 1115.637340992761,
+        "linear_fit_s": 0.4,
+        "linear_normalized": 0.8303689930378995,
+        "metric": "rmse",
+        "role": "v5_heldout",
+        "task_type": "regression"
+      },
+      "electricity": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.13,
+        "flaml": 0.9877087224402661,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 32.37,
+        "flaml_time_budget_s": 30,
+        "linear": 0.8261287506253949,
+        "linear_fit_s": 0.28,
+        "linear_normalized": 0.6686957514181813,
+        "metric": "roc_auc",
+        "role": "v5_heldout",
+        "task_type": "binary"
+      },
+      "fried": {
+        "dummy": 5.048866160414352,
+        "dummy_fit_s": 0.09,
+        "flaml": 1.0602748991663462,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 30.46,
+        "flaml_time_budget_s": 30,
+        "linear": 2.641887790741261,
+        "linear_fit_s": 0.11,
+        "linear_normalized": 0.6034657882993913,
+        "metric": "rmse",
+        "role": "v5_heldout",
+        "task_type": "regression"
+      },
+      "gas-drift": {
+        "dummy": 0.05929866036249015,
+        "dummy_fit_s": 0.11,
+        "flaml": 0.9889097870008694,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.65,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9910488704515122,
+        "linear_fit_s": 1.68,
+        "linear_normalized": 1.0023010519015387,
+        "metric": "f1_macro",
+        "role": "v5_heldout",
+        "task_type": "multiclass"
+      },
+      "house_8L": {
+        "dummy": 51832.16194409982,
+        "dummy_fit_s": 0.08,
+        "flaml": 29257.5567241667,
+        "flaml_best_estimator": "xgboost",
+        "flaml_fit_s": 32.35,
+        "flaml_time_budget_s": 30,
+        "linear": 41416.36794247466,
+        "linear_fit_s": 0.08,
+        "linear_normalized": 0.46139429239843954,
+        "metric": "rmse",
+        "role": "v5_heldout",
+        "task_type": "regression"
+      },
+      "mozilla4": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.18,
+        "flaml": 0.9860036550934543,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 31.17,
+        "flaml_time_budget_s": 30,
+        "linear": 0.8861252727489247,
+        "linear_fit_s": 0.06,
+        "linear_normalized": 0.7944904708065954,
+        "metric": "roc_auc",
+        "role": "v5_heldout",
+        "task_type": "binary"
+      },
+      "nomao": {
+        "dummy": 0.5,
+        "dummy_fit_s": 0.12,
+        "flaml": 0.9949998741665598,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.84,
+        "flaml_time_budget_s": 30,
+        "linear": 0.9872229549899973,
+        "linear_fit_s": 2.29,
+        "linear_normalized": 0.9842890481746959,
+        "metric": "roc_auc",
+        "role": "v5_heldout",
+        "task_type": "binary"
+      },
+      "sylva_prior": {
+        "dummy": 0.06147968044459882,
+        "dummy_fit_s": 0.1,
+        "flaml": 0.9749085350389093,
+        "flaml_best_estimator": "lgbm",
+        "flaml_fit_s": 30.2,
+        "flaml_time_budget_s": 30,
+        "linear": 0.982117826487779,
+        "linear_fit_s": 0.28,
+        "linear_normalized": 1.0078925593521695,
+        "metric": "pr_auc",
+        "role": "v5_heldout",
+        "task_type": "binary"
+      }
+    }
+  }
+}
