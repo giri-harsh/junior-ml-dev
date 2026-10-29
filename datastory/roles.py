@@ -20,6 +20,9 @@ ID_NAME = re.compile(
 ID_UNIQUE_RATIO = 0.95
 CONTIGUOUS_RATIO = 0.9
 MIN_GROUPS = 10
+# Integer-valued numeric columns with few levels and no identifier-like name are counts, ratings or
+# ordinals (features), not entities that repeat across rows.
+NUMERIC_GROUP_MIN = 30
 MAX_GROUP_RATIO = 0.5
 
 
@@ -78,6 +81,9 @@ def infer_roles(df: pd.DataFrame, target: str) -> Roles:
             if _looks_like_identifier(col, s, nunique):
                 roles.id_like.append(col)
         elif MIN_GROUPS <= nunique <= n * MAX_GROUP_RATIO:
+            numeric = pd.api.types.is_numeric_dtype(s)
+            if numeric and nunique < NUMERIC_GROUP_MIN and not ID_NAME.search(col):
+                continue
             roles.group_like.append(col)
     # name hints first, then fewer distinct values (bigger groups) first
     roles.group_like.sort(key=lambda c: (not ID_NAME.search(c), df[c].nunique(), c))

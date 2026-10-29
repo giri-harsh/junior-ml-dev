@@ -279,8 +279,16 @@ def _build(family: Family, spec: DataSpec, x: pd.DataFrame, params: dict[str, An
     raise ExperimentError(f"unsupported family {family!r}")
 
 
+FLAML_N_JOBS = 4  # fixed so results do not depend on how many cores the machine has
+FLAML_ESTIMATORS = ["lgbm", "xgboost", "rf", "extra_tree"]
+
+
 def _fit_flaml(
-    spec: DataSpec, x: pd.DataFrame, y: pd.Series, budget: float
+    spec: DataSpec,
+    x: pd.DataFrame,
+    y: pd.Series,
+    budget: float,
+    start: tuple[str, dict[str, Any]] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     from flaml import AutoML  # type: ignore[attr-defined]
 
@@ -295,22 +303,33 @@ def _fit_flaml(
         "mae": "mae",
     }[spec.metric]
     automl = AutoML()  # type: ignore[no-untyped-call]
+    # `start` = refit mode: evaluate exactly the selected configuration once (max_iter=1) and let
+    # FLAML retrain it on every row passed in, instead of searching again.
+    search: dict[str, Any] = (
+        {"estimator_list": [start[0]], "starting_points": {start[0]: start[1]}, "max_iter": 1}
+        if start
+        else {"estimator_list": FLAML_ESTIMATORS, "time_budget": max(1, int(budget))}
+    )
     automl.fit(
         xs,
         y,
         task="regression" if spec.task_type == "regression" else "classification",
         metric=flaml_metric,
-        time_budget=max(1, int(budget)),
-        estimator_list=["lgbm", "xgboost", "rf", "extra_tree"],
         seed=spec.seed,
-        n_jobs=4,
+        n_jobs=FLAML_N_JOBS,
         verbose=0,
         eval_method="cv",
         n_splits=3,
+        **search,
     )
     return _FlamlModel(automl, {c: list(xs[c].cat.categories) for c in _cat_cols(x)}), {
-        "best_estimator": automl.best_estimator
+        "best_estimator": automl.best_estimator,
+        "best_config": _jsonable(automl.best_config),
     }
+
+
+def _jsonable(cfg: dict[str, Any]) -> dict[str, Any]:
+    return {k: (v.item() if hasattr(v, "item") else v) for k, v in cfg.items()}
 
 
 class _FlamlModel:
@@ -346,7 +365,9 @@ def _fit(
     budget: float,
 ) -> tuple[Any, dict[str, Any]]:
     if family == "flaml":
-        return _fit_flaml(spec, x, y, budget)
+        est, cfg = params.get("best_estimator"), params.get("best_config")
+        start = (str(est), dict(cfg)) if est and cfg else None
+        return _fit_flaml(spec, x, y, budget, start)
     model = _build(family, spec, x, params)
     model.fit(_prep_for(family, x), y)
     return model, {}
@@ -500,12 +521,11 @@ def refit_full(req: RefitRequest) -> ModelRecord:
         metric=rec.metric, drop_columns=rec.dropped, seed=rec.seed,
     )  # fmt: skip
     x, y, _ = _prepare(spec)
-    if rec.family == "flaml":
-        return rec  # FLAML already used CV on the training split; not refit (documented)
     params = {k: v for k, v in rec.params.items()}
-    model, _ = _fit(rec.family, spec, x, y, params, 1)
+    model, info = _fit(rec.family, spec, x, y, params, 1)
     new = rec.model_copy(
         update={
+            "params": {**params, **info},
             "model_id": f"{rec.model_id}-full",
             "fit_on": "full",
             "n_train": len(x),

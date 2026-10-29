@@ -37,6 +37,7 @@ FREEZE_FILES = [
     "harness/agent/tools.py", "harness/agent/deploy_tools.py", "harness/agent/report.py",
     "harness/policies/code_policy.py", "mcp_servers/experiments/service.py",
     "mcp_servers/data_tools/service.py", "leakage/thresholds.frozen.sha256",
+    "leakage/detectors.py", "datastory/roles.py",
 ]  # fmt: skip
 RESULT_NAME = "agent_v1"
 FLAML_BUDGET_S = 30.0
@@ -57,12 +58,12 @@ def _git(*args: str) -> str:
     return out.stdout.strip()
 
 
-def assert_frozen_checkout() -> str:
+def assert_frozen_checkout(tag: str = FROZEN_TAG) -> str:
     if _git("status", "--porcelain"):
         raise SystemExit("refusing to evaluate: working tree is not clean")
     head = _git("rev-parse", "HEAD")
-    if _git("rev-parse", f"{FROZEN_TAG}^{{commit}}") != head:
-        raise SystemExit(f"refusing to evaluate: HEAD is not tagged {FROZEN_TAG}")
+    if _git("rev-parse", f"{tag}^{{commit}}") != head:
+        raise SystemExit(f"refusing to evaluate: HEAD is not tagged {tag}")
     return head
 
 
@@ -94,16 +95,19 @@ def run_benchmark(
     out_dir: Path,
     resume: bool = False,
     meta: dict[str, Any] | None = None,
+    result_name: str = RESULT_NAME,
+    prior: dict[str, Any] | None = None,
+    label: str = "",
 ) -> Path:
     key = f"agent:{digest}"
-    partial = out_dir / f"{RESULT_NAME}.partial.json"
+    partial = out_dir / f"{result_name}.partial.json"
     out_dir.mkdir(parents=True, exist_ok=True)
     if resume and ledger.is_spent(key, ledger_path):
         ledger.mark_infra_retry(
             key, f"resume after crash at {len(_load(partial))} tasks done", ledger_path
         )
     else:
-        ledger.claim(key, f"{RESULT_NAME}.json", [s.name for s in specs], ledger_path)  # BEFORE run
+        ledger.claim(key, f"{result_name}.json", [s.name for s in specs], ledger_path)  # BEFORE run
         partial.write_text("{}", encoding="utf-8")
     done = _load(partial)
     for spec in specs:
@@ -125,11 +129,23 @@ def run_benchmark(
         "SCRIPTED planner, no LLM (not an LLM-agent result); scorer-service test scores; "
         f"freeze hash {digest}; agent FLAML budget {FLAML_BUDGET_S}s inside its search, baseline "
         f"FLAML 30s (baselines_v0.json); references are code-written results, not re-run here. "
-        f"{(meta or {}).get('extra', '')}"
+        f"{label} {(meta or {}).get('extra', '')}"
     )
+    agg = aggregate(per)
+    if prior:  # paired difference vs an earlier evaluation, over tasks defined in both
+        pairs = [
+            (r["agent_normalized"], prior[k]["agent_normalized"])
+            for k, r in per.items()
+            if k in prior and r["agent_normalized"] is not None
+            and prior[k]["agent_normalized"] is not None
+        ]  # fmt: skip
+        if pairs:
+            a, b = zip(*pairs, strict=True)
+            agg["paired_vs_prior_ci95"] = paired_bootstrap_ci(list(a), list(b), seed=0)
+            agg["paired_vs_prior_n"] = len(pairs)
     path = write_result(
-        RESULT_NAME,
-        {"per_task": per, "aggregate": aggregate(per), "freeze_hash": digest,
+        result_name,
+        {"per_task": per, "aggregate": agg, "freeze_hash": digest,
          "planner": "scripted", "llm": "none", "meta": meta or {}},
         Conditions(llm="none", sandbox="none", n=len(per), notes=notes),
         out_dir=out_dir,
@@ -143,7 +159,7 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 # --- the real thing ------------------------------------------------------------------------
-def real_run_one(spec: TaskSpec, work: Path) -> dict[str, Any]:
+def real_run_one(spec: TaskSpec, work: Path, version: str = "") -> dict[str, Any]:
     from benchmarks.baselines import DATA_ROOT, SCORER_ROOT, score_via_scorer
     from harness.agent.models import RunBudget, RunConfig, RunTask
     from harness.agent.planners import ScriptedPlanner
@@ -154,7 +170,7 @@ def real_run_one(spec: TaskSpec, work: Path) -> dict[str, Any]:
     feats = tdir / "test_features.parquet"
     shutil.copyfile(SCORER_ROOT / spec.name / "test_features.parquet", feats)  # features only
     cfg = RunConfig(
-        run_id=f"bench-{spec.name}"[:64].replace(".", "_"),
+        run_id=f"bench-{version + '-' if version else ''}{spec.name}"[:64].replace(".", "_"),
         task=RunTask(
             name=spec.name, data_path=str(tdir / "train.parquet"), target=spec.target,
             task_type=spec.task_type, metric=spec.metric, test_features_path=str(feats),
@@ -186,22 +202,31 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--final", action="store_true", required=True)
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--version", choices=["v1", "v2"], default="v1")
     args = ap.parse_args(argv)
+    v2 = args.version == "v2"
+    name = "agent_v2" if v2 else RESULT_NAME
+    tag = "agent-frozen-v2" if v2 else FROZEN_TAG
     from harness.agent.models import RunBudget
     from harness.agent.planners import ScriptedPlanner
 
-    head = assert_frozen_checkout()
+    head = assert_frozen_checkout(tag)
     budget = RunBudget(flaml_budget_s=FLAML_BUDGET_S).model_dump()
     digest = freeze_hash(budget, ScriptedPlanner().config_fingerprint())
     base = json.loads((RESULTS_DIR / "baselines_v0.json").read_text(encoding="utf-8"))
     refs = {k: v for k, v in base["results"]["per_task"].items()}
     specs = load_registry()
-    work = Path("data/agent_bench")
+    work = Path("data/agent_bench_v2" if v2 else "data/agent_bench")
     work.mkdir(parents=True, exist_ok=True)
+    prior = None
+    if v2:
+        v1 = json.loads((RESULTS_DIR / "agent_v1.json").read_text(encoding="utf-8"))
+        prior = v1["results"]["per_task"]
     path = run_benchmark(
-        specs, lambda s: real_run_one(s, work), refs, digest=digest,
+        specs, lambda s: real_run_one(s, work, "v2" if v2 else ""), refs, digest=digest,
         ledger_path=ledger.LEDGER_PATH, out_dir=RESULTS_DIR, resume=args.resume,
-        meta={"git_sha": head},
+        meta={"git_sha": head}, result_name=name, prior=prior,
+        label="v2 - post-hoc, fixes informed by v1 failures." if v2 else "",
     )  # fmt: skip
     print(path)
     return 0

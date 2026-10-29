@@ -195,3 +195,15 @@ def test_flaml_family_smoke(env: Path) -> None:
         s.EvalRequest(run_id="r1", model_id=rec.model_id, data_path=rec.data_path, target="y")
     )
     assert ev.score > 0.7
+
+
+def test_flaml_is_refit_on_all_rows_with_the_selected_configuration(env: Path) -> None:
+    rec = s.train_model(_req(_clf(env, n=300), family="flaml", time_budget_s=3))
+    assert rec.n_train < 300  # selected on the train split
+    full = s.refit_full(s.RefitRequest(run_id="r1", model_id=rec.model_id))
+    assert full.fit_on == "full" and full.n_train == 300 and full.model_id.endswith("-full")
+    assert full.params["best_estimator"] == rec.params["best_estimator"]
+    ev = s.evaluate_model(
+        s.EvalRequest(run_id="r1", model_id=full.model_id, data_path=rec.data_path, target="y")
+    )
+    assert ev.score > 0.7
