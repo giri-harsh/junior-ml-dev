@@ -23,6 +23,7 @@ ARMS = {"scripted": "s", "llm": "l"}
 
 def main() -> int:
     gw = build_live_gateway(Path("tests/cassettes/critic_v4.jsonl"))
+    gw.max_requests = MAX_REQUESTS  # enforced per attempt, repairs and retries included
     critic = LLMCritic(gw)
     rows: list[dict[str, Any]] = []
     for arm, letter in ARMS.items():

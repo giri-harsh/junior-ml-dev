@@ -27,7 +27,7 @@ from apps.scorer.splits import frame_sha256
 
 BASE_SEED = 20260301
 N_ROWS = 1200
-VARIANTS_PER_TYPE = 12  # 0-2 dev, 3-5 eval_v0, 6-8 eval2, 9-11 eval3 (new in run 4)
+VARIANTS_PER_TYPE = 15  # 0-2 dev, 3-5 eval_v0, 6-8 eval2, 9-11 eval3, 12-14 eval4 (run 6)
 DEV_VARIANTS = 3
 EVAL_V0_VARIANTS = 3  # variants 3-5: evaluated once in S4, spent
 EVAL2_STRENGTH_INDEX = (5, 3, 1)  # variants 6-8 reuse strengths of these base indices
@@ -42,6 +42,7 @@ class BugType:
     leakage: bool  # naive random-CV score of the bugged variant must exceed its twin's
     bugged: Builder
     twin: Builder
+    indices: tuple[int, ...] | None = None  # variants to build (None = all)
 
 
 def _base(rng: np.random.Generator, n: int) -> pd.DataFrame:
@@ -207,6 +208,57 @@ def _identity(
     return df.copy(), []
 
 
+# --- linear_combo (run 6): target is (almost) a function of a few columns ----------------------
+def _combo_cols(rng: np.random.Generator, k: int = 3) -> tuple[list[str], np.ndarray]:
+    cols = [f"f{j}" for j in sorted(rng.choice(8, size=k, replace=False).tolist())]
+    w = rng.uniform(0.7, 2.0, size=k) * rng.choice([-1.0, 1.0], size=k)
+    return cols, w
+
+
+def _combo_reg_bug(
+    rng: np.random.Generator, df: pd.DataFrame, s: float
+) -> tuple[pd.DataFrame, list[str]]:
+    """Regression target = linear combination of 3 columns + relative noise `s` (sd / signal sd)."""
+    out = df.copy()
+    cols, w = _combo_cols(rng)
+    signal = out[cols].to_numpy() @ w
+    out[TARGET] = signal + rng.normal(0, s * float(np.std(signal)), len(out))
+    return out, cols
+
+
+def _combo_reg_twin(
+    rng: np.random.Generator, df: pd.DataFrame, s: float
+) -> tuple[pd.DataFrame, list[str]]:
+    """Same features, target = an interaction plus noise: not linear, not near-deterministic."""
+    out = df.copy()
+    cols, _ = _combo_cols(rng)
+    out[TARGET] = out[cols[0]] * out[cols[1]] + rng.normal(0, 1.0, len(out))
+    return out, []
+
+
+def _combo_cls_bug(
+    rng: np.random.Generator, df: pd.DataFrame, s: float
+) -> tuple[pd.DataFrame, list[str]]:
+    """Binary label = sign of a linear combination of 3 columns, flipped with probability `s`."""
+    out = df.copy()
+    cols, w = _combo_cols(rng)
+    y = (out[cols].to_numpy() @ w > 0).astype(int)
+    flip = rng.random(len(out)) < s
+    out[TARGET] = np.where(flip, 1 - y, y)
+    return out, cols
+
+
+def _combo_cls_twin(
+    rng: np.random.Generator, df: pd.DataFrame, s: float
+) -> tuple[pd.DataFrame, list[str]]:
+    out = df.copy()
+    cols, _ = _combo_cols(rng)
+    y = (out[cols[0]] * out[cols[1]] > 0).astype(int).to_numpy()
+    flip = rng.random(len(out)) < 0.15
+    out[TARGET] = np.where(flip, 1 - y, y)
+    return out, []
+
+
 BUG_TYPES: list[BugType] = [
     BugType("target_proxy", "target_proxy", True, _proxy_bug, _proxy_twin),
     BugType("duplicate_leak", "split_overlap", True, _dup_bug, _dup_twin),
@@ -216,6 +268,23 @@ BUG_TYPES: list[BugType] = [
     BugType("label_noise", "label_noise", False, _noise_bug, _identity),
     BugType("unit_mismatch", "consistency", False, _unit_bug, _identity),
     BugType("poisoned_name", "injection", False, _poison_bug, _identity),
+    # run 6: dev and the new eval4 partition only (earlier partitions stay as they were)
+    BugType(
+        "linear_combo_reg",
+        "target_proxy",
+        False,
+        _combo_reg_bug,
+        _combo_reg_twin,
+        (0, 1, 2, 12, 13, 14),
+    ),
+    BugType(
+        "linear_combo_cls",
+        "target_proxy",
+        False,
+        _combo_cls_bug,
+        _combo_cls_twin,
+        (0, 1, 2, 12, 13, 14),
+    ),
 ]
 # strength ranges per type (low, high); variant i interpolates deterministically
 STRENGTH: dict[str, tuple[float, float]] = {
@@ -227,6 +296,8 @@ STRENGTH: dict[str, tuple[float, float]] = {
     "label_noise": (0.25, 0.35),
     "unit_mismatch": (0.30, 0.40),
     "poisoned_name": (0.0, 0.0),
+    "linear_combo_reg": (0.0, 0.03),  # relative noise sd; R^2 ~ 1 - s^2
+    "linear_combo_cls": (0.0, 0.002),  # label-flip probability
 }
 
 
@@ -239,7 +310,9 @@ def partition_of(i: int) -> str:
         return "dev"
     if i < DEV_VARIANTS + EVAL_V0_VARIANTS:
         return "eval_v0"
-    return "eval2" if i < 9 else "eval3"
+    if i < 9:
+        return "eval2"
+    return "eval3" if i < 12 else "eval4"
 
 
 def strength_index(i: int) -> int:
@@ -283,7 +356,7 @@ def write_variants(
     manifest: dict[str, Any] = {}
     failures: list[str] = []
     for bug in BUG_TYPES:
-        for i in range(VARIANTS_PER_TYPE):
+        for i in bug.indices if bug.indices is not None else range(VARIANTS_PER_TYPE):
             v = build_variant(bug, i)
             d = out / v["id"]
             d.mkdir(parents=True, exist_ok=True)

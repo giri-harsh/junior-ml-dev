@@ -115,13 +115,16 @@ def test_unknown_target_rejected(root: Path) -> None:
         service.detect_leakage(LeakageRequest(path=str(_csv(root)), target="nope"))
 
 
-def test_timeout_is_reported(root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_tiny_budget_gives_a_partial_result_not_a_timeout(
+    root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     ticks = iter(range(10_000))  # fake clock: advances 1s per call, so any budget < 1s expires
     monkeypatch.setattr("leakage.models.time.monotonic", lambda: float(next(ticks)))
-    with pytest.raises(GuardError, match="time budget"):
-        service.detect_leakage(
-            LeakageRequest(path=str(_csv(root)), target="target", time_budget_s=1e-9)
-        )
+    monkeypatch.setattr("leakage.detectors.time.monotonic", lambda: float(next(ticks)))
+    res = service.detect_leakage(
+        LeakageRequest(path=str(_csv(root)), target="target", time_budget_s=1e-9)
+    )
+    assert res.partial and res.partial_reasons  # never raises: skipped detectors are listed
 
 
 @pytest.mark.parametrize(

@@ -10,8 +10,9 @@ Rules of the road
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -21,7 +22,7 @@ from sklearn.model_selection import StratifiedKFold
 
 from datastory.roles import ID_NAME, Roles, infer_roles
 from leakage.config import load_thresholds
-from leakage.models import Budget, DetectionMeta, Finding, FindingType, Severity
+from leakage.models import Budget, DetectionMeta, DetectionTimeout, Finding, FindingType, Severity
 from leakage.probes import Probe, did_stats, loco_drop, stable, subsample_indices
 from leakage.scoring import (
     direct_gini,
@@ -44,6 +45,7 @@ class Context:
     roles: Roles
     thr: dict[str, Any]
     budget: Budget
+    partial: list[str] = field(default_factory=list)
 
     @property
     def features(self) -> list[str]:
@@ -61,6 +63,33 @@ class Context:
         )
 
 
+CELL_CAP = 600_000  # rows x columns the detectors are asked to handle in one go
+MAX_COLS = 120
+MIN_ROWS = 2000
+
+
+def _bound_size(df: pd.DataFrame, target: str, seed: int, partial: list[str]) -> pd.DataFrame:
+    """Keep detection inside its budget on any size: keep the 120 columns most associated with
+    the target (cheap rank correlation on <=2000 rows), then sample rows down to CELL_CAP cells."""
+    feats = [c for c in df.columns if c != target]
+    if len(feats) > MAX_COLS:
+        sub = df.sample(n=min(len(df), 2000), random_state=seed)
+        y = encode_target(sub[target], infer_task(sub[target]))
+        x = encode_features(sub, feats)
+        with np.errstate(all="ignore"):
+            corr = np.abs(
+                np.nan_to_num(np.array([np.corrcoef(x[:, j], y)[0, 1] for j in range(x.shape[1])]))
+            )
+        keep = set(np.argsort(-corr, kind="stable")[:MAX_COLS].tolist())
+        df = df[[c for j, c in enumerate(feats) if j in keep] + [target]]
+        partial.append(f"columns reduced to the {MAX_COLS} most target-associated of {len(feats)}")
+    if len(df) * df.shape[1] > CELL_CAP and len(df) > MIN_ROWS:
+        n = max(MIN_ROWS, CELL_CAP // df.shape[1])
+        df = df.sample(n=n, random_state=seed).reset_index(drop=True)
+        partial.append(f"rows sampled to {n} to bound cost")
+    return df
+
+
 def make_context(
     df: pd.DataFrame,
     target: str,
@@ -71,8 +100,11 @@ def make_context(
     if target not in df.columns:
         raise KeyError(f"target {target!r} not in columns")
     df = df.dropna(subset=[target]).reset_index(drop=True)
+    partial: list[str] = []
     if len(df) > meta.max_cv_rows:
         df = df.sample(n=meta.max_cv_rows, random_state=meta.seed).reset_index(drop=True)
+        partial.append(f"rows sampled to {meta.max_cv_rows}")
+    df = _bound_size(df, target, meta.seed, partial)
     task = meta.task_type or infer_task(df[target])
     return Context(
         df=df,
@@ -83,6 +115,7 @@ def make_context(
         roles=infer_roles(df, target),
         thr=thresholds or load_thresholds(),
         budget=Budget(meta.time_budget_s),
+        partial=partial,
     )
 
 
@@ -568,6 +601,134 @@ def detect_label_noise(ctx: Context) -> list[Finding]:
     ]
 
 
+# --- near-deterministic target: linear combination / small separator -----------------------------
+LC_ROWS = 4000
+LC_MAX_TERMS = 5
+LC_R2 = 0.999  # holdout R^2 at which a regression target counts as a linear function of <=5 columns
+SEP_ACC = 0.998  # holdout balanced accuracy of a tree on <=3 columns (classification)
+SEP_TOP = 10
+
+
+def _numeric_features(ctx: Context) -> list[str]:
+    return [
+        c
+        for c in ctx.features
+        if pd.api.types.is_numeric_dtype(ctx.df[c])
+        and not pd.api.types.is_bool_dtype(ctx.df[c])
+        and ctx.df[c].nunique(dropna=True) > 1
+    ]
+
+
+def _lc_regression(ctx: Context) -> list[Finding]:
+    from sklearn.linear_model import OrthogonalMatchingPursuit
+
+    cols = _numeric_features(ctx)
+    if not cols or float(np.nanstd(ctx.y)) == 0.0:
+        return []
+    idx = subsample_indices(len(ctx.df), LC_ROWS, ctx.meta.seed)
+    x = encode_features(ctx.df.iloc[idx], cols)
+    y = ctx.y[idx].astype(float)
+    cut = len(y) // 2
+    if cut < 30:
+        return []
+    mu, sd = x[:cut].mean(0), x[:cut].std(0) + 1e-12
+    xs = (x - mu) / sd
+    ss_tot = float(((y[cut:] - y[cut:].mean()) ** 2).sum())
+    if ss_tot <= 0:
+        return []
+    for k in range(1, min(LC_MAX_TERMS, len(cols)) + 1):
+        ctx.budget.check()
+        omp = OrthogonalMatchingPursuit(n_nonzero_coefs=k).fit(xs[:cut], y[:cut])
+        resid = y[cut:] - omp.predict(xs[cut:])
+        r2 = 1.0 - float((resid**2).sum()) / ss_tot
+        if r2 >= LC_R2:
+            used = [cols[j] for j in np.flatnonzero(omp.coef_)]
+            return [
+                Finding(
+                    type=FindingType.LINEAR_COMBINATION,
+                    severity=_severity(r2, 0.9999),
+                    columns=used,
+                    evidence={"holdout_r2": round(r2, 6), "n_terms": len(used), "rows": len(y)},
+                    confidence=_confidence(r2, LC_R2, 1.0),
+                )
+            ]
+    return []
+
+
+def _lc_separator(ctx: Context) -> list[Finding]:
+    from itertools import combinations
+
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import balanced_accuracy_score
+    from sklearn.tree import DecisionTreeClassifier
+
+    cols = ctx.features
+    if len(cols) < 2 or int(np.max(ctx.y)) < 1:
+        return []
+    idx = subsample_indices(len(ctx.df), LC_ROWS, ctx.meta.seed)
+    x = encode_features(ctx.df.iloc[idx], cols)
+    y = ctx.y[idx].astype(int)
+    cut = len(y) // 2
+    n_hold = len(y) - cut
+    if n_hold < 600 or len(np.unique(y[:cut])) < 2:
+        return []  # too little holdout evidence for a 99.8% claim
+    thr = min(SEP_ACC, 1.0 - 5.0 / n_hold)  # a plane learned from n rows errs ~ d/n: allow 5
+
+    mu, sd = x[:cut].mean(0), x[:cut].std(0) + 1e-12
+    xs = (x - mu) / sd
+
+    def acc(js: tuple[int, ...]) -> float:
+        """Best of an axis-aligned tree (rules, XOR) and a near-unregularised linear separator."""
+        best = 0.0
+        tree = DecisionTreeClassifier(max_depth=6, min_samples_leaf=5, random_state=0)
+        tree.fit(x[:cut][:, js], y[:cut])
+        best = float(balanced_accuracy_score(y[cut:], tree.predict(x[cut:][:, js])))
+        if best < thr:
+            lin = LogisticRegression(C=1e4, max_iter=2000)
+            lin.fit(xs[:cut][:, js], y[:cut])
+            best = max(best, float(balanced_accuracy_score(y[cut:], lin.predict(xs[cut:][:, js]))))
+        return best
+
+    singles = []
+    for j in range(len(cols)):
+        ctx.budget.check()
+        singles.append((acc((j,)), j))
+    singles.sort(reverse=True)
+    if singles[0][0] >= thr:
+        return []  # one column already separates: the target-leakage detector reports that
+    top = [j for _, j in singles[:SEP_TOP]]
+    for r in (2, 3):
+        best: tuple[float, tuple[int, ...]] | None = None
+        for combo in combinations(top, r):
+            ctx.budget.check()
+            a = acc(combo)
+            if best is None or a > best[0]:
+                best = (a, combo)
+        if best and best[0] >= thr:
+            return [
+                Finding(
+                    type=FindingType.LINEAR_COMBINATION,
+                    severity=_severity(best[0], 0.9995),
+                    columns=[cols[j] for j in best[1]],
+                    evidence={
+                        "holdout_balanced_accuracy": round(best[0], 6),
+                        "n_columns": r,
+                        "best_single_column": round(singles[0][0], 4),
+                        "kind": "near-perfect separator from a few columns",
+                        "rows": len(y),
+                    },
+                    confidence=_confidence(best[0], SEP_ACC, 1.0),
+                )
+            ]
+    return []
+
+
+def detect_linear_combo(ctx: Context) -> list[Finding]:
+    """Target (almost) determined by <=5 numeric columns (regression, holdout R^2 >= 0.999) or by
+    <=3 columns (classification, holdout balanced accuracy >= 0.998). Bounded: <=4000 rows."""
+    return _lc_regression(ctx) if ctx.task == "regression" else _lc_separator(ctx)
+
+
 DETECTORS: dict[str, Callable[[Context], list[Finding]]] = {
     "target_leakage": detect_target_leakage,
     "duplicates": detect_duplicates,
@@ -578,6 +739,7 @@ DETECTORS: dict[str, Callable[[Context], list[Finding]]] = {
     "unit_mismatch": detect_unit_mismatch,
     "suspicious_names": detect_suspicious_names,
     "label_noise": detect_label_noise,
+    "linear_combo": detect_linear_combo,
 }
 
 
@@ -589,9 +751,31 @@ def detect(
     only: list[str] | None = None,
 ) -> list[Finding]:
     """Run all (or `only`) detectors. Output order is deterministic."""
+    return detect_with_status(df, target, meta, thresholds, only)[0]
+
+
+def detect_with_status(
+    df: pd.DataFrame,
+    target: str,
+    meta: DetectionMeta | None = None,
+    thresholds: dict[str, Any] | None = None,
+    only: list[str] | None = None,
+) -> tuple[list[Finding], list[str]]:
+    """Like `detect`, but never raises on time: each detector gets a slice of the remaining budget;
+    one that runs out is skipped and listed. Returns (findings, partial-reasons); an empty reason
+    list means every detector ran on the full (or only mildly sampled) frame."""
     ctx = make_context(df, target, meta, thresholds)
+    names = [n for n in DETECTORS if only is None or n in only]
+    end = time.monotonic() + ctx.meta.time_budget_s
     findings: list[Finding] = []
-    for name, fn in DETECTORS.items():
-        if only is None or name in only:
-            findings.extend(fn(ctx))
-    return findings
+    for i, name in enumerate(names):
+        remaining = end - time.monotonic()
+        if remaining <= 0.0:
+            ctx.partial.append(f"{name}: skipped (time budget)")
+            continue
+        ctx.budget = Budget(min(remaining, remaining / (len(names) - i) * 2))
+        try:
+            findings.extend(DETECTORS[name](ctx))
+        except DetectionTimeout:
+            ctx.partial.append(f"{name}: stopped at its time slice")
+    return findings, ctx.partial

@@ -304,7 +304,7 @@ def main(argv: list[str] | None = None) -> int:
         from harness.gateway.live import USAGE_PATH
 
         used = UsageLedger(USAGE_PATH)
-        left = 150 - max(used.used("groq"), used.used("gemini"))
+        left = 120 - max(used.used("groq"), used.used("gemini"))
         if left < 30 and not args.resume:
             raise SystemExit(
                 f"refusing to start: only {left} requests left today on the best provider"

@@ -10,7 +10,7 @@ from benchmarks.planted_bugs import generate as g
 BY_NAME = {b.name: b for b in g.BUG_TYPES}
 
 
-def test_all_eight_bug_types_present() -> None:
+def test_all_bug_types_present() -> None:
     assert set(BY_NAME) == {
         "target_proxy",
         "duplicate_leak",
@@ -20,6 +20,8 @@ def test_all_eight_bug_types_present() -> None:
         "label_noise",
         "unit_mismatch",
         "poisoned_name",
+        "linear_combo_reg",
+        "linear_combo_cls",
     }
 
 
@@ -33,7 +35,7 @@ def test_generation_is_deterministic() -> None:
 
 def test_partitions_split_dev_and_eval() -> None:
     parts = [g.partition_of(i) for i in range(g.VARIANTS_PER_TYPE)]
-    assert parts == ["dev"] * 3 + ["eval_v0"] * 3 + ["eval2"] * 3 + ["eval3"] * 3
+    assert parts == ["dev"] * 3 + ["eval_v0"] * 3 + ["eval2"] * 3 + ["eval3"] * 3 + ["eval4"] * 3
 
 
 def test_labels_are_complete() -> None:
@@ -66,4 +68,7 @@ def test_poisoned_name_and_unit_mismatch() -> None:
 def test_write_variants_manifest_stable(tmp_path: Path) -> None:
     m1 = g.write_variants(tmp_path / "a")
     m2 = g.write_variants(tmp_path / "b")
-    assert m1 == m2 and len(m1) == len(g.BUG_TYPES) * g.VARIANTS_PER_TYPE
+    expected = sum(
+        len(b.indices) if b.indices is not None else g.VARIANTS_PER_TYPE for b in g.BUG_TYPES
+    )
+    assert m1 == m2 and len(m1) == expected

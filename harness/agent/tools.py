@@ -81,6 +81,8 @@ def detect_leakage(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
         "findings": [f.model_dump(mode="json") for f in res.findings],
         "counts": res.counts,
         "thresholds_sha256": res.thresholds_sha256,
+        "partial": res.partial,
+        "partial_reasons": res.partial_reasons,
     }
 
 
@@ -283,9 +285,14 @@ def review(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
             )
     findings = [Finding.model_validate(f) for f in st.get("findings", [])]
     ran = "detect_leakage" not in st.get("failures", {})
-    checks["leakage_checked"] = CheckResult(
-        passed=ran, detail="leakage detection ran" if ran else "leakage detection FAILED; unchecked"
+    partial = st.get("leakage_partial", [])
+    detail = (
+        "leakage detection FAILED; unchecked"
+        if not ran
+        else "leakage detection ran"
+        + (f" (PARTIAL, warn only: {'; '.join(partial)[:160]})" if partial else "")
     )
+    checks["leakage_checked"] = CheckResult(passed=ran, detail=detail)  # partial = WARN, not FAIL
     checks["leakage_resolved"] = check_leakage_resolved(findings, set(st.get("dropped", [])))
     verdict = "APPROVE" if all(c.passed for c in checks.values()) else "REQUEST_CHANGES"
     return {
@@ -302,6 +309,7 @@ def _r_profile(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) ->
 def _r_leak(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
     st["findings"] = res["findings"]
     st["leakage_counts"] = res["counts"]
+    st["leakage_partial"] = res.get("partial_reasons", [])
 
 
 def _r_decide(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:

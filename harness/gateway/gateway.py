@@ -120,6 +120,7 @@ class Gateway:
     sleep: Callable[[float], None] = time.sleep
     rng: random.Random = field(default_factory=lambda: random.Random(0))
     on_event: Callable[[dict[str, object]], None] | None = None
+    max_requests: int | None = None  # hard cap on provider attempts for this gateway object
 
     def __post_init__(self) -> None:
         self.cache: dict[str, LLMResponse] = {}
@@ -196,6 +197,8 @@ class Gateway:
 
     def _with_retries(self, p: Provider, req: LLMRequest) -> LLMResponse:
         for attempt in range(self.max_retries + 1):
+            if self.max_requests is not None and self.stats["calls"] >= self.max_requests:
+                raise BudgetExceeded(f"request cap {self.max_requests} reached")
             self.stats["calls"] += 1
             try:
                 return p.complete(req)
