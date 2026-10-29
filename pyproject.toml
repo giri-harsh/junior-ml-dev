@@ -69,5 +69,5 @@ extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
 "tests/**" = ["E501"]
 
 [[tool.mypy.overrides]]
-module = ["sklearn.*", "flaml.*"]
+module = ["sklearn.*", "flaml.*", "joblib.*"]
 ignore_missing_imports = true
