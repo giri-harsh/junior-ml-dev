@@ -69,8 +69,10 @@ def _tail_steps(cfg: RunConfig, state: dict[str, Any]) -> list[Step]:
     chosen = state.get("chosen")
     steps: list[Step] = []
     if chosen:
-        steps.append(Step(tool="refit_full", args={"model_id": chosen}, reason="refit on all"))
-        final = f"{chosen}-full"
+        final = chosen
+        if state.get("models", {}).get(chosen, {}).get("fit_on") != "full":
+            steps.append(Step(tool="refit_full", args={"model_id": chosen}, reason="refit on all"))
+            final = f"{chosen}-full"
         if cfg.task.test_features_path:
             steps.append(Step(tool="predict", args={"model_id": final}, reason="test predictions"))
         if cfg.deploy:
@@ -141,7 +143,7 @@ class LLMPlanner:
                 "train": round(m["train_score"], 4),
             }
             for m in state.get("models", {}).values()
-            if m["fit_on"] == "train_split"
+            if m.get("scored", True)
         ]
         return json.dumps(
             {"task_type": cfg.task.task_type, "metric": cfg.task.metric, "models": models,

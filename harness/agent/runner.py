@@ -221,7 +221,7 @@ class AgentRunner:
         self, cfg: RunConfig, state: dict[str, Any], records: list[StepRecord]
     ) -> int:
         """If the search produced no usable model, train baselines directly (never end empty)."""
-        have = any(m["fit_on"] == "train_split" for m in state["models"].values())
+        have = any(m.get("scored", True) for m in state["models"].values())
         for fam in () if have else ("linear", "dummy"):
             idx = len(records)
             saved = list(state["dropped"])

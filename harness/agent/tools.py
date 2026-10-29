@@ -103,7 +103,7 @@ def train_model(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     family = args["family"]
     budget = ctx.cfg.budget.flaml_budget_s if family == "flaml" else 20.0
     req = ex.TrainRequest(
-        **_spec(ctx), run_id=ctx.cfg.run_id, family=family,
+        **_spec(ctx), run_id=ctx.cfg.run_id, family=family, selection=ctx.cfg.budget.selection,
         params=args.get("params", {}), time_budget_s=max(1.0, budget),
     )  # fmt: skip
     return ex.train_model(req).model_dump(mode="json", exclude={"features"})
@@ -112,6 +112,7 @@ def train_model(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
 def tune_model(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     req = ex.TuneRequest(
         **_spec(ctx), run_id=ctx.cfg.run_id, family=args["family"],
+        selection=ctx.cfg.budget.selection,
         n_trials=max(1, ctx.cfg.budget.tune_trials), time_budget_s=30,
     )  # fmt: skip
     return ex.tune_model(req).model_dump(mode="json", exclude={"features"})
@@ -234,7 +235,14 @@ def simplicity_order(board: list[str], models: dict[str, dict[str, Any]]) -> lis
     if not board:
         return board
     best = models[board[0]]["val_score"]
-    tied = [m for m in board if abs(models[m]["val_score"] - best) <= TIE_REL * abs(best)]
+    se = models[board[0]].get("cv_se")
+    # CV-selected models: the classic 1-SE rule; holdout models: fixed 0.5% relative tolerance
+    tol = (
+        float(se)
+        if models[board[0]].get("selection") == "cv" and se is not None
+        else TIE_REL * abs(best)
+    )
+    tied = [m for m in board if abs(models[m]["val_score"] - best) <= tol]
     tied.sort(key=lambda m: (COMPLEXITY.get(models[m]["family"], 9), board.index(m)))
     return tied + [m for m in board if m not in tied]
 
@@ -244,7 +252,7 @@ def review(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     models: dict[str, dict[str, Any]] = st.get("models", {})
     board = simplicity_order([r["model_id"] for r in st.get("leaderboard", [])], models)
     higher = t.metric not in {"rmse", "mae"}
-    by_family = {m["family"]: m for m in models.values() if m["fit_on"] == "train_split"}
+    by_family = {m["family"]: m for m in models.values() if m.get("scored", True)}
     dummy = by_family.get("dummy", {}).get("val_score")
     linear = by_family.get("linear", {}).get("val_score")
     chosen, gap_note = (board[0] if board else None), "no models"
@@ -298,7 +306,19 @@ def _r_decide(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> 
 
 def _r_model(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
     st.setdefault("models", {})[res["model_id"]] = {
-        k: res[k] for k in ("family", "val_score", "train_score", "fit_on", "fit_s", "params")
+        k: res[k]
+        for k in (
+            "family",
+            "val_score",
+            "train_score",
+            "fit_on",
+            "fit_s",
+            "params",
+            "selection",
+            "scored",
+            "cv_se",
+            "cv_k",
+        )
     }
 
 

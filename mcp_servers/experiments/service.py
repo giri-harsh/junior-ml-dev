@@ -73,7 +73,11 @@ class DataSpec(_Base):
     val_fraction: float = Field(default=0.2, ge=0.05, le=0.5)
 
 
+Selection = Literal["holdout", "cv"]
+
+
 class TrainRequest(DataSpec):
+    selection: Selection = "holdout"
     run_id: str = Field(pattern=_SLUG)
     family: Family
     params: dict[str, float | int | str] = Field(default_factory=dict)
@@ -81,6 +85,7 @@ class TrainRequest(DataSpec):
 
 
 class TuneRequest(DataSpec):
+    selection: Selection = "holdout"
     run_id: str = Field(pattern=_SLUG)
     family: Literal["hgb", "rf"]
     n_trials: int = Field(default=6, ge=1, le=MAX_TRIALS)
@@ -104,6 +109,10 @@ class ModelRecord(_Base):
     n_train: int
     n_val: int
     fit_on: Literal["train_split", "full"]
+    selection: Selection = "holdout"
+    scored: bool = True  # False for refit copies: val_score belongs to the recipe, not the copy
+    cv_k: int | None = None
+    cv_se: float | None = None
     fit_s: float
     seed: int
     data_path: str
@@ -433,7 +442,10 @@ def model_path(run_id: str, model_id: str) -> Path:
 
 # --- tools ----------------------------------------------------------------------------------
 def train_model(req: TrainRequest) -> ModelRecord:
-    """Fit on a seeded train split, score on the held-out validation split, save the artifact."""
+    """Holdout: fit on a seeded train split, score on the held-out split. CV: k-fold on all rows,
+    final model fit on all rows (`val_score` = mean CV score, `cv_se` its standard error)."""
+    if req.selection == "cv":
+        return _train_cv(req)
     x, y, dropped = _prepare(req)
     xt, xv, yt, yv = _split(x, y, req)
     positive = _positive_label(y) if req.task_type != "regression" else None
@@ -456,6 +468,52 @@ def train_model(req: TrainRequest) -> ModelRecord:
     return rec
 
 
+def cv_folds(spec: DataSpec, y: pd.Series, n: int) -> tuple[int, Any]:
+    """k = 5 (3 above 50k rows); stratified when every class has >= k rows, else fewer folds."""
+    k = 3 if n > 50_000 else 5
+    if spec.task_type == "regression":
+        return k, KFold(k, shuffle=True, random_state=spec.seed)
+    k = max(2, min(k, int(y.value_counts().min())))
+    return k, StratifiedKFold(k, shuffle=True, random_state=spec.seed)
+
+
+def _train_cv(req: TrainRequest) -> ModelRecord:
+    x, y, dropped = _prepare(req)
+    positive = _positive_label(y) if req.task_type != "regression" else None
+    k, folder = cv_folds(req, y, len(x))
+    params = dict(req.params)
+    t0 = time.monotonic()
+    final: Any = None
+    if req.family == "flaml":
+        # search once on all rows (FLAML cross-validates internally), then re-score exactly the
+        # selected configuration under the same k-fold protocol as every other family
+        final, info = _fit(req.family, req, x, y, params, req.time_budget_s)
+        params = {**params, **info}
+    scores = []
+    for a, b in folder.split(x, y if req.task_type != "regression" else None):
+        m, _ = _fit(req.family, req, x.iloc[a], y.iloc[a], params, 1)
+        scores.append(
+            _score(req, y.iloc[b], _predict(m, req.family, req, x.iloc[b], positive), positive)
+        )
+    if final is None:
+        final, info = _fit(req.family, req, x, y, params, 1)
+    fit_s = time.monotonic() - t0
+    mean = float(np.mean(scores))
+    se = float(np.std(scores, ddof=1) / np.sqrt(len(scores))) if len(scores) > 1 else 0.0
+    train = _score(req, y, _predict(final, req.family, req, x, positive), positive)
+    rec = ModelRecord(
+        model_id=_model_id(req.family, req.model_dump_json()),
+        run_id=req.run_id, family=req.family, params={**params, **info},
+        task_type=req.task_type, metric=req.metric, target=req.target,
+        features=list(x.columns), cat_features=_cat_cols(x), dropped=dropped,
+        positive_label=positive, val_score=mean, train_score=train, n_train=len(x), n_val=0,
+        fit_on="full", selection="cv", cv_k=k, cv_se=se, fit_s=round(fit_s, 3), seed=req.seed,
+        data_path=req.data_path,
+    )  # fmt: skip
+    _save(rec, final)
+    return rec
+
+
 def _sample_params(family: str, rng: np.random.Generator) -> dict[str, float | int]:
     if family == "hgb":
         return {
@@ -474,7 +532,7 @@ def _sample_params(family: str, rng: np.random.Generator) -> dict[str, float | i
 def tune_model(req: TuneRequest) -> ModelRecord:
     """Random search with 3-fold CV on the train split only; best params -> train_model."""
     x, y, _ = _prepare(req)
-    xt, _xv, yt, _yv = _split(x, y, req)
+    xt, _xv, yt, _yv = (x, None, y, None) if req.selection == "cv" else _split(x, y, req)
     positive = _positive_label(y) if req.task_type != "regression" else None
     rng = np.random.default_rng(req.seed)
     deadline = time.monotonic() + req.time_budget_s
@@ -516,6 +574,8 @@ def tune_model(req: TuneRequest) -> ModelRecord:
 def refit_full(req: RefitRequest) -> ModelRecord:
     """Refit a validated recipe on all labelled rows (no validation score is claimed for it)."""
     rec = load_record(req.run_id, req.model_id)
+    if rec.fit_on == "full":
+        return rec  # CV-selected models are already fit on every row
     spec = DataSpec(
         data_path=rec.data_path, target=rec.target, task_type=rec.task_type,
         metric=rec.metric, drop_columns=rec.dropped, seed=rec.seed,
@@ -528,6 +588,7 @@ def refit_full(req: RefitRequest) -> ModelRecord:
             "params": {**params, **info},
             "model_id": f"{rec.model_id}-full",
             "fit_on": "full",
+            "scored": False,
             "n_train": len(x),
             "n_val": 0,
         }
@@ -584,7 +645,7 @@ def compare_models(req: CompareRequest) -> CompareResult:
     metric = recs[0].metric
     sign = 1.0 if HIGHER_IS_BETTER[metric] else -1.0
     # full refits carry the score of the recipe they were fit from
-    scored = [r for r in recs if r.fit_on == "train_split"]
+    scored = [r for r in recs if r.scored]
     scored.sort(key=lambda r: (-sign * r.val_score, r.model_id))
     rows = []
     for r in scored:

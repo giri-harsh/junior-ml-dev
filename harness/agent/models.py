@@ -49,6 +49,7 @@ class RunBudget(_Base):
     flaml_budget_s: float = Field(default=20.0, ge=0, le=120)
     tune_trials: int = Field(default=4, ge=0, le=12)
     step_retries: int = Field(default=1, ge=0, le=3)
+    selection: Literal["holdout", "cv"] = "cv"  # CV mean + 1-SE simplicity rule (decision 114)
 
 
 class RunConfig(_Base):
