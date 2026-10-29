@@ -109,17 +109,6 @@ class SQLiteJobQueue:
         return {"status": row[0], "attempts": row[1], "error": row[2]} if row else {}
 
 
-class ArqJobQueue:
-    """STUB: arq + Redis (+ Postgres) implementation. Not run: Redis/Postgres unavailable here.
-
-    Verify later: start Redis, implement `enqueue` via `arq.create_pool(...).enqueue_job`, and run
-    the shared contract tests in tests/unit/test_queue.py against it (marker `integration`).
-    """
-
-    def __init__(self, *_: object, **__: object) -> None:
-        raise NotImplementedError("arq queue is a STUB; see KNOWN_GAPS.md")
-
-
 class Worker:
     def __init__(
         self, queue: SQLiteJobQueue, handler: Callable[[dict[str, Any]], dict[str, Any]],

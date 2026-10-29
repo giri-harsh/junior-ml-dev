@@ -20,9 +20,11 @@ from apps.api.routes.datasets import get_store
 from harness.agent.models import RunBudget, RunConfig, RunTask
 from harness.agent.planners import ScriptedPlanner
 from harness.agent.runner import AgentRunner
+from harness.agent.sql_store import SqlRunStore, open_run_store
 from harness.agent.store import RunStore
 from harness.obs import render_metrics
 from harness.queue import SQLiteJobQueue, Worker
+from harness.queue_arq import ArqJobQueue
 from harness.security.approvals import ApprovalStore
 
 router = APIRouter(tags=["runs"])
@@ -32,11 +34,13 @@ def _path(env: str, default: str) -> str:
     return os.environ.get(env, default)
 
 
-def run_store() -> RunStore:
-    return RunStore(_path("RUNS_DB", "data/runs.db"))
+def run_store() -> RunStore | SqlRunStore:
+    return open_run_store(_path("RUNS_DB", "data/runs.db"))
 
 
-def job_queue() -> SQLiteJobQueue:
+def job_queue() -> SQLiteJobQueue | ArqJobQueue:
+    if os.environ.get("QUEUE_BACKEND") == "arq":
+        return ArqJobQueue()
     return SQLiteJobQueue(_path("JOBS_DB", "data/jobs.db"))
 
 
@@ -104,7 +108,10 @@ def execute_job(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def work_once() -> bool:
-    return Worker(job_queue(), execute_job).run_once()
+    q = job_queue()
+    if not isinstance(q, SQLiteJobQueue):
+        raise RuntimeError("work_once drives the SQLite queue; arq workers run separately")
+    return Worker(q, execute_job).run_once()
 
 
 class ResumeBody(BaseModel):

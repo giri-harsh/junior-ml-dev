@@ -44,6 +44,10 @@ def down() -> int:
     return run(*COMPOSE, "--profile", "micro", "--profile", "full", "down")
 
 
+def test_infra() -> int:
+    return run("uv", "run", "pytest", "-m", "infra")
+
+
 def hooks() -> int:
     return run("git", "config", "core.hooksPath", ".githooks")
 
@@ -52,6 +56,7 @@ COMMANDS = {
     "lint": lint,
     "test": test,
     "test-integration": test_integration,
+    "test-infra": test_infra,
     "secrets": secrets,
     "up": up,
     "down": down,

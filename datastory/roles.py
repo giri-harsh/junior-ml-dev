@@ -17,6 +17,14 @@ ID_NAME = re.compile(
     r"($|[_\W])|id$",
     re.IGNORECASE,
 )
+# Strict identifier naming for low-cardinality numeric columns: an id token, or a name that ENDS in
+# an entity noun / "<noun>_no|number|code". "number_customer_service_calls" is a measure about
+# customers, not a customer identifier.
+STRICT_ID_NAME = re.compile(
+    r"(^|[_\W])(id|key|uuid|guid)($|[_\W])|id$"
+    r"|(account|customer|user|patient|subject|session|household)(_(no|num|number|code))?$",
+    re.IGNORECASE,
+)
 ID_UNIQUE_RATIO = 0.95
 CONTIGUOUS_RATIO = 0.9
 MIN_GROUPS = 10
@@ -82,7 +90,7 @@ def infer_roles(df: pd.DataFrame, target: str) -> Roles:
                 roles.id_like.append(col)
         elif MIN_GROUPS <= nunique <= n * MAX_GROUP_RATIO:
             numeric = pd.api.types.is_numeric_dtype(s)
-            if numeric and nunique < NUMERIC_GROUP_MIN and not ID_NAME.search(col):
+            if numeric and nunique < NUMERIC_GROUP_MIN and not STRICT_ID_NAME.search(col):
                 continue
             roles.group_like.append(col)
     # name hints first, then fewer distinct values (bigger groups) first

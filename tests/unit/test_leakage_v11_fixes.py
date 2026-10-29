@@ -63,3 +63,13 @@ def test_nominal_multiclass_label_noise_is_still_evaluated() -> None:
     df = pd.DataFrame({**{f"f{i}": x[:, i] for i in range(3)}, "t": y})
     fs = detect(df, "t", only=["label_noise"])
     assert not any(f.evidence.get("applicable") is False for f in fs)
+
+
+def test_measure_about_an_entity_is_not_an_entity_id() -> None:
+    df = _count_frame().rename(columns={"calls": "number_customer_service_calls"})
+    roles = infer_roles(df, "target")
+    assert "number_customer_service_calls" not in roles.group_like
+    for ok in ("customer", "account_number", "user_id", "household_key"):
+        assert "x" not in roles.group_like  # sanity: continuous column never a candidate
+        renamed = _count_frame().rename(columns={"calls": ok})
+        assert ok in infer_roles(renamed, "target").group_like, ok

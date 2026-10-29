@@ -22,11 +22,14 @@ def ci(v: list[float] | None) -> str:
     return "n/a" if not v else f"{v[0]:.3f} [{v[1]:.3f}, {v[2]:.3f}]"
 
 
-def section_agent(lines: list[str]) -> None:
-    d = load("agent_v1")
-    lines += ["## Agent benchmark (10 tasks, scorer-service test scores)", ""]
+def section_agent(lines: list[str], name: str = "agent_v1", heading: str = "") -> None:
+    d = load(name)
+    lines += [
+        heading or "## Agent benchmark v1 (headline; 10 tasks, scorer-service test scores)",
+        "",
+    ]
     if d is None:
-        lines += ["**NOT RUN** (`benchmarks/results/agent_v1.json` does not exist).", ""]
+        lines += [f"**NOT RUN** (`benchmarks/results/{name}.json` does not exist).", ""]
         return
     r, c = d["results"], d["conditions"]
     lines += [
@@ -59,20 +62,27 @@ def section_agent(lines: list[str]) -> None:
         f"{a['pass_vs_linear']['wilson95'][1]:.2f}])",
         f"- Conditions: {c['notes']}", "",
     ]  # fmt: skip
+    if "paired_vs_prior_ci95" in a:
+        lines.insert(
+            -2,
+            f"- Paired v2 minus v1 (n={a['paired_vs_prior_n']} tasks): {ci(a['paired_vs_prior_ci95'])}",
+        )
 
 
 def section_dev(lines: list[str]) -> None:
-    d = load("agent_dev_v0")
     lines += ["## Agent dev partition (design allowed to use these)", ""]
-    if d is None:
-        lines += ["NOT RUN.", ""]
-        return
-    a = d["results"]["aggregate"]
-    lines += [
-        f"5 real_dev datasets, scripted planner, no LLM. Agent normalized "
-        f"{ci(a.get('agent_normalized_mean_ci95'))}; agent minus linear "
-        f"{ci(a.get('agent_minus_linear_paired_ci95'))}.", "",
-    ]  # fmt: skip
+    for name, label in (("agent_dev_v0", "v1 agent"), ("agent_dev_v1", "v2 agent")):
+        d = load(name)
+        if d is None:
+            lines += [f"- {label}: NOT RUN.", ""]
+            continue
+        a = d["results"]["aggregate"]
+        lines += [
+            f"- {label}: 5 real_dev datasets, scripted planner, no LLM. Agent normalized "
+            f"{ci(a.get('agent_normalized_mean_ci95'))}; agent minus linear "
+            f"{ci(a.get('agent_minus_linear_paired_ci95'))}.",
+        ]  # fmt: skip
+    lines.append("")
 
 
 def section_leakage_injection(lines: list[str]) -> None:
@@ -109,6 +119,11 @@ def main() -> int:
         "",
     ]
     section_agent(lines)
+    section_agent(
+        lines,
+        "agent_v2",
+        "## Agent benchmark v2 (post-hoc, fixes informed by v1 failures; second and last held-out evaluation)",
+    )
     section_dev(lines)
     section_leakage_injection(lines)
     base = load("baselines_v0")

@@ -24,6 +24,9 @@ dependencies = [
     "pyjwt>=2.15.1",
 ]
 
+[project.optional-dependencies]
+infra = ["arq>=0.26", "redis>=5", "minio>=7.2"]
+
 [dependency-groups]
 dev = [
     "pytest>=8",
@@ -46,7 +49,10 @@ packages = ["trajectory", "benchmarks", "apps", "datastory", "leakage", "mcp_ser
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
-markers = ["integration: needs docker compose services (run via `python scripts/tasks.py test-integration`)"]
+markers = [
+  "integration: needs docker compose services (run via `python scripts/tasks.py test-integration`)",
+  "infra: needs postgres/redis/minio/docker; auto-skipped when unreachable (python scripts/tasks.py test-infra)",
+]
 
 [tool.ruff]
 line-length = 100

@@ -5,7 +5,8 @@ from typing import Any
 
 import pytest
 
-from harness.queue import ArqJobQueue, SQLiteJobQueue, Worker
+from harness.queue import SQLiteJobQueue, Worker
+from harness.queue_arq import ArqJobQueue, QueueUnavailable
 
 
 class Clock:
@@ -64,6 +65,10 @@ def test_worker_retries_failures_then_gives_up(tmp_path: Path) -> None:
     assert "nope" in q.status(jid)["error"]
 
 
-def test_arq_queue_is_an_explicit_stub() -> None:
-    with pytest.raises(NotImplementedError, match="STUB"):
-        ArqJobQueue()
+def test_arq_queue_reports_unreachable_redis_cleanly() -> None:
+    pytest.importorskip("arq")
+    q = ArqJobQueue("redis://127.0.0.1:1/0")  # nothing listens on port 1
+    with pytest.raises(QueueUnavailable):
+        q.enqueue("r1", {})
+    with pytest.raises(NotImplementedError):
+        q.claim("w")

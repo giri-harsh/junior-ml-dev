@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import os
 from datetime import date
 from typing import Annotated, Any
 
@@ -35,7 +36,12 @@ _store: ObjectStore | None = None
 def get_store() -> ObjectStore:
     global _store
     if _store is None:
-        _store = LocalObjectStore()
+        if os.environ.get("OBJECT_STORE") == "minio":
+            from apps.api.minio_store import MinioObjectStore
+
+            _store = MinioObjectStore()
+        else:
+            _store = LocalObjectStore()
     return _store
 
 

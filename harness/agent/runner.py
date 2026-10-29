@@ -23,6 +23,7 @@ from harness.agent.deploy_tools import REGISTRY as DEPLOY_REGISTRY
 from harness.agent.models import RunConfig, Step, StepRecord
 from harness.agent.planners import Planner, step_key
 from harness.agent.report import write_report
+from harness.agent.sql_store import SqlRunStore
 from harness.agent.store import RunStore
 from harness.agent.tools import REGISTRY, Reducer, Tool, ToolCtx
 from harness.obs import configure, log_event
@@ -47,7 +48,7 @@ def new_state() -> dict[str, Any]:
 class AgentRunner:
     def __init__(
         self,
-        store: RunStore,
+        store: RunStore | SqlRunStore,
         planner: Planner,
         *,
         run_root: Path | str = "data/runs",
