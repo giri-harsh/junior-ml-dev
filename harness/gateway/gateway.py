@@ -129,7 +129,7 @@ class Gateway:
         }
         self.stats = {
             "calls": 0, "cache_hits": 0, "retries": 0, "fallbacks": 0,
-            "structured": 0, "structured_first_try_valid": 0, "repairs": 0, "structured_failed": 0,
+            "fixture_hits": 0, "structured": 0, "structured_first_try_valid": 0, "repairs": 0, "structured_failed": 0,
         }  # fmt: skip
 
     def _emit(self, **ev: object) -> None:
@@ -148,6 +148,7 @@ class Gateway:
         if self.mode in {"replay", "record"} and self.fixtures:
             hit = self.fixtures.get(key)
             if hit is not None:
+                self.stats["fixture_hits"] += 1
                 self.cache[key] = hit
                 return hit.model_copy(update={"cached": True})
             if self.mode == "replay":

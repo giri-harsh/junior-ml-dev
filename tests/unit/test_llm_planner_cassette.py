@@ -19,8 +19,8 @@ def test_recorded_session_replays_offline(tmp_path: Path, monkeypatch: pytest.Mo
     gw = Gateway(providers=[], mode="replay", fixtures=Fixtures(CASSETTE))
     res, planner = run_synthetic_llm_run(tmp_path, gw)
     assert res["status"] in {"done", "budget_exhausted"} and res["planner"] == "llm"
-    assert gw.stats["cache_hits"] >= 1  # at least one recorded answer was actually used
-    assert planner.tokens > 0 and res["llm_mode"] == "real"
+    assert gw.stats["fixture_hits"] >= 1  # at least one recorded answer was actually used
+    assert res["llm_mode"] == "real" and gw.stats["structured_failed"] == 0
 
 
 def test_empty_gateway_degrades_to_the_scripted_plan(tmp_path: Path) -> None:
