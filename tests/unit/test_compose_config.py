@@ -60,3 +60,8 @@ def test_ci_workflow_runs_lint_types_unit_tests_and_gitleaks() -> None:
     for needle in ("ruff check", "mypy", "pytest", "not infra", "gitleaks"):
         assert needle in steps, needle
     assert {"checks", "compose-validate", "infra"} <= set(wf["jobs"])
+
+
+def test_minio_healthcheck_does_not_depend_on_curl() -> None:
+    test = _load()["services"]["minio"]["healthcheck"]["test"]
+    assert "curl" not in test and test[:2] == ["CMD", "mc"]
