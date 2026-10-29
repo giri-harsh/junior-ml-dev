@@ -55,3 +55,52 @@ def test_exporter_selection_from_environment(monkeypatch: pytest.MonkeyPatch) ->
     assert type(tracing._exporter_from_env()).__name__ == "ConsoleSpanExporter"
     monkeypatch.setenv("JMD_TRACE", "otlp")
     assert type(tracing._exporter_from_env()).__name__ == "OTLPSpanExporter"
+
+
+def test_log_lines_carry_trace_ids_inside_spans_and_not_outside(
+    spans: InMemorySpanExporter,
+) -> None:  # noqa: F811
+    import json
+    import logging
+
+    from harness.obs import JsonFormatter, log_event
+
+    lines: list[str] = []
+
+    class H(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            lines.append(JsonFormatter().format(record))
+
+    log = logging.getLogger("obs-test")
+    log.handlers = [H()]
+    log.setLevel(logging.INFO)
+    log.propagate = False
+    log_event(log, "outside", "r1", idx=0)
+    with tracing.tracer().start_as_current_span("agent.step") as sp:
+        log_event(log, "inside", "r1", idx=1, tool="train_model")
+        want = format(sp.get_span_context().trace_id, "032x")
+    outside, inside = (json.loads(x) for x in lines)
+    assert "trace_id" not in outside and outside["run_id"] == "r1"
+    assert inside["trace_id"] == want and inside["tool"] == "train_model" and inside["idx"] == 1
+
+
+def test_metrics_catalog_and_dashboard_match_what_is_exported() -> None:
+    import json
+    import re
+
+    from harness.obs import render_metrics
+
+    text = render_metrics(
+        [{"run_id": "r", "status": "done", "created": 0, "updated": 0}],
+        [{"tool": "train_model", "n": 2, "failed": 1, "latency_s": 1.5}],
+    )
+    exported = set(re.findall(r"^(jmd_[a-z_]+)", text, flags=re.M))
+    catalog = Path("docs/METRICS_CATALOG.md").read_text(encoding="utf-8")
+    assert all(f"`{m}`" in catalog for m in exported), exported
+    dash = json.loads(Path("deploy/grafana/jmd-dashboard.json").read_text(encoding="utf-8"))
+    used = set(
+        re.findall(
+            r"jmd_[a-z_]+", " ".join(t["expr"] for p in dash["panels"] for t in p["targets"])
+        )
+    )
+    assert used <= exported, used - exported

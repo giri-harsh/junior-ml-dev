@@ -48,7 +48,7 @@ def test_attempts_are_bounded(tmp_path: Path) -> None:
         assert q.claim("w", lease_s=10) is not None
         clock.t += 11  # worker dies each time
     assert q.claim("w", lease_s=10) is None
-    assert q.status(jid)["status"] == "failed"
+    assert q.status(jid)["status"] == "dead"
 
 
 def test_worker_retries_failures_then_gives_up(tmp_path: Path) -> None:
@@ -61,7 +61,7 @@ def test_worker_retries_failures_then_gives_up(tmp_path: Path) -> None:
 
     jid = q.enqueue("r1", {"x": 1})
     assert Worker(q, boom).run_until_empty() == 3
-    assert len(calls) == 3 and q.status(jid)["status"] == "failed"
+    assert len(calls) == 3 and q.status(jid)["status"] == "dead"
     assert "nope" in q.status(jid)["error"]
 
 

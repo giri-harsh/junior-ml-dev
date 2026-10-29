@@ -27,8 +27,22 @@ def configure(name: str = "agent", level: int = logging.INFO) -> logging.Logger:
     return log
 
 
+def _trace_ids() -> dict[str, str]:
+    """trace_id/span_id of the current OpenTelemetry span (empty when tracing is off)."""
+    try:
+        from opentelemetry import trace
+    except ImportError:  # pragma: no cover
+        return {}
+    ctx = trace.get_current_span().get_span_context()
+    if not ctx.is_valid:
+        return {}
+    return {"trace_id": format(ctx.trace_id, "032x"), "span_id": format(ctx.span_id, "016x")}
+
+
 def log_event(log: logging.Logger, msg: str, run_id: str, **ctx: Any) -> None:
-    log.info(msg, extra={"ctx": {"run_id": run_id, **ctx}})
+    """One JSON line with run_id, any step fields (idx, tool, ...) and the current trace ids, so
+    a log line can be joined to its span."""
+    log.info(msg, extra={"ctx": {"run_id": run_id, **_trace_ids(), **ctx}})
 
 
 def render_metrics(runs: list[dict[str, Any]], steps: list[dict[str, Any]]) -> str:
