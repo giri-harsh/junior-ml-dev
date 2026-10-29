@@ -71,6 +71,23 @@
     "result_file": "agent_v1.json",
     "status": "evaluated"
   },
+  "agent:c460847a2c0be69d172283ef875920daaf0f3a60d8b8c1724c3b323fd1d668e7": {
+    "infra_retries": [],
+    "partitions": [
+      "credit-approval",
+      "kr-vs-kp",
+      "ozone-level-8hr",
+      "pc1",
+      "climate-model-simulation-crashes",
+      "cmc",
+      "vowel",
+      "optdigits",
+      "space_ga",
+      "puma8NH"
+    ],
+    "result_file": "agent_v3_llm.json",
+    "status": "evaluated"
+  },
   "leakage-code:ca7877a74c002512b92206c38bcf43e06d9281e05a97a09d8e9f1cd1b2934c31": {
     "infra_retries": [],
     "partitions": [

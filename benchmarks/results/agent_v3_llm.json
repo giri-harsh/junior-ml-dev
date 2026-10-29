@@ -1,0 +1,585 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\agent_benchmark.py --final --version v3 --planner llm",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "LLM planner (real cloud LLM: real); scorer-service test scores; freeze hash c460847a2c0be69d172283ef875920daaf0f3a60d8b8c1724c3b323fd1d668e7; agent FLAML budget 30.0s inside its search, baseline FLAML 30s (baselines_v0.json); references are code-written results, not re-run here. v3 unseen partition, llm planner. ",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T05:34:51+00:00",
+  "git_sha": "6207e22df1a43e7a8746bb041efcf0ed57401348",
+  "name": "agent_v3_llm",
+  "results": {
+    "aggregate": {
+      "agent_minus_flaml_paired_ci95": [
+        -0.06822128826332498,
+        -0.1516747187829652,
+        -0.007597433460891566
+      ],
+      "agent_minus_linear_paired_ci95": [
+        0.09688504442238435,
+        0.009964407273062071,
+        0.1995407643408021
+      ],
+      "agent_normalized_mean_ci95": [
+        0.931778711736675,
+        0.8483252812170349,
+        0.9924025665391086
+      ],
+      "excluded": [],
+      "linear_normalized_mean_ci95": [
+        0.8348936673142907,
+        0.7282170778415533,
+        0.9333735903156545
+      ],
+      "n_defined": 10,
+      "n_tasks": 10,
+      "paired_vs_prior_ci95": [
+        -0.006173120016735678,
+        -0.016202111153204846,
+        0.0
+      ],
+      "paired_vs_prior_n": 10,
+      "pass_vs_linear": {
+        "k": 4,
+        "n": 10,
+        "wilson95": [
+          0.16817758120350967,
+          0.6873304525498135
+        ]
+      }
+    },
+    "freeze_hash": "c460847a2c0be69d172283ef875920daaf0f3a60d8b8c1724c3b323fd1d668e7",
+    "llm": "real",
+    "meta": {
+      "git_sha": "6207e22df1a43e7a8746bb041efcf0ed57401348"
+    },
+    "per_task": {
+      "climate-model-simulation-crashes": {
+        "agent": 0.9657424982468519,
+        "agent_normalized": 1.0393678300272364,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.9166666666666666,
+        "failures": {},
+        "family": "linear",
+        "flaml": 0.9638836673880563,
+        "latency_s": 51.531,
+        "leakage_checked": true,
+        "linear": 0.9657424982468519,
+        "linear_normalized": 1.0393678300272364,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model already performs well (val PR AUC 0.9844) but we have many steps left; trying a different powerful family such as histogram\u2011based gradient boosting may further improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the highest validation PR AUC (0.9882). Further tuning could improve performance before finishing."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation PR AUC (0.9882) was achieved by an HGB model. With many steps remaining, further hyperparameter tuning of the HGB family is likely to improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation PR AUC so far is 0.9882 from an HGB model. Tuning this family is likely to improve performance further."
+          }
+        ],
+        "llm_fallbacks": 2,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1452,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 1452,
+        "wall_s": 51.7
+      },
+      "cmc": {
+        "agent": 0.4938510203057281,
+        "agent_normalized": 0.9427256653466558,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.1995249406175772,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 0.5117325005760963,
+        "latency_s": 62.469,
+        "leakage_checked": true,
+        "linear": 0.4860071882634332,
+        "linear_normalized": 0.9176018917796832,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model shows moderate performance; next try a more powerful gradient boosting model to improve f1_macro before tuning."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the highest validation f1_macro (0.5651) among evaluated models, indicating it is the most promising candidate to improve further through hyperparameter tuning."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation f1_macro (0.5894) is from an HGB model; further tuning of this family is likely to improve performance before trying new families."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation F1 is from an HGB model (0.5894). Tuning this family is likely to improve performance further."
+          }
+        ],
+        "llm_fallbacks": 2,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1459,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "REQUEST_CHANGES",
+        "scale": null,
+        "status": "done",
+        "tokens": 1459,
+        "wall_s": 62.7
+      },
+      "credit-approval": {
+        "agent": 0.9486906536086864,
+        "agent_normalized": 0.9709744298548723,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.5,
+        "failures": {},
+        "family": "linear",
+        "flaml": 0.9621034703001916,
+        "latency_s": 70.203,
+        "leakage_checked": true,
+        "linear": 0.9486906536086864,
+        "linear_normalized": 0.9709744298548723,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model already shows strong validation ROC AUC (0.9503). Tuning its hyperparameters may yield further improvement before trying other families."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation ROC AUC (0.9503). Tuning it may further improve performance before trying other families."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation ROC AUC (0.9503). Tuning it may improve performance further."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation ROC AUC (0.951) is achieved by an hgb model; further tuning of this family is likely to improve performance."
+          }
+        ],
+        "llm_fallbacks": 4,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1396,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 1396,
+        "wall_s": 70.4
+      },
+      "kr-vs-kp": {
+        "agent": 0.995841650033267,
+        "agent_normalized": 0.9916833000665339,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.5,
+        "failures": {},
+        "family": "linear",
+        "flaml": 1.0,
+        "latency_s": 2.344,
+        "leakage_checked": true,
+        "linear": 0.995841650033267,
+        "linear_normalized": 0.9916833000665339,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "finish",
+            "family": null,
+            "reason": "The linear model already achieves a very high validation ROC AUC (0.9946), leaving little room for improvement; thus we can finish the experiment."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 1,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 1,
+        "llm_structured": 1,
+        "llm_tokens": 294,
+        "n_steps": 10,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 294,
+        "wall_s": 2.4
+      },
+      "optdigits": {
+        "agent": 0.9928875152752861,
+        "agent_normalized": 1.006399094164384,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.01841680129240711,
+        "failures": {},
+        "family": "rf",
+        "flaml": 0.9866914347190049,
+        "latency_s": 96.797,
+        "leakage_checked": true,
+        "linear": 0.9769443810370632,
+        "linear_normalized": 0.9899335856321587,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "The linear model already shows strong validation performance (0.9633 f1_macro). Further tuning could improve it further before trying other families."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the highest validation f1_macro (0.9767) among evaluated models, indicating it is the most promising candidate. Further hyperparameter tuning can likely improve performance before finalizing."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation f1_macro (0.9778) is from an HGB model, but there is still capacity to improve with further hyperparameter tuning given remaining steps."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation f1_macro so far is 0.9778 from an HGB model. Tuning this family is likely to improve performance further."
+          }
+        ],
+        "llm_fallbacks": 3,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1449,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "REQUEST_CHANGES",
+        "scale": null,
+        "status": "done",
+        "tokens": 1449,
+        "wall_s": 97.0
+      },
+      "ozone-level-8hr": {
+        "agent": 0.4781013583016761,
+        "agent_normalized": 0.8037981989109909,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.0631163708086785,
+        "failures": {},
+        "family": "linear",
+        "flaml": 0.5793964371925436,
+        "latency_s": 43.891,
+        "leakage_checked": true,
+        "linear": 0.4781013583016761,
+        "linear_normalized": 0.8037981989109909,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model's validation PR AUC (0.4919) is far above dummy but still low; we have many steps left, so try a stronger model family like histogram gradient boosting to improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation PR AUC (0.4919) but still leaves room for improvement; tuning it is likely to boost performance before trying other families."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation PR AUC (0.4919) among candidates, so further tuning may improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation PR AUC (0.4919). Tuning it is likely to yield further improvements before trying other families."
+          }
+        ],
+        "llm_fallbacks": 3,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1415,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 1415,
+        "wall_s": 44.0
+      },
+      "pc1": {
+        "agent": 0.2325801366145876,
+        "agent_normalized": 0.6217596081239743,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.06756756756756757,
+        "failures": {},
+        "family": "linear",
+        "flaml": 0.3329636577782358,
+        "latency_s": 56.625,
+        "leakage_checked": true,
+        "linear": 0.2325801366145876,
+        "linear_normalized": 0.6217596081239743,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model shows modest PR AUC (0.36) but there is room for improvement; next step is to try a more powerful gradient boosting model (hgb) before tuning existing models."
+          },
+          {
+            "action": "tune",
+            "family": "linear",
+            "reason": "Linear model has the highest validation PR AUC (0.3598) among evaluated models, indicating it outperforms the others on validation data. Tuning it could further improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "rf",
+            "reason": "rf has the highest validation PR AUC (0.3631) among current models, so further hyperparameter tuning may improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "rf",
+            "reason": "RF has the highest validation PR AUC (0.3631) but still lags behind training performance, indicating potential for improvement through hyperparameter tuning."
+          }
+        ],
+        "llm_fallbacks": 3,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1452,
+        "n_steps": 14,
+        "passes_vs_linear": false,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 1452,
+        "wall_s": 56.8
+      },
+      "puma8NH": {
+        "agent": 3.0662628193645785,
+        "agent_normalized": 0.99442129912852,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 5.605722545059826,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 3.0520164569855344,
+        "latency_s": 56.25,
+        "leakage_checked": true,
+        "linear": 4.30752451767151,
+        "linear_normalized": 0.5083584338271543,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model already outperforms dummy (val RMSE 4.44). To potentially achieve further improvement, try a more powerful tree\u2011based model such as histogram\u2011based gradient boosting."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the lowest validation RMSE (3.1813) but still leaves room for improvement; tuning it is the next logical step given remaining steps."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation RMSE so far is 3.1581 from an HGB model. Tuning this family is likely to improve performance further."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "Current best validation RMSE is 3.1581 with HGB; tuning this family is likely to improve performance further."
+          }
+        ],
+        "llm_fallbacks": 2,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1493,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 5.626505488330244,
+        "status": "done",
+        "tokens": 1493,
+        "wall_s": 56.4
+      },
+      "space_ga": {
+        "agent": 0.10830682403360717,
+        "agent_normalized": 0.9680891013913453,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.19644903208328804,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 0.10540141268234426,
+        "latency_s": 64.937,
+        "leakage_checked": true,
+        "linear": 0.1312620611034355,
+        "linear_normalized": 0.7159656826697528,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model already outperforms dummy but we can likely improve RMSE further with a more powerful ensemble such as histogram\u2011based gradient boosting. With many steps remaining, training an HGB model is the next logical step."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the lowest validation RMSE (0.1122) among evaluated models, indicating it outperforms linear and dummy. Further tuning of the hgb family is likely to improve performance."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The best validation RMSE so far is from an hgb model (0.1122). Tuning the hgb family is likely to improve performance further."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "The hgb model has the lowest validation RMSE (0.1122) among evaluated models, indicating strong performance. Further hyperparameter tuning of the hgb family is likely to improve results."
+          }
+        ],
+        "llm_fallbacks": 2,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 1492,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 0.19846137995847832,
+        "status": "done",
+        "tokens": 1492,
+        "wall_s": 65.1
+      },
+      "vowel": {
+        "agent": 0.9390135018617992,
+        "agent_normalized": 0.9785685903522374,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.01515151515151515,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 0.9592467945409122,
+        "latency_s": 35.672,
+        "leakage_checked": true,
+        "linear": 0.7605088019948701,
+        "linear_normalized": 0.7894937122505498,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Linear model shows decent performance but there is room for improvement; training a histogram\u2011based gradient boosting model may boost f1_macro further."
+          },
+          {
+            "action": "finish",
+            "family": null,
+            "reason": "The hgb model already achieves a high validation f1_macro of 0.9314, outperforming linear and dummy models. Further training or tuning is unlikely to yield significant gains, so we can finish."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 2,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 2,
+        "llm_structured": 2,
+        "llm_tokens": 654,
+        "n_steps": 11,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 654,
+        "wall_s": 35.9
+      }
+    },
+    "planner": "llm"
+  }
+}
