@@ -31,6 +31,7 @@ from harness.policies.actions import Action, RunContext, guard
 from harness.policies.code_policy import HIDDEN_NAME
 from harness.security.approvals import ApprovalStore, payload_hash
 from harness.security.audit import AuditLog
+from harness.tracing import tracer
 from mcp_servers.data_tools.service import GuardError
 from mcp_servers.experiments.service import ExperimentError
 from trajectory.emit import emit
@@ -100,7 +101,7 @@ class AgentRunner:
                 )
         return None
 
-    def _execute(
+    def _execute_inner(
         self,
         cfg: RunConfig,
         step: Step,
@@ -126,7 +127,11 @@ class AgentRunner:
                     state["report"] = result
                 else:
                     fn, reduce = self.tools[step.tool]
-                    result = fn(ctx, step.args)
+                    with tracer().start_as_current_span("tool.call") as tspan:
+                        tspan.set_attribute("jmd.tool", step.tool)
+                        tspan.set_attribute("jmd.server", step.server)
+                        tspan.set_attribute("jmd.attempt", attempts)
+                        result = fn(ctx, step.args)
                     reduce(state, step.args, result)
                 error = None
                 break
@@ -163,7 +168,39 @@ class AgentRunner:
         return rec
 
     # --- loop ---------------------------------------------------------------------------------
+    def _execute(
+        self,
+        cfg: RunConfig,
+        step: Step,
+        idx: int,
+        state: dict[str, Any],
+        records: list[StepRecord],
+        usage0: tuple[int, float] | None = None,
+    ) -> StepRecord:
+        with tracer().start_as_current_span("agent.step") as span:
+            span.set_attribute("jmd.run_id", cfg.run_id)
+            span.set_attribute("jmd.step.idx", idx)
+            span.set_attribute("jmd.tool", step.tool)
+            rec = self._execute_inner(cfg, step, idx, state, records, usage0)
+            span.set_attribute("jmd.ok", rec.ok)
+            span.set_attribute("jmd.attempts", rec.attempts)
+            span.set_attribute("jmd.latency_s", rec.latency_s)
+            span.set_attribute("jmd.tokens", rec.tokens)
+            if rec.error:
+                span.set_attribute("jmd.error", rec.error[:120])
+            return rec
+
     def run(self, cfg: RunConfig) -> dict[str, Any]:
+        with tracer().start_as_current_span("agent.run") as span:
+            span.set_attribute("jmd.run_id", cfg.run_id)
+            span.set_attribute("jmd.planner", cfg.planner)
+            span.set_attribute("jmd.llm_mode", cfg.llm_mode)
+            res = self._run_impl(cfg)
+            span.set_attribute("jmd.status", str(res.get("status")))
+            span.set_attribute("jmd.n_steps", int(res.get("n_steps", 0)))
+            return res
+
+    def _run_impl(self, cfg: RunConfig) -> dict[str, Any]:
         created = self.store.create(cfg)
         if not created and self.store.status(cfg.run_id) in TERMINAL:
             return self.store.result(cfg.run_id) or {}

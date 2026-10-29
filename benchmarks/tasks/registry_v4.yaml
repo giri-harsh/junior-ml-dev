@@ -1,0 +1,17 @@
+# v4 partition: 10 OpenML datasets with >= 10,000 rows (test split 20% => >= 2,000 test rows), chosen
+# in run 5 AFTER v1-v3 and disjoint from them and from real_dev. Only shapes/class counts were
+# inspected before any model ran. Split seed = apps/scorer/splits.SEED (20260101), test_size 0.2.
+# OpenML dataset ids recorded before any run:
+#   MagicTelescope 1120, jm1 1053, eeg-eye-state 1471, default-of-credit-card-clients 42477,
+#   pendigits 32, letter 6, ailerons 296, sulfur 23515, Brazilian_houses 42688 (v4), houses 537
+tasks:
+  - {name: MagicTelescope, source: openml, task_type: binary, target: "class:", metric: roc_auc, role: v4_heldout}
+  - {name: jm1, source: openml, task_type: binary, target: defects, metric: pr_auc, role: v4_heldout, imbalanced: true}
+  - {name: eeg-eye-state, source: openml, task_type: binary, target: Class, metric: roc_auc, role: v4_heldout}
+  - {name: default-of-credit-card-clients, source: openml, task_type: binary, target: y, metric: pr_auc, role: v4_heldout, imbalanced: true}
+  - {name: pendigits, source: openml, task_type: multiclass, target: class, metric: f1_macro, role: v4_heldout}
+  - {name: letter, source: openml, task_type: multiclass, target: class, metric: f1_macro, role: v4_heldout}
+  - {name: ailerons, source: openml, task_type: regression, target: goal, metric: rmse, role: v4_heldout}
+  - {name: sulfur, source: openml, task_type: regression, target: y1, metric: rmse, role: v4_heldout}
+  - {name: Brazilian_houses, source: openml, task_type: regression, target: total_(BRL), metric: rmse, role: v4_heldout}
+  - {name: houses, source: openml, task_type: regression, target: median_house_value, metric: rmse, role: v4_heldout}

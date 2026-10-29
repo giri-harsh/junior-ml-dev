@@ -245,3 +245,20 @@ def test_cv_flaml_and_error_metric(env: Path) -> None:
              selection="cv", time_budget_s=3)
     )  # fmt: skip
     assert rec.fit_on == "full" and rec.val_score < 1.0 and rec.params["best_estimator"]
+
+
+def test_permutation_importance_finds_the_informative_feature(env: Path) -> None:
+    rng = np.random.default_rng(7)
+    n = 600
+    df = pd.DataFrame(
+        {"signal": rng.normal(size=n), "noise1": rng.normal(size=n), "noise2": rng.normal(size=n)}
+    )
+    df["y"] = (df.signal + rng.normal(scale=0.3, size=n) > 0).astype(int)
+    p = env / "imp.csv"
+    df.to_csv(p, index=False)
+    rec = s.train_model(_req(str(p), family="rf", selection="cv"))
+    res = s.explain_model(s.ExplainRequest(run_id="r1", model_id=rec.model_id, top_k=3))
+    assert res.top[0].feature == "signal" and res.top[0].mean_drop > 0.1
+    assert {i.feature for i in res.top[1:]} <= {"noise1", "noise2"}
+    assert all(i.mean_drop < res.top[0].mean_drop for i in res.top[1:])
+    assert res.n_eval == 150

@@ -51,6 +51,12 @@ def compare_models(request: s.CompareRequest) -> s.CompareResult:
     return s.compare_models(request)
 
 
+@mcp.tool()
+def explain_model(request: s.ExplainRequest) -> s.ExplainResult:
+    """Permutation importance on a held-out slice, top-k features."""
+    return s.explain_model(request)
+
+
 def main() -> None:
     mcp.run(transport="stdio")
 

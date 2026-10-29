@@ -15,6 +15,7 @@ TOOL_SERVER = {
     "refit_full": "experiments",
     "compare_models": "experiments",
     "predict": "experiments",
+    "explain_model": "experiments",
     "evaluate_model": "experiments",
     "package_model": "deploy",
     "deploy_local": "deploy",

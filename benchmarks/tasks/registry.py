@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 REGISTRY_PATH = Path(__file__).with_name("registry.yaml")
 REGISTRY_V3_PATH = Path(__file__).with_name("registry_v3.yaml")
+REGISTRY_V4_PATH = Path(__file__).with_name("registry_v4.yaml")
 
 Metric = Literal["roc_auc", "pr_auc", "f1_macro", "rmse", "mae"]
 
@@ -22,7 +23,7 @@ class TaskSpec(BaseModel):
     task_type: Literal["binary", "multiclass", "regression"]
     target: str
     metric: Metric
-    role: Literal["dev", "test", "p3_heldout", "v3_heldout"]
+    role: Literal["dev", "test", "p3_heldout", "v3_heldout", "v4_heldout"]
     imbalanced: bool = False
     group_col: str | None = None
     time_col: str | None = None
@@ -53,9 +54,14 @@ def load_registry_v3() -> list[TaskSpec]:
     return load_registry(REGISTRY_V3_PATH)
 
 
+def load_registry_v4() -> list[TaskSpec]:
+    """The v4 partition (>= 2,000 test rows per task); unseen until its single evaluation."""
+    return load_registry(REGISTRY_V4_PATH)
+
+
 def get_task(name: str) -> TaskSpec:
     """Looks in the original registry, then in v3 (the scorer resolves tasks through this)."""
-    for t in [*load_registry(), *load_registry_v3()]:
+    for t in [*load_registry(), *load_registry_v3(), *load_registry_v4()]:
         if t.name == name:
             return t
     raise KeyError(name)

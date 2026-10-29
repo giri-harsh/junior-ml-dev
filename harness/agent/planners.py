@@ -75,6 +75,7 @@ def _tail_steps(cfg: RunConfig, state: dict[str, Any]) -> list[Step]:
             final = f"{chosen}-full"
         if cfg.task.test_features_path:
             steps.append(Step(tool="predict", args={"model_id": final}, reason="test predictions"))
+        steps.append(Step(tool="explain_model", args={"model_id": final}, reason="top features"))
         if cfg.deploy:
             steps.append(Step(tool="package_model", args={"model_id": final}, reason="bundle"))
             steps.append(Step(tool="deploy_local", args={"model_id": final}, reason="deploy"))

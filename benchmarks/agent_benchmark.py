@@ -28,7 +28,7 @@ import pandas as pd
 
 from benchmarks.metrics import bootstrap_ci, normalized_score, paired_bootstrap_ci, passes
 from benchmarks.results_writer import RESULTS_DIR, Conditions, write_result
-from benchmarks.tasks.registry import TaskSpec, load_registry, load_registry_v3
+from benchmarks.tasks.registry import TaskSpec, load_registry, load_registry_v3, load_registry_v4
 from leakage import ledger
 from leakage.evaluate import wilson
 
@@ -40,7 +40,7 @@ FREEZE_FILES = [
     "leakage/detectors.py", "datastory/roles.py",
     "harness/gateway/gateway.py", "harness/gateway/limits.py", "harness/gateway/live.py",
     "harness/gateway/providers.py", "harness/gateway/models.py", "harness/policies/untrusted.py",
-    "benchmarks/tasks/registry_v3.yaml",
+    "benchmarks/tasks/registry_v3.yaml", "benchmarks/tasks/registry_v4.yaml",
 ]  # fmt: skip
 RESULT_NAME = "agent_v1"
 FLAML_BUDGET_S = 30.0
@@ -238,16 +238,16 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--final", action="store_true", required=True)
     ap.add_argument("--resume", action="store_true")
-    ap.add_argument("--version", choices=["v1", "v2", "v3"], default="v1")
+    ap.add_argument("--version", choices=["v1", "v2", "v3", "v4"], default="v1")
     ap.add_argument("--planner", choices=["scripted", "llm"], default="scripted")
     args = ap.parse_args(argv)
-    v2, v3 = args.version == "v2", args.version == "v3"
+    v2, v3 = args.version == "v2", args.version in ("v3", "v4")  # v3 = a fresh partition
     use_llm = args.planner == "llm"
     if use_llm and not v3:
-        raise SystemExit("the LLM planner is only evaluated on the v3 partition")
+        raise SystemExit("the LLM planner is only evaluated on fresh partitions (v3, v4)")
     suffix = f"_{args.planner}" if v3 else ""
-    name = f"agent_v3{suffix}" if v3 else "agent_v2" if v2 else RESULT_NAME
-    tag = "agent-frozen-v3" if v3 else "agent-frozen-v2" if v2 else FROZEN_TAG
+    name = f"agent_{args.version}{suffix}" if v3 else "agent_v2" if v2 else RESULT_NAME
+    tag = f"agent-frozen-{args.version}" if v3 else "agent-frozen-v2" if v2 else FROZEN_TAG
     from harness.agent.models import RunBudget
     from harness.agent.planners import LLMPlanner, ScriptedPlanner
 
@@ -262,23 +262,28 @@ def main(argv: list[str] | None = None) -> int:
             build_live_gateway,
         )
 
-        cassette = Path("tests/cassettes/v3_llm.jsonl")
-        fp = LLMPlanner(build_live_gateway(cassette)).config_fingerprint()
+        cassette = Path(f"tests/cassettes/{args.version}_llm.jsonl")
+        llm_ver = 2 if args.version == "v4" else 1  # v3 ran planner v1; v4 runs the S22 planner v2
+        fp = LLMPlanner(build_live_gateway(cassette), version=llm_ver).config_fingerprint()
         fp["providers"] = ["groq", "gemini"]
         fp["models"] = [GROQ_PRIMARY, GROQ_FALLBACK, GEMINI_MODEL]
 
         def factory() -> Any:
-            return LLMPlanner(build_live_gateway(cassette))
+            return LLMPlanner(build_live_gateway(cassette), version=llm_ver)
 
     else:
         fp = ScriptedPlanner().config_fingerprint()
     if v3:
-        fp["partition"] = "v3"
+        fp["partition"] = args.version
     digest = freeze_hash(budget, fp)
-    base_name = "baselines_v3" if v3 else "baselines_v0"
+    base_name = f"baselines_{args.version}" if v3 else "baselines_v0"
     base = json.loads((RESULTS_DIR / f"{base_name}.json").read_text(encoding="utf-8"))
     refs = {k: v for k, v in base["results"]["per_task"].items()}
-    specs = load_registry_v3() if v3 else load_registry()
+    specs = (
+        (load_registry_v4() if args.version == "v4" else load_registry_v3())
+        if v3
+        else load_registry()
+    )
     work = Path(f"data/agent_bench_{args.version}{suffix}" if v2 or v3 else "data/agent_bench")
     work.mkdir(parents=True, exist_ok=True)
     prior = None
@@ -288,11 +293,11 @@ def main(argv: list[str] | None = None) -> int:
         prior = v1["results"]["per_task"]
         label = "v2 - post-hoc, fixes informed by v1 failures."
     if use_llm:  # paired LLM-minus-scripted on the same partition
-        sp = RESULTS_DIR / "agent_v3_scripted.json"
+        sp = RESULTS_DIR / f"agent_{args.version}_scripted.json"
         if sp.exists():
             prior = json.loads(sp.read_text(encoding="utf-8"))["results"]["per_task"]
     if v3:
-        label = f"v3 unseen partition, {args.planner} planner."
+        label = f"{args.version} unseen partition, {args.planner} planner."
     run_tag = f"{args.version}{args.planner[0]}" if v3 else "v2" if v2 else ""
     if use_llm:
         from harness.gateway.limits import UsageLedger

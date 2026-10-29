@@ -249,3 +249,10 @@ def test_one_se_rule_prefers_the_simpler_model_inside_the_standard_error() -> No
     assert simplicity_order(["h", "l", "r"], models) == ["l", "h", "r"]  # 0.008 <= 1 SE of the best
     models["l"] = m("linear", 0.905, 0.012)  # 0.015 > 0.010: a real difference
     assert simplicity_order(["h", "l", "r"], models) == ["h", "l", "r"]
+
+
+def test_report_shows_top_features(env: Path, tmp_path: Path) -> None:  # noqa: F811
+    res = runner(tmp_path).run(cfg_for(make_csv(env), run_id="expl"))
+    html = Path(res["report"]["html"]).read_text(encoding="utf-8")
+    assert "Top features" in html and "permutation importance" in html
+    assert "## Top features" in Path(res["report"]["md"]).read_text(encoding="utf-8")

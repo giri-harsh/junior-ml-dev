@@ -125,6 +125,11 @@ def compare_models(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     return res.model_dump(mode="json")
 
 
+def explain_model(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
+    res = ex.explain_model(ex.ExplainRequest(run_id=ctx.cfg.run_id, model_id=args["model_id"]))
+    return res.model_dump(mode="json")
+
+
 def refit_full(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     rec = ex.refit_full(ex.RefitRequest(run_id=ctx.cfg.run_id, model_id=args["model_id"]))
     return rec.model_dump(mode="json", exclude={"features"})
@@ -348,6 +353,10 @@ def _r_features(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -
     st["engineered"] = {k: res[k] for k in ("n_columns_before", "n_columns_after", "sandbox")}
 
 
+def _r_explain(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
+    st["explain"] = res
+
+
 def _r_nothing(st: dict[str, Any], args: dict[str, Any], res: dict[str, Any]) -> None:
     return None
 
@@ -361,6 +370,7 @@ REGISTRY: dict[str, tuple[Tool, Reducer]] = {
     "compare_models": (compare_models, _r_compare),
     "review": (review, _r_review),
     "refit_full": (refit_full, _r_refit),
+    "explain_model": (explain_model, _r_explain),
     "predict": (predict, _r_predict),
     "check_code_policy": (check_code_policy, _r_nothing),
     "engineer_features": (engineer_features, _r_features),

@@ -64,6 +64,6 @@ def test_tools_via_stdio_client(tmp_path: Path) -> None:
     pd.DataFrame({"a": a, "y": (a + rng.normal(size=200) > 0).astype(int)}).to_csv(csv, index=False)
     tools, ok, bad = asyncio.run(_calls(csv, root))
     assert tools == [
-        "compare_models", "evaluate_model", "predict", "refit_full", "train_model", "tune_model",
+        "compare_models", "evaluate_model", "explain_model", "predict", "refit_full", "train_model", "tune_model",
     ]  # fmt: skip
     assert ok and bad

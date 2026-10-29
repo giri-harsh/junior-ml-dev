@@ -107,6 +107,11 @@ def write_report(
         f"- {r.idx} {r.step.server}/{r.step.tool}: {'ok' if r.ok else 'FAILED'} {r.latency_s:.2f}s"
         for r in records
     ]
+    expl = state.get("explain") or {}
+    imp = [(i["feature"], i["mean_drop"]) for i in expl.get("top", [])]
+    if imp:
+        md += ["", "## Top features (permutation importance)", ""]
+        md += [f"- {_t(f)}: {v:.4g}" for f, v in imp]
     card = model_card(cfg, state)
     (out_dir / "model_card.md").write_text(card, encoding="utf-8")
     (out_dir / "report.md").write_text("\n".join(md) + "\n", encoding="utf-8")
@@ -127,6 +132,12 @@ def write_report(
         + f"<th>columns</th></tr>{rows}</table>"
         + "<h2>Leaderboard</h2>"
         + bar_svg([(r["family"], r["val_score"]) for r in board], f"Validation {cfg.task.metric}")
+        + (
+            "<h2>Top features (permutation importance, held-out slice)</h2>"
+            + bar_svg(imp, f"Score drop when shuffled ({cfg.task.metric})")
+            if imp
+            else ""
+        )
         + f"<h2>Reviewer: {html.escape(str(review.get('verdict', 'n/a')))}</h2>"
         + "<h2>Step latency</h2>"
         + bar_svg(lat, "Seconds per step")

@@ -1,0 +1,70 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\leakage_v4_scan.py",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "scan of unseen v4 data; hand-adjudicated",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T15:45:10+00:00",
+  "git_sha": "368f22fbc386e72c6692366d19187c0b61e4ec97",
+  "name": "leakage_v4_scan",
+  "results": {
+    "tasks": {
+      "Brazilian_houses": {
+        "medium_high": [],
+        "n_rows": 8553
+      },
+      "MagicTelescope": {
+        "medium_high": [],
+        "n_rows": 15216
+      },
+      "ailerons": {
+        "medium_high": [],
+        "n_rows": 11000
+      },
+      "default-of-credit-card-clients": {
+        "medium_high": [],
+        "n_rows": 24000
+      },
+      "eeg-eye-state": {
+        "medium_high": [],
+        "n_rows": 11984
+      },
+      "houses": {
+        "medium_high": [],
+        "n_rows": 16512
+      },
+      "jm1": {
+        "medium_high": [
+          {
+            "columns": [],
+            "confidence": 0.9190016842749962,
+            "evidence": {
+              "conflicting_label_fraction": 0.1291,
+              "duplicate_rows": 1530,
+              "fraction": 0.1757,
+              "high_resolution_columns_matched": 2
+            },
+            "severity": "medium",
+            "type": "duplicate_rows"
+          }
+        ],
+        "n_rows": 8708
+      },
+      "letter": {
+        "medium_high": [],
+        "n_rows": 16000
+      },
+      "pendigits": {
+        "medium_high": [],
+        "n_rows": 8793
+      },
+      "sulfur": {
+        "medium_high": [],
+        "n_rows": 8064
+      }
+    }
+  }
+}

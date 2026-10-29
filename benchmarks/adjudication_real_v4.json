@@ -1,0 +1,6 @@
+{
+ "jm1|duplicate_rows|": {
+  "verdict": "true_leak",
+  "reason": "verified by direct count on the training file: 1463 exact duplicate rows of 8708 (17%), 2049 rows with duplicated feature vectors, 67 duplicate groups whose labels conflict. Duplicates across random CV folds leak; conflicting labels also cap achievable accuracy."
+ }
+}

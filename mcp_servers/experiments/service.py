@@ -597,6 +597,62 @@ def refit_full(req: RefitRequest) -> ModelRecord:
     return new
 
 
+class ExplainRequest(_Base):
+    run_id: str = Field(pattern=_SLUG)
+    model_id: str = Field(pattern=_SLUG)
+    n_repeats: int = Field(default=3, ge=1, le=10)
+    top_k: int = Field(default=10, ge=1, le=30)
+    max_features: int = Field(default=60, ge=1, le=200)
+
+
+class Importance(_Base):
+    feature: str
+    mean_drop: float  # score lost (in the metric's better-is-higher direction) when shuffled
+    std: float
+
+
+class ExplainResult(_Base):
+    model_id: str
+    metric: Metric
+    baseline_score: float
+    n_eval: int
+    top: list[Importance]
+    method: str = "permutation importance on a seeded 25% holdout; recipe refit on the other 75%"
+
+
+def explain_model(req: ExplainRequest) -> ExplainResult:
+    """Permutation importance. Honest by construction: the recipe is refit on 75% of the labelled
+    rows and every feature is shuffled in the other 25%, so the model never saw those rows."""
+    rec = load_record(req.run_id, req.model_id)
+    spec = DataSpec(
+        data_path=rec.data_path, target=rec.target, task_type=rec.task_type, metric=rec.metric,
+        drop_columns=rec.dropped, seed=rec.seed, val_fraction=0.25,
+    )  # fmt: skip
+    x, y, _ = _prepare(spec)
+    xt, xv, yt, yv = _split(x, y, spec)
+    positive = rec.positive_label
+    model, _ = _fit(rec.family, spec, xt, yt, dict(rec.params), 1)
+    base = _score(spec, yv, _predict(model, rec.family, spec, xv, positive), positive)
+    sign = 1.0 if HIGHER_IS_BETTER[rec.metric] else -1.0
+    rng = np.random.default_rng(rec.seed)
+    out: list[Importance] = []
+    for col in list(xv.columns)[: req.max_features]:
+        drops = []
+        for _ in range(req.n_repeats):
+            shuffled = xv.copy()
+            shuffled[col] = rng.permutation(shuffled[col].to_numpy())
+            s = _score(spec, yv, _predict(model, rec.family, spec, shuffled, positive), positive)
+            drops.append(sign * (base - s))
+        out.append(
+            Importance(feature=str(col), mean_drop=float(np.mean(drops)), std=float(np.std(drops)))
+        )
+    out.sort(key=lambda i: -i.mean_drop)
+    return ExplainResult(
+        model_id=rec.model_id, metric=rec.metric, baseline_score=base, n_eval=len(xv),
+        top=out[: req.top_k],
+    )  # fmt: skip
+
+
 def evaluate_model(req: EvalRequest) -> EvalResult:
     rec = load_record(req.run_id, req.model_id)
     model = _load_model(req.run_id, req.model_id)
