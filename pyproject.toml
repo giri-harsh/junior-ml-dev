@@ -89,6 +89,8 @@ extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
 "tests/**" = ["E501"]
 "scripts/render_results.py" = ["E501"]
 "scripts/render_metrics.py" = ["E501"]
+"scripts/gen_mcp_docs.py" = ["E501"]
+"tests/unit/test_mcp_every_tool.py" = ["E501"]
 
 [[tool.mypy.overrides]]
 module = ["sklearn.*", "flaml.*", "joblib.*"]
