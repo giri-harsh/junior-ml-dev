@@ -152,3 +152,18 @@ def test_audit_log_covers_every_tool_call_and_the_whole_approval_lifecycle(
     assert api.get("/v1/audit/verify").json()["ok"] is True
     # a replay of the spent token is refused and the refusal is recorded too
     assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": token}).status_code == 409
+
+
+def test_list_runs_endpoint_requires_admin_and_lists_newest_first(
+    api: TestClient, tmp_path: Path
+) -> None:
+    assert api.get("/v1/runs").status_code == 401
+    _login(api)
+    did = api.post("/v1/datasets", files={"file": ("d.csv", make_csv(tmp_path).read_bytes())})
+    did = did.json()["dataset_id"]
+    body = {"dataset_id": did, "target": "y", "task_type": "binary", "metric": "roc_auc",
+            "budget": {"flaml_budget_s": 0, "tune_trials": 0}}  # fmt: skip
+    rid = api.post("/v1/runs", json=body).json()["run_id"]
+    assert runs.work_once()
+    listed = api.get("/v1/runs").json()
+    assert [r["run_id"] for r in listed][0] == rid and listed[0]["status"] == "done"

@@ -137,7 +137,7 @@
       "diamonds"
     ],
     "result_file": "agent_v5_scripted.json",
-    "status": "claimed"
+    "status": "evaluated"
   },
   "leakage-code:2890a3d6a2cb794301e1d6c1a976cdeda33e7fc9cc0604dbce4884149a3a5dad": {
     "infra_retries": [],

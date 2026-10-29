@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI, Response
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from apps.api.routes.admin import router as admin_router
@@ -14,6 +17,12 @@ app = FastAPI(title="junior-ml-dev", version="0.1.0")
 app.include_router(datasets_router)
 app.include_router(admin_router)
 app.include_router(runs_router)
+
+# The React run viewer is built only in CI (.github/workflows/web.yml) and committed as static
+# files; when apps/web/dist exists it is served at /app/.
+_dist = Path(__file__).resolve().parents[1] / "web" / "dist"
+if _dist.is_dir():
+    app.mount("/app", StaticFiles(directory=_dist, html=True), name="viewer")
 
 
 @app.get("/healthz")

@@ -45,12 +45,23 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with: {enable-cache: true}
       - run: uv sync --python 3.11 --group dev --extra infra
-      - name: S3 endpoint on :9000 (moto server; MinIO no longer publishes pullable images/binaries)
+      - name: Real MinIO (one attempt over pinned images), else the moto S3 stand-in
         run: |
-          nohup uv run --with "moto[server]" moto_server -H 0.0.0.0 -p 9000 > /tmp/s3.log 2>&1 &
-          for i in $(seq 1 40); do
-            curl -sf http://localhost:9000/moto-api/ > /dev/null && break || sleep 3
+          started=""
+          for img in quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z minio/minio:RELEASE.2025-04-22T22-12-26Z quay.io/minio/minio:latest; do
+            if docker pull "$img" > /dev/null 2>&1; then
+              docker run -d --name minio -p 9000:9000 -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD \
+                "$img" server /data && started="$img" && break
+            fi
           done
+          if [ -n "$started" ]; then
+            echo "S3 backend: real MinIO ($started)" >> "$GITHUB_STEP_SUMMARY"
+            for i in $(seq 1 30); do curl -sf http://localhost:9000/minio/health/live && break || sleep 2; done
+          else
+            echo "S3 backend: moto stand-in (no MinIO image could be pulled)" >> "$GITHUB_STEP_SUMMARY"
+            nohup uv run --with "moto[server]" moto_server -H 0.0.0.0 -p 9000 > /tmp/s3.log 2>&1 &
+            for i in $(seq 1 40); do curl -sf http://localhost:9000/moto-api/ > /dev/null && break || sleep 3; done
+          fi
       - name: Build sandbox image
         run: docker build -t jmd-sandbox:latest deploy/sandbox
       - run: uv run pytest -m "infra and not compose" tests/infra -v --timeout 900 -p no:cacheprovider

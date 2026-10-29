@@ -151,6 +151,12 @@ def ui() -> FileResponse:
     return FileResponse(Path(__file__).resolve().parents[1] / "static" / "index.html")
 
 
+@router.get("/v1/runs")
+def list_runs(admin: str = Depends(require_admin)) -> list[dict[str, Any]]:
+    """Newest first, capped at 200 (the React viewer's list)."""
+    return list(reversed(run_store().list_runs()))[:200]
+
+
 @router.get("/v1/runs/{run_id}")
 def get_run(run_id: str, admin: str = Depends(require_admin)) -> dict[str, Any]:
     store = run_store()
