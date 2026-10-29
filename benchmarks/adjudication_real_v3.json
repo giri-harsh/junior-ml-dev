@@ -1,0 +1,10 @@
+{
+ "pc1|duplicate_rows|": {
+  "verdict": "true_leak",
+  "reason": "verified by direct count: exact duplicate rows exist in the training file (public NASA MDP data repeats modules); duplicates across a random CV split leak. Some duplicated feature rows carry conflicting labels."
+ },
+ "cmc|label_noise|Contraceptive_method_used": {
+  "verdict": "false_positive",
+  "reason": "nominal 3-class target with weak features (published accuracies ~55%); a 43% 'noise' estimate reflects low signal, not mislabeled rows. The detector cannot tell weak signal from label noise."
+ }
+}

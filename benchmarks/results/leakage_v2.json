@@ -1,0 +1,1231 @@
+{
+  "command": "python -m benchmarks.leakage_benchmark_v2",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 24,
+    "notes": "leakage v2 (detector fixes 84,85,90): unseen eval3 planted partition + 10 unseen real v3 datasets; v1 numbers are for the older code",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T05:05:21+00:00",
+  "git_sha": "f5091c7f09f9d6a4999587934a3e77ab4ef89df9",
+  "name": "leakage_v2",
+  "results": {
+    "code_hash": "leakage-code:ca7877a74c002512b92206c38bcf43e06d9281e05a97a09d8e9f1cd1b2934c31",
+    "dev": {
+      "rows": [
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_00"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_01"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_02"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [],
+          "column_hit": null,
+          "expected": "group",
+          "hit": false,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_00"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_01"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_02"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_00"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_01"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_02"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_00"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_01"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_02"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_00"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_01"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_02"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_00"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_01"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_02"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_00"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_01"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_02"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_00"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_01"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "dev",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_02"
+        }
+      ],
+      "summary": {
+        "by_bug_type": {
+          "duplicate_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": null,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "group_leak": {
+            "bootstrap95": [
+              0.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 2,
+            "n": 3,
+            "recall": 0.6666666666666666,
+            "wilson95": [
+              0.2077,
+              0.9385
+            ]
+          },
+          "id_correlated": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "label_noise": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "poisoned_name": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "target_proxy": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "temporal_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "unit_mismatch": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          }
+        },
+        "n_variants": 24,
+        "overall_recall": 0.9583333333333334,
+        "overall_recall_bootstrap95": [
+          0.875,
+          1.0
+        ],
+        "twin_false_alarm_examples": [],
+        "twin_false_alarm_n": 0,
+        "twin_fpr": 0.0,
+        "twin_fpr_bootstrap95": [
+          0.0,
+          0.0
+        ],
+        "twin_fpr_wilson95": [
+          0.0,
+          0.138
+        ]
+      }
+    },
+    "eval3": {
+      "rows": [
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_09"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_10"
+        },
+        {
+          "bug_type": "duplicate_leak",
+          "bugged_families": [
+            "split_overlap"
+          ],
+          "column_hit": null,
+          "expected": "split_overlap",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "duplicate_leak_11"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_09"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_10"
+        },
+        {
+          "bug_type": "group_leak",
+          "bugged_families": [
+            "group"
+          ],
+          "column_hit": true,
+          "expected": "group",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "group_leak_11"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_09"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_10"
+        },
+        {
+          "bug_type": "id_correlated",
+          "bugged_families": [
+            "mi_spike"
+          ],
+          "column_hit": true,
+          "expected": "mi_spike",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "id_correlated_11"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_09"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_10"
+        },
+        {
+          "bug_type": "label_noise",
+          "bugged_families": [
+            "label_noise"
+          ],
+          "column_hit": true,
+          "expected": "label_noise",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "label_noise_11"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_09"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_10"
+        },
+        {
+          "bug_type": "poisoned_name",
+          "bugged_families": [
+            "injection"
+          ],
+          "column_hit": true,
+          "expected": "injection",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "poisoned_name_11"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_09"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_10"
+        },
+        {
+          "bug_type": "target_proxy",
+          "bugged_families": [
+            "target_proxy"
+          ],
+          "column_hit": true,
+          "expected": "target_proxy",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "target_proxy_11"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_09"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_10"
+        },
+        {
+          "bug_type": "temporal_leak",
+          "bugged_families": [
+            "temporal"
+          ],
+          "column_hit": true,
+          "expected": "temporal",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "temporal_leak_11"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_09"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_10"
+        },
+        {
+          "bug_type": "unit_mismatch",
+          "bugged_families": [
+            "consistency"
+          ],
+          "column_hit": true,
+          "expected": "consistency",
+          "hit": true,
+          "partition": "eval3",
+          "twin_false_alarm": false,
+          "twin_families": [],
+          "twin_findings": [],
+          "variant_id": "unit_mismatch_11"
+        }
+      ],
+      "summary": {
+        "by_bug_type": {
+          "duplicate_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": null,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "group_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "id_correlated": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "label_noise": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "poisoned_name": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "target_proxy": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "temporal_leak": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          },
+          "unit_mismatch": {
+            "bootstrap95": [
+              1.0,
+              1.0
+            ],
+            "column_hit_rate": 1.0,
+            "hits": 3,
+            "n": 3,
+            "recall": 1.0,
+            "wilson95": [
+              0.4385,
+              1.0
+            ]
+          }
+        },
+        "n_variants": 24,
+        "overall_recall": 1.0,
+        "overall_recall_bootstrap95": [
+          1.0,
+          1.0
+        ],
+        "twin_false_alarm_examples": [],
+        "twin_false_alarm_n": 0,
+        "twin_fpr": 0.0,
+        "twin_fpr_bootstrap95": [
+          0.0,
+          0.0
+        ],
+        "twin_fpr_wilson95": [
+          0.0,
+          0.138
+        ]
+      }
+    },
+    "notes": "dev = record only; eval3 and real_v3 never evaluated before this run",
+    "real_v3": {
+      "exclusions": [],
+      "tasks": {
+        "climate-model-simulation-crashes": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 432
+        },
+        "cmc": {
+          "findings": [
+            {
+              "columns": [],
+              "confidence": 0.5,
+              "evidence": {
+                "conflicting_label_fraction": 0.6721,
+                "duplicate_rows": 70,
+                "fraction": 0.0594,
+                "high_resolution_columns_matched": 0,
+                "reason": "repeats are plausible chance collisions on low-resolution columns",
+                "unconfirmed": true
+              },
+              "severity": "low",
+              "type": "duplicate_rows"
+            },
+            {
+              "columns": [
+                "Contraceptive_method_used"
+              ],
+              "confidence": 0.9305521243744976,
+              "evidence": {
+                "estimated_noise_rate": 0.4306,
+                "indices_refer_to": "row positions in the frame passed to the detector",
+                "n_rows_used": 1178,
+                "n_suspects": 414,
+                "suspect_indices": [
+                  613,
+                  987,
+                  1050,
+                  0,
+                  544,
+                  515,
+                  747,
+                  1009,
+                  986,
+                  1132,
+                  801,
+                  451,
+                  673,
+                  757,
+                  422,
+                  1155,
+                  459,
+                  348,
+                  415,
+                  342,
+                  972,
+                  355,
+                  443,
+                  376,
+                  343,
+                  1124,
+                  90,
+                  390,
+                  752,
+                  990,
+                  988,
+                  810,
+                  786,
+                  919,
+                  84,
+                  1158,
+                  632,
+                  1033,
+                  766,
+                  1014,
+                  315,
+                  742,
+                  383,
+                  170,
+                  911,
+                  897,
+                  474,
+                  374,
+                  299,
+                  1061
+                ]
+              },
+              "severity": "medium",
+              "type": "label_noise"
+            }
+          ],
+          "n_medium_or_high": 1,
+          "n_rows": 1178
+        },
+        "credit-approval": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 552
+        },
+        "kr-vs-kp": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 2556
+        },
+        "optdigits": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 4496
+        },
+        "ozone-level-8hr": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 2027
+        },
+        "pc1": {
+          "findings": [
+            {
+              "columns": [],
+              "confidence": 0.7429537767756482,
+              "evidence": {
+                "conflicting_label_fraction": 0.0667,
+                "duplicate_rows": 109,
+                "fraction": 0.1229,
+                "high_resolution_columns_matched": 5
+              },
+              "severity": "medium",
+              "type": "duplicate_rows"
+            }
+          ],
+          "n_medium_or_high": 1,
+          "n_rows": 887
+        },
+        "puma8NH": {
+          "findings": [
+            {
+              "columns": [
+                "thetadd3"
+              ],
+              "confidence": 1.0,
+              "evidence": {
+                "applicable": false,
+                "reason": "classification only"
+              },
+              "severity": "low",
+              "type": "label_noise"
+            }
+          ],
+          "n_medium_or_high": 0,
+          "n_rows": 6553
+        },
+        "space_ga": {
+          "findings": [
+            {
+              "columns": [
+                "ln(VOTES/POP)"
+              ],
+              "confidence": 1.0,
+              "evidence": {
+                "applicable": false,
+                "reason": "classification only"
+              },
+              "severity": "low",
+              "type": "label_noise"
+            }
+          ],
+          "n_medium_or_high": 0,
+          "n_rows": 2485
+        },
+        "vowel": {
+          "findings": [],
+          "n_medium_or_high": 0,
+          "n_rows": 792
+        }
+      }
+    },
+    "supersedes": "leakage_v1.json",
+    "thresholds": {
+      "duplicate_rows": {
+        "hi_res_ratio": 0.5,
+        "high_fraction": 0.2,
+        "min_fraction": 0.05,
+        "min_hi_res_cols": 2
+      },
+      "group_leakage": {
+        "high_gap": 0.08,
+        "max_candidates": 3,
+        "min_gap": 0.05
+      },
+      "high_cardinality_proxy": {
+        "min_unique_ratio": 0.2
+      },
+      "id_leak": {
+        "high_gini": 0.7,
+        "min_gini": 0.3
+      },
+      "label_noise": {
+        "folds": 5,
+        "high_rate": 0.45,
+        "max_rows": 5000,
+        "max_suspects": 50,
+        "min_rate": 0.31,
+        "min_samples_leaf": 3,
+        "trees": 100
+      },
+      "post_outcome": {
+        "hints": [
+          "refund",
+          "cancel",
+          "closed",
+          "outcome",
+          "result",
+          "resolved",
+          "churned",
+          "approved",
+          "declined",
+          "defaulted",
+          "paid",
+          "claim",
+          "after",
+          "post",
+          "final",
+          "settled"
+        ],
+        "min_gini": 0.5,
+        "min_loco_drop": 0.02
+      },
+      "probe": {
+        "loco_repeats": 2,
+        "repeats": 3,
+        "rows": 4000
+      },
+      "suspicious_column_name": {
+        "max_length": 60,
+        "patterns": [
+          "ignore (all |any )?(previous|prior|above)",
+          "system prompt",
+          "instruction",
+          "you are ",
+          "assistant",
+          "/scorer",
+          "scorer_data",
+          "https?://",
+          "rm -",
+          "<\\|",
+          "```"
+        ]
+      },
+      "target_leakage": {
+        "high_gini": 0.95,
+        "max_depth": 3,
+        "min_dominance": 0.15,
+        "min_gini": 0.8,
+        "min_loco_drop": 0.03,
+        "top_k": 3
+      },
+      "temporal_leakage": {
+        "high_gap": 0.08,
+        "max_candidates": 2,
+        "min_gap": 0.04
+      },
+      "train_test_contamination": {
+        "min_fraction": 0.01
+      },
+      "unit_mismatch": {
+        "max_abs_skew": 1.5,
+        "min_fraction": 0.15,
+        "ratio_tolerance": 0.1,
+        "robust_z": 10.0
+      }
+    }
+  }
+}
