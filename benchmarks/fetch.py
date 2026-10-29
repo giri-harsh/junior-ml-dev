@@ -21,6 +21,7 @@ from benchmarks.tasks.registry import (
     load_registry,
     load_registry_v3,
     load_registry_v4,
+    load_registry_v5,
 )
 
 DATA_ROOT = Path("data/tasks")
@@ -85,9 +86,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--synthetic", action="store_true")
     p.add_argument("--v3", action="store_true", help="fetch the v3 partition")
     p.add_argument("--v4", action="store_true", help="fetch the v4 partition")
+    p.add_argument("--v5", action="store_true", help="fetch the v5 partition")
     a = p.parse_args(argv)
     specs = (
-        load_registry_v4()
+        load_registry_v5()
+        if a.v5
+        else load_registry_v4()
         if a.v4
         else load_registry_v3()
         if a.v3

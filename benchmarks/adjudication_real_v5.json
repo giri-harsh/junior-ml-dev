@@ -1,0 +1,6 @@
+{
+ "mozilla4|target_leakage|start": {
+  "verdict": "ambiguous_likely_benign",
+  "reason": "single-feature gini 0.85, dominance 0.42. Direct evidence: the label rate is 0.10 in the lowest start decile (where start == 0 for a quarter of rows) and 0.83-0.97 in every other decile, i.e. a threshold/sentinel effect on an event start offset in a trace log, not a post-outcome column. Cannot be proven legitimate without domain knowledge; not removed. The agent will drop it under its medium/high proxy policy, which is the conservative behaviour."
+ }
+}

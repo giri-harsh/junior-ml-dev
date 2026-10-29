@@ -1,0 +1,17 @@
+# v5 partition (run 6): 10 OpenML datasets never used in v1-v4 or real_dev, test split >= 2,000 rows.
+# Chosen from shapes/class counts only; screened for non-degeneracy on TRAIN-side CV before the
+# freeze (benchmarks/screen_partition.py). Split seed = apps/scorer/splits.SEED, test_size 0.2.
+# OpenML dataset ids (recorded before any run):
+#   mozilla4 1046, electricity 151, nomao 1486, sylva_prior 1040, Amazon_employee_access 4135,
+#   gas-drift 1476, MiamiHousing2016 43093 (replaced elevators 216: degenerate on the train-side screen), house_8L 218, fried 564, diamonds 42225
+tasks:
+  - {name: mozilla4, source: openml, task_type: binary, target: state, metric: roc_auc, role: v5_heldout}
+  - {name: electricity, source: openml, task_type: binary, target: class, metric: roc_auc, role: v5_heldout}
+  - {name: nomao, source: openml, task_type: binary, target: Class, metric: roc_auc, role: v5_heldout}
+  - {name: sylva_prior, source: openml, task_type: binary, target: label, metric: pr_auc, role: v5_heldout, imbalanced: true}
+  - {name: Amazon_employee_access, source: openml, task_type: binary, target: target, metric: roc_auc, role: v5_heldout}
+  - {name: gas-drift, source: openml, task_type: multiclass, target: Class, metric: f1_macro, role: v5_heldout}
+  - {name: MiamiHousing2016, source: openml, task_type: regression, target: SALE_PRC, metric: rmse, role: v5_heldout}
+  - {name: house_8L, source: openml, task_type: regression, target: price, metric: rmse, role: v5_heldout}
+  - {name: fried, source: openml, task_type: regression, target: Y, metric: rmse, role: v5_heldout}
+  - {name: diamonds, source: openml, task_type: regression, target: price, metric: rmse, role: v5_heldout}
