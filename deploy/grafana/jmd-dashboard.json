@@ -1,0 +1,18 @@
+{
+  "title": "junior-ml-dev runs",
+  "uid": "jmd-runs",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Runs by status", "gridPos": {"x": 0, "y": 0, "w": 8, "h": 6},
+     "targets": [{"expr": "sum by (status) (jmd_runs)", "legendFormat": "{{status}}"}]},
+    {"id": 2, "type": "timeseries", "title": "Steps per second by tool", "gridPos": {"x": 8, "y": 0, "w": 16, "h": 6},
+     "targets": [{"expr": "sum by (tool) (rate(jmd_steps_total[5m]))", "legendFormat": "{{tool}}"}]},
+    {"id": 3, "type": "timeseries", "title": "Failed steps per second", "gridPos": {"x": 0, "y": 6, "w": 12, "h": 6},
+     "targets": [{"expr": "sum by (tool) (rate(jmd_steps_failed_total[5m]))", "legendFormat": "{{tool}}"}]},
+    {"id": 4, "type": "timeseries", "title": "Mean step latency (s) by tool", "gridPos": {"x": 12, "y": 6, "w": 12, "h": 6},
+     "targets": [{"expr": "sum by (tool) (rate(jmd_step_latency_seconds_sum[5m])) / sum by (tool) (rate(jmd_steps_total[5m]))", "legendFormat": "{{tool}}"}]}
+  ]
+}

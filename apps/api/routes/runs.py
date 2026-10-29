@@ -11,7 +11,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,6 +26,7 @@ from harness.obs import render_metrics
 from harness.queue import SQLiteJobQueue, Worker
 from harness.queue_arq import ArqJobQueue
 from harness.security.approvals import ApprovalStore
+from harness.security.idempotency import IdempotencyStore, body_hash
 from harness.security.ratelimit import RateLimiter
 
 router = APIRouter(tags=["runs"])
@@ -87,7 +88,32 @@ def _materialise(dataset_id: str) -> str:
 
 
 @router.post("/v1/runs", status_code=202)
-def submit_run(body: RunSubmit, admin: str = Depends(rate_limited)) -> dict[str, str]:
+def submit_run(
+    body: RunSubmit,
+    admin: str = Depends(rate_limited),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key", max_length=64),
+) -> dict[str, str]:
+    """With an `Idempotency-Key` header a retry returns the original run instead of a new one."""
+    if idempotency_key is None:
+        return _create_run(body, admin)
+    store = IdempotencyStore(os.environ.get("IDEMPOTENCY_DB", "data/idempotency.db"))
+    outcome, prior = store.begin(idempotency_key, body_hash(body.model_dump(mode="json")))
+    if outcome == "replay" and prior is not None:
+        return {**{k: str(v) for k, v in prior.items()}, "idempotent_replay": "true"}
+    if outcome == "conflict":
+        raise HTTPException(422, "Idempotency-Key was used with a different request body")
+    if outcome == "in_progress":
+        raise HTTPException(409, "a request with this Idempotency-Key is still being processed")
+    try:
+        resp = _create_run(body, admin)
+    except BaseException:
+        store.abandon(idempotency_key)
+        raise
+    store.finish(idempotency_key, resp)
+    return resp
+
+
+def _create_run(body: RunSubmit, admin: str) -> dict[str, str]:
     path = _materialise(body.dataset_id)
     run_id = f"run-{uuid.uuid4().hex[:8]}"
     cfg = RunConfig(
@@ -149,6 +175,26 @@ def resume_run(run_id: str, body: ResumeBody, admin: str = Depends(rate_limited)
 @router.get("/ui", include_in_schema=False)
 def ui() -> FileResponse:
     return FileResponse(Path(__file__).resolve().parents[1] / "static" / "index.html")
+
+
+@router.get("/v1/jobs/dead")
+def dead_letters(admin: str = Depends(require_admin)) -> list[dict[str, Any]]:
+    """Jobs that exhausted their attempts (SQLite queue)."""
+    q = job_queue()
+    if not isinstance(q, SQLiteJobQueue):
+        raise HTTPException(501, "dead letters of the arq queue are managed in arq/Redis")
+    return q.dead_letters()
+
+
+@router.post("/v1/jobs/{job_id}/requeue")
+def requeue_dead(job_id: str, admin: str = Depends(require_admin)) -> dict[str, str]:
+    q = job_queue()
+    if not isinstance(q, SQLiteJobQueue):
+        raise HTTPException(501, "not supported for the arq queue")
+    if not q.requeue_dead(job_id):
+        raise HTTPException(404, "no such dead job")
+    audit_log().append(admin, "job_requeued", {"job_id": job_id})
+    return {"job_id": job_id, "status": "queued"}
 
 
 @router.get("/v1/runs")
