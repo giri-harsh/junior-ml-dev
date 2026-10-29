@@ -79,3 +79,11 @@ def test_minio_is_built_from_the_release_binary_with_a_curl_healthcheck() -> Non
     assert svc["build"]["dockerfile"] == "minio.Dockerfile"
     assert "moto" in " ".join(svc["healthcheck"]["test"])
     assert "moto" in Path("deploy/compose/minio.Dockerfile").read_text()
+
+
+def test_app_profile_excludes_the_unrelated_micro_services() -> None:
+    svcs = _load()["services"]
+    for name in ("mlflow", "scorer"):
+        assert "app" not in svcs[name]["profiles"]
+    for name in ("postgres", "redis", "minio", "api", "worker"):
+        assert "app" in svcs[name]["profiles"]

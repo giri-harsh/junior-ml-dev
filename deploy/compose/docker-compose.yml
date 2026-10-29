@@ -57,6 +57,7 @@ services:
 
   mlflow:
     <<: *micro
+    profiles: ["micro", "full"]  # not part of the app profile
     build:
       context: .
       dockerfile: mlflow.Dockerfile
@@ -80,6 +81,7 @@ services:
 
   scorer:
     <<: *micro
+    profiles: ["micro", "full"]  # not part of the app profile
     build:
       context: ../..
       dockerfile: deploy/compose/scorer.Dockerfile
