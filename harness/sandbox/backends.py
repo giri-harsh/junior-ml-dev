@@ -66,6 +66,8 @@ def run_checked(
 
 
 MAX_OUT_FILE = 50 * 1024 * 1024
+# tmpfs path INSIDE the container, not a host path
+_CONTAINER_TMP = "/tmp:rw,size=64m"  # nosec B108
 
 
 def collect_outputs(work: Path) -> dict[str, bytes]:
@@ -156,7 +158,7 @@ class LocalDockerBackend:
             "docker", "run", "--rm", *named, "--network", "none", "--read-only",
             "--user", "65534:65534", "--cpus", str(self.cpus), "--memory", self.memory,
             "--pids-limit", "128", "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
-            "--tmpfs", "/tmp:rw,size=64m", "-v", f"{workspace}:/workspace:rw", "-w", "/workspace",
+            "--tmpfs", _CONTAINER_TMP, "-v", f"{workspace}:/workspace:rw", "-w", "/workspace",
             self.image, "python", "-I", "/workspace/main.py",
         ]  # fmt: skip
 

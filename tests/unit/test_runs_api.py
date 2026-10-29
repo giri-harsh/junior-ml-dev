@@ -167,3 +167,12 @@ def test_list_runs_endpoint_requires_admin_and_lists_newest_first(
     assert runs.work_once()
     listed = api.get("/v1/runs").json()
     assert [r["run_id"] for r in listed][0] == rid and listed[0]["status"] == "done"
+
+
+def test_react_viewer_is_served_statically(api: TestClient) -> None:
+    dist = Path(__file__).resolve().parents[2] / "apps" / "web" / "dist"
+    if not dist.is_dir():
+        pytest.skip("viewer not built (built only in CI: .github/workflows/web.yml)")
+    r = api.get("/app/")
+    assert r.status_code == 200 and 'id="root"' in r.text
+    assert "/app/assets/" in r.text  # vite base path matches the mount point
