@@ -14,3 +14,11 @@ S16 merged (s16-done, tag agent-frozen-v2 @08c3217). v2 benchmark launched ONCE 
 S17/S19 code written on main working tree (uncommitted until v2 finishes): sql_store, queue_arq, minio_store, compose api/worker, infra tests, winjob, CI yml. NEXT after v2: `uv lock` (infra extra), full gate, branch s17-s19-infra commit/merge, tags s17-done s19-done, S18 skipped (log), render results, report.
 RUN 3 COMPLETE: S16 done (s16-done, agent-frozen-v2; agent_v2.json), S17/S19 code merged (s17-done, s19-done), S18 skipped (no key/ollama). Report: docs/AUTOPILOT_REPORT_RUN3.md. Nothing in progress.
 RUN 4 COMPLETE: s18-done, agent-frozen-v3, eval-v3-done, s20-done; pushed to private origin giri-harsh/junior-ml-dev. Docker/E2B items are WALL (see docs/AUTOPILOT_REPORT_RUN4.md). Nothing in progress.
+
+## RUN 5 (S21-S24) - STOPPED EARLY: usage limit reached
+Done (local, committed on main, NOT pushed, full gate NOT run since the CV/LLM-v2 changes):
+- S21: ci.yml + infra.yml pushed earlier (fa7b1d1..fc63b67). CI runs used so far this run: ~6 (ids 40826418285, 40826419757, 40826494410/488, 40826606193/194), all failed or cancelled; fixes found by CI: YAML colon in step name, MinIO image tag missing on Docker Hub/quay (now quay latest, unpushed), mypy extra deps + numpy stubs (fixed), compose needs SCORER_SECRET (fixed), runner path guard rejected absolute paths on Linux (fixed locally, unpushed). Infra/compose jobs have NEVER passed yet.
+- Docker sandbox hardening, sandboxed `engineer_features` step (opt-in), kill/resume acceptance test written; none run in Docker.
+- S22 code: CV selection (k=5/3, 1-SE rule) in experiments + agent; LLM planner v2 (symbolic state, dedupe re-prompt, min-exploration) with unit tests. Dev before/after NOT run. LLM requests used today: groq 80, gemini 8.
+Not started: S23 (v4 partition, agent-frozen-v4, evals), S24 (explainability, LLM reviewer, OTel), README update, run-5 report.
+Next: run full gate, push, `gh run list`, fix infra.yml failures; then S22 dev runs (python -m benchmarks.agent_dev --planner llm1/llm2 --selection ...), S23, S24.

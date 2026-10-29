@@ -108,6 +108,7 @@ def run_agent(
     flaml_budget: float,
     planner: Any = None,
     tag: str = "dev",
+    selection: str = "holdout",
 ) -> dict[str, Any]:
     from harness.agent.models import RunBudget, RunConfig, RunTask
     from harness.agent.planners import ScriptedPlanner
@@ -123,7 +124,8 @@ def run_agent(
             task_type=spec["task_type"], metric=spec["metric"], seed=SEED,
             test_features_path=str(spec["dir"] / "test_features.parquet"),
         ),
-        budget=RunBudget(flaml_budget_s=flaml_budget), mode="dev",
+        budget=RunBudget(flaml_budget_s=flaml_budget, selection=selection),
+        mode="dev",
     )  # fmt: skip
     runner = AgentRunner(
         RunStore(WORK / "runs.db"), planner or ScriptedPlanner(), run_root=WORK / "runs"
@@ -138,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--flaml-budget", type=float, default=20.0)
     ap.add_argument("--out-name", default="agent_dev_v0")
     ap.add_argument("--tasks", default=",".join(DEV_TASKS))
+    ap.add_argument("--selection", choices=["holdout", "cv"], default="holdout")
+    ap.add_argument("--planner", choices=["scripted", "llm1", "llm2"], default="scripted")
     args = ap.parse_args(argv)
     if WORK.exists():
         shutil.rmtree(WORK)  # dev scratch only (under data/, never results or ledgers)
@@ -151,7 +155,24 @@ def main(argv: list[str] | None = None) -> int:
         spec = split_task(name, df, target)
         t0 = time.perf_counter()
         ref = references(name, spec, target, args.flaml_budget)
-        run = run_agent(name, spec, target, args.flaml_budget)
+        planner = None
+        if args.planner != "scripted":
+            from harness.agent.planners import LLMPlanner
+            from harness.gateway.live import build_live_gateway
+
+            gw = build_live_gateway(
+                Path(f"tests/cassettes/s22_dev_{args.planner}_{args.selection}.jsonl")
+            )
+            planner = LLMPlanner(gw, version=2 if args.planner == "llm2" else 1)
+        run = run_agent(
+            name,
+            spec,
+            target,
+            args.flaml_budget,
+            planner,
+            f"dev-{args.planner}-{args.selection}",
+            args.selection,
+        )
 
         per[name] = {
             "task_type": spec["task_type"], "metric": spec["metric"], "dummy": ref["dummy"],
@@ -163,6 +184,16 @@ def main(argv: list[str] | None = None) -> int:
             "linear_normalized": _norm(ref["linear"], ref, spec),
             "wall_s": round(time.perf_counter() - t0, 1),
         }  # fmt: skip
+        if planner is not None:
+            s = planner.gateway.stats
+            per[name].update(
+                llm_requests=s["calls"] - s["cache_hits"] - s["fixture_hits"],
+                llm_structured=s["structured"],
+                llm_fallbacks=planner.fallbacks,
+                llm_reprompts=planner.reprompts,
+                llm_tokens=planner.gateway.budget.used_tokens,
+                llm_min_explore_rejects=planner.min_explore_rejects,
+            )
         print(name, per[name]["agent"], per[name]["linear"], per[name]["flaml"], flush=True)
     ok = [
         r for r in per.values()
@@ -175,14 +206,24 @@ def main(argv: list[str] | None = None) -> int:
         agg["agent_normalized_mean_ci95"] = bootstrap_ci(a)
         agg["linear_normalized_mean_ci95"] = bootstrap_ci(lin)
         agg["agent_minus_linear_paired_ci95"] = paired_bootstrap_ci(a, lin)
+    who = (
+        "scripted planner, NO LLM"
+        if args.planner == "scripted"
+        else (f"REAL LLM planner variant {args.planner} (Groq/Gemini)")
+    )
     notes = (
-        "DEV partition (real_dev, 70/30 split seed 0); scripted planner, NO LLM; references fit "
-        "on the same 70%; design decisions may use these numbers"
+        f"DEV partition (real_dev, 70/30 split seed 0); {who}; selection={args.selection}; "
+        "references fit on the same 70%; design decisions may use these numbers"
     )
     path = write_result(
         args.out_name,
         {"per_task": per, "aggregate": agg, "flaml_budget_s": args.flaml_budget},
-        Conditions(llm="none", sandbox="none", n=len(per), notes=notes),
+        Conditions(
+            llm="none" if args.planner == "scripted" else "real",
+            sandbox="none",
+            n=len(per),
+            notes=notes,
+        ),
     )
     print(path)
     return 0

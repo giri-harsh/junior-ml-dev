@@ -207,3 +207,41 @@ def test_flaml_is_refit_on_all_rows_with_the_selected_configuration(env: Path) -
         s.EvalRequest(run_id="r1", model_id=full.model_id, data_path=rec.data_path, target="y")
     )
     assert ev.score > 0.7
+
+
+def test_cv_selection_scores_all_rows_and_reports_a_standard_error(env: Path) -> None:
+    p = _clf(env)
+    rec = s.train_model(_req(p, family="hgb", selection="cv"))
+    assert rec.selection == "cv" and rec.fit_on == "full" and rec.n_train == 400 and rec.n_val == 0
+    assert rec.cv_k == 5 and rec.cv_se is not None and rec.cv_se > 0 and rec.scored
+    assert rec.val_score > 0.8
+    again = s.refit_full(s.RefitRequest(run_id="r1", model_id=rec.model_id))
+    assert again.model_id == rec.model_id  # nothing to refit
+    board = s.compare_models(s.CompareRequest(run_id="r1"))
+    assert [r.model_id for r in board.leaderboard] == [rec.model_id]
+
+
+def test_cv_fold_count_rules() -> None:
+    import pandas as pd
+
+    spec = s.DataSpec(data_path="x", target="y", task_type="binary", metric="roc_auc")
+    y = pd.Series([0] * 30 + [1] * 3)
+    k, _ = s.cv_folds(spec, y, 33)
+    assert k == 3  # the rarest class has 3 rows: fewer folds, still stratified
+    k, _ = s.cv_folds(spec, pd.Series([0, 1] * 20), 60_000)
+    assert k == 3  # large training sets use 3 folds
+    reg = s.DataSpec(data_path="x", target="y", task_type="regression", metric="rmse")
+    assert s.cv_folds(reg, pd.Series(range(100)), 100)[0] == 5
+
+
+def test_cv_flaml_and_error_metric(env: Path) -> None:
+    rng = np.random.default_rng(5)
+    df = pd.DataFrame({"a": rng.normal(size=300)})
+    df["r"] = 2 * df.a + rng.normal(scale=0.2, size=300)
+    p = env / "cvr.csv"
+    df.to_csv(p, index=False)
+    rec = s.train_model(
+        _req(str(p), target="r", task_type="regression", metric="rmse", family="flaml",
+             selection="cv", time_budget_s=3)
+    )  # fmt: skip
+    assert rec.fit_on == "full" and rec.val_score < 1.0 and rec.params["best_estimator"]

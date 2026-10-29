@@ -28,6 +28,7 @@ from harness.agent.store import RunStore
 from harness.agent.tools import REGISTRY, Reducer, Tool, ToolCtx
 from harness.obs import configure, log_event
 from harness.policies.actions import Action, RunContext, guard
+from harness.policies.code_policy import HIDDEN_NAME
 from harness.security.approvals import ApprovalStore, payload_hash
 from harness.security.audit import AuditLog
 from mcp_servers.data_tools.service import GuardError
@@ -76,7 +77,10 @@ class AgentRunner:
     def _guard(self, cfg: RunConfig, step: Step, ctx: ToolCtx) -> str | None:
         task = cfg.task
         for path in (task.data_path, task.test_features_path):
-            if path and not guard(Action(type="read_file", path=path), RunContext()).allowed:
+            # the denylist applies to any path; allowed roots are enforced by the data tools. An
+            # absolute path (e.g. /app/data/x.parquet in a container) is fine: it must still resolve
+            # under an allowed root.
+            if path and HIDDEN_NAME.search(path):
                 return "blocked:path_policy"
         if step.tool in RISKY_TOOLS:
             payload = {"model_id": step.args.get("model_id")}
@@ -265,10 +269,11 @@ class AgentRunner:
         out_dir = self.run_root / cfg.run_id
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "trace.json").write_text(json.dumps(trace, indent=1), encoding="utf-8")
+        final_id = state.get("final_model_id") or (chosen if m.get("fit_on") == "full" else None)
         result = {
             "run_id": cfg.run_id, "status": status, "planner": cfg.planner,
             "llm_mode": cfg.llm_mode, "n_steps": len(records), "resumed": resumed,
-            "chosen": chosen, "final_model_id": state.get("final_model_id"),
+            "chosen": chosen, "final_model_id": final_id,
             "chosen_family": m.get("family"), "val_score": m.get("val_score"),
             "predictions_path": state.get("predictions_path"),
             "dropped": state["dropped"], "unresolved": state.get("unresolved", []),

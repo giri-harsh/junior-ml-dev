@@ -233,3 +233,19 @@ def test_reviewer_does_not_approve_when_leakage_detection_failed() -> None:
     }
     res = review(ToolCtx(cfg, state), {})
     assert res["verdict"] == "REQUEST_CHANGES" and not res["checks"]["leakage_checked"]["passed"]
+
+
+def test_one_se_rule_prefers_the_simpler_model_inside_the_standard_error() -> None:
+    from harness.agent.tools import simplicity_order
+
+    def m(f: str, v: float, se: float) -> dict[str, Any]:
+        return {"family": f, "val_score": v, "cv_se": se, "selection": "cv"}
+
+    models = {
+        "h": m("hgb", 0.920, 0.010),
+        "l": m("linear", 0.912, 0.012),
+        "r": m("rf", 0.880, 0.01),
+    }
+    assert simplicity_order(["h", "l", "r"], models) == ["l", "h", "r"]  # 0.008 <= 1 SE of the best
+    models["l"] = m("linear", 0.905, 0.012)  # 0.015 > 0.010: a real difference
+    assert simplicity_order(["h", "l", "r"], models) == ["h", "l", "r"]
