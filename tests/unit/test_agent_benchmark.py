@@ -122,3 +122,18 @@ def test_frozen_checkout_is_required(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(ab, "_git", lambda *a: "" if a[0] == "status" else str(a))
     with pytest.raises(SystemExit, match="not tagged"):
         ab.assert_frozen_checkout()
+
+
+def test_v2_result_has_its_own_name_label_and_paired_diff_vs_prior(tmp_path: Path) -> None:
+    sp = specs()
+    prior = {s.name: {"agent_normalized": 0.80} for s in sp}
+    path = ab.run_benchmark(
+        sp, fake, refs(sp), digest="v" * 64, ledger_path=tmp_path / "l.json",
+        out_dir=tmp_path / "out", result_name="agent_v2", prior=prior,
+        label="v2 - post-hoc, fixes informed by v1 failures.",
+    )  # fmt: skip
+    res = json.loads(path.read_text(encoding="utf-8"))
+    assert path.name == "agent_v2.json" and "post-hoc" in res["conditions"]["notes"]
+    agg = res["results"]["aggregate"]
+    assert agg["paired_vs_prior_n"] == 3 and agg["paired_vs_prior_ci95"][0] != 0
+    assert not (tmp_path / "out" / "agent_v1.json").exists()
