@@ -488,6 +488,21 @@ def _confident_joint(
     return (calibrated / total if total else calibrated), suspect
 
 
+def _is_ordinal_target(y: pd.Series) -> bool:
+    """Numeric integer target with >=5 consecutive levels (ratings, quality scores).
+
+    Confident learning assumes nominal classes; neighbouring ordinal levels are legitimately
+    confusable, so a 'noise' estimate would just measure ordinality.
+    """
+    if not pd.api.types.is_numeric_dtype(y):
+        return False
+    v = pd.to_numeric(y, errors="coerce").dropna()
+    if v.empty or not (v == v.round()).all():
+        return False
+    k = int(v.nunique())
+    return k >= 5 and int(v.max() - v.min()) + 1 - k <= 1
+
+
 def detect_label_noise(ctx: Context) -> list[Finding]:
     t = ctx.thr["label_noise"]
     if ctx.task == "regression":
@@ -497,6 +512,16 @@ def detect_label_noise(ctx: Context) -> list[Finding]:
                 severity=Severity.LOW,
                 columns=[ctx.target],
                 evidence={"applicable": False, "reason": "classification only"},
+                confidence=1.0,
+            )
+        ]
+    if _is_ordinal_target(ctx.df[ctx.target]):
+        return [
+            Finding(
+                type=FindingType.LABEL_NOISE,
+                severity=Severity.LOW,
+                columns=[ctx.target],
+                evidence={"applicable": False, "reason": "ordinal target; classes are not nominal"},
                 confidence=1.0,
             )
         ]
