@@ -1,0 +1,603 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\agent_benchmark.py --final --version v4 --planner llm",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 10,
+    "notes": "LLM planner (real cloud LLM: real); scorer-service test scores; freeze hash 3036c13663db807435bc2d7ce0f16edaa546ef7a497cb214ee2fc34e266e8410; agent FLAML budget 30.0s inside its search, baseline FLAML 30s (baselines_v0.json); references are code-written results, not re-run here. v4 unseen partition, llm planner. ",
+    "sandbox": "none"
+  },
+  "date": "2026-10-29T17:13:32+00:00",
+  "git_sha": "c24d7b14530b891a5f3a811d7e806404bcc45806",
+  "name": "agent_v4_llm",
+  "results": {
+    "aggregate": {
+      "agent_minus_flaml_paired_ci95": [
+        -0.02167233790783159,
+        -0.0612913471647514,
+        0.013673490973345184
+      ],
+      "agent_minus_linear_paired_ci95": [
+        0.2701227135275775,
+        0.12175721951243038,
+        0.4410647200434846
+      ],
+      "agent_normalized_mean_ci95": [
+        0.9783276620921684,
+        0.9387086528352485,
+        1.0136734909733451
+      ],
+      "excluded": [
+        "ailerons"
+      ],
+      "linear_normalized_mean_ci95": [
+        0.7082049485645909,
+        0.522155516031565,
+        0.8726529136652015
+      ],
+      "n_defined": 9,
+      "n_tasks": 10,
+      "paired_vs_prior_ci95": [
+        -0.009348507493416992,
+        -0.026403532256682447,
+        0.0009675363139212875
+      ],
+      "paired_vs_prior_n": 9,
+      "pass_vs_linear": {
+        "k": 10,
+        "n": 10,
+        "wilson95": [
+          0.7224598312333834,
+          1.0
+        ]
+      }
+    },
+    "freeze_hash": "3036c13663db807435bc2d7ce0f16edaa546ef7a497cb214ee2fc34e266e8410",
+    "llm": "real",
+    "meta": {
+      "git_sha": "c24d7b14530b891a5f3a811d7e806404bcc45806"
+    },
+    "per_task": {
+      "Brazilian_houses": {
+        "agent": 12.942712553276452,
+        "agent_normalized": 1.0660106920815424,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 4627.934461028212,
+        "failures": {},
+        "family": "linear",
+        "flaml": 298.7173314481274,
+        "latency_s": 355.562,
+        "leakage_checked": true,
+        "linear": 12.942712553276452,
+        "linear_normalized": 1.0660106920815424,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Moving to gradient boosting models after establishing baselines with dummy and linear models."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "Trying random forest as the next model family from remaining options since only 2 non-dummy families have been tried so far."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "FLAML is the only remaining untried non-dummy family. We should try it before considering tuning or finishing."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "Hyperparameter tuning for hgb is available in remaining options, and previous trials indicate room for improvement."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 9,
+        "llm_structured": 4,
+        "llm_tokens": 1576,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 18285.487167930794,
+        "status": "done",
+        "tokens": 1576,
+        "wall_s": 355.8
+      },
+      "MagicTelescope": {
+        "agent": 0.9391175896527604,
+        "agent_normalized": 0.992794920058902,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.5,
+        "failures": {},
+        "family": "rf",
+        "flaml": 0.9423044284178124,
+        "latency_s": 75.406,
+        "leakage_checked": true,
+        "linear": 0.8441085761877227,
+        "linear_normalized": 0.7779903480022785,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Only one non-dummy family (linear) has been tried; we should explore a new model type. hgb is available in remaining and not yet tried."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "hgb already performed best (0.9333\u202f\u00b1\u202f0.0011) and tuning it may yield further gains; tuning is allowed as 'tune_hgb' is in remaining."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have remaining families rf and flaml not yet tried; training rf next will explore a new model type."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "flaml is the only remaining family and has not been tried yet; we have enough non-dummy families tried to continue training."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2047,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 2047,
+        "wall_s": 75.8
+      },
+      "ailerons": {
+        "agent": 0.00015934613661603127,
+        "agent_normalized": null,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.00040282137716465155,
+        "failures": {},
+        "family": "flaml",
+        "flaml": 0.00015660921445797638,
+        "latency_s": 155.031,
+        "leakage_checked": true,
+        "linear": 0.0001757591592577605,
+        "linear_normalized": null,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "First non\u2011dummy model to evaluate; we have only tried dummy and linear so far and need to explore remaining families."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "We have already tried hgb and can still improve it; 'tune_hgb' is in remaining, and tuning may yield a better score before moving to other families."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have two remaining non\u2011dummy families (rf and flaml) and have not yet tried rf. Training rf is the next logical step before considering other options."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "flaml is the only remaining non\u2011dummy family and has not been tried yet; training it may improve the RMSE."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2163,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 0.0004090399802718886,
+        "status": "done",
+        "tokens": 2163,
+        "wall_s": 155.2
+      },
+      "default-of-credit-card-clients": {
+        "agent": 0.5707284712818697,
+        "agent_normalized": 1.0009030364812794,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.22116666666666668,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 0.5704130890215269,
+        "latency_s": 76.734,
+        "leakage_checked": true,
+        "linear": 0.5060568891576246,
+        "linear_normalized": 0.8157283919188967,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "We have only tried one non\u2011dummy model (linear) and still have several promising families left (hgb, rf, flaml, plus tune_hgb). To explore more options before considering tuning or finishing, we should train a new model using the HGB family."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have only tried two non\u2011dummy families (linear and hgb) and still have remaining options (rf, flaml, tune_hgb). To reach the required three non\u2011dummy families and potentially improve the PR\u2011AUC, we should train a new model using the rf family."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "We have remaining non\u2011dummy options and flaml has not been tried yet; it may improve over the current best (hgb 0.5532) and is cheaper than tuning, so we should train it next."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "Only tuning hgb is left and tuning can improve the current best score (0.5555) within its standard error."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2178,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 2178,
+        "wall_s": 76.9
+      },
+      "eeg-eye-state": {
+        "agent": 0.9845023518471401,
+        "agent_normalized": 0.9857644235196242,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.5,
+        "failures": {},
+        "family": "rf",
+        "flaml": 0.9914991252344529,
+        "latency_s": 18.359,
+        "leakage_checked": true,
+        "linear": 0.6075290631564965,
+        "linear_normalized": 0.21877773048976107,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Only one non-dummy family (linear) has been tried; we have remaining families to explore. Starting with hgb will provide a new model type to assess performance."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have only tried two non\u2011dummy families (linear and hgb) and need a third before we can finish. rf is available in remaining and has not been tried yet."
+          },
+          {
+            "action": "finish",
+            "family": null,
+            "reason": "Both remaining options (tune_hgb and flaml) are unlikely to improve beyond the current best rf score of 0.9803 given the tiny standard error; we have already tried three non\u2011dummy families."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 3,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 3,
+        "llm_structured": 3,
+        "llm_tokens": 1619,
+        "n_steps": 12,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 1619,
+        "wall_s": 18.5
+      },
+      "houses": {
+        "agent": 45822.64422575661,
+        "agent_normalized": 1.004648714124967,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 115371.94441308545,
+        "failures": {},
+        "family": "flaml",
+        "flaml": 46144.46299645399,
+        "latency_s": 195.922,
+        "leakage_checked": true,
+        "linear": 70235.77062760164,
+        "linear_normalized": 0.6519979184832823,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Moving to gradient boosting models after linear and dummy baselines to capture non-linear relationships."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "Random Forest is available in remaining families and we have tried only 2 non-dummy families so far."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "hgb achieved the best performance so far with cv 47582.7043, and tuning it is the next logical step before exploring flaml."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "FLAML is the only remaining model family to try."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 3,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 1,
+        "llm_requests": 10,
+        "llm_structured": 4,
+        "llm_tokens": 2161,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 115401.68413113829,
+        "status": "done",
+        "tokens": 2161,
+        "wall_s": 196.1
+      },
+      "jm1": {
+        "agent": 0.42213011948718254,
+        "agent_normalized": 0.8770993236338076,
+        "cost_usd": 0.0,
+        "dropped": [
+          "row_id"
+        ],
+        "dummy": 0.19338539274230593,
+        "failures": {},
+        "family": "hgb",
+        "flaml": 0.4541822267852181,
+        "latency_s": 68.157,
+        "leakage_checked": true,
+        "linear": 0.4051456958896702,
+        "linear_normalized": 0.8119742094435115,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "Only one non-dummy family (linear) has been tried; we should explore a new model type. hgb is available in remaining and not yet tried."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "tune_hgb is available and tuning the previously tried hgb model may improve the pr_auc beyond the current 0.4136, and we cannot finish yet as only 2 non\u2011dummy families have been tried."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "Remaining families rf and flaml have not been tried yet; best current PR AUC ~0.414 with hgb, so training a new family may improve performance."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "Only flaml remains untried and non\u2011dummy families have already been explored; training it may improve the PR AUC."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2133,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 2133,
+        "wall_s": 68.3
+      },
+      "letter": {
+        "agent": 0.9644496112683252,
+        "agent_normalized": 1.0043545602327797,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.0030118812247085128,
+        "failures": {},
+        "family": "rf",
+        "flaml": 0.9602811246886739,
+        "latency_s": 187.375,
+        "leakage_checked": true,
+        "linear": 0.7736524008386552,
+        "linear_normalized": 0.8050405096327071,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "We have only tried one non\u2011dummy model (linear) and have several promising families left. Training a histogram\u2011based gradient boosting model (hgb) is the next logical step before any tuning or finishing."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have remaining new families (rf, flaml) and have not yet tried them. Tuning hgb is less promising than exploring a new family, so we choose to train with rf next."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "Remaining family flaml has not been tried and could potentially improve over the current best (rf 0.9598). Since we already have 3 non\u2011dummy families tried, we can finish only if no remaining option is worthwhile, but flaml is still a candidate."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "Only tuning hgb remains and tuning may improve the best score"
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2309,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 2309,
+        "wall_s": 187.5
+      },
+      "pendigits": {
+        "agent": 0.9949359876862859,
+        "agent_normalized": 1.0,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.01886326194398682,
+        "failures": {},
+        "family": "flaml",
+        "flaml": 0.9949359876862859,
+        "latency_s": 115.422,
+        "leakage_checked": true,
+        "linear": 0.9527202450734288,
+        "linear_normalized": 0.9567493881352415,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "We have only tried one non\u2011dummy family (linear) and have several promising families left (hgb, rf, flaml). Steps remain and recent improvement suggests further training could yield better scores, so we should train a new family, starting with hgb."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "We have tried two non\u2011dummy families (linear and hgb). The remaining list includes new families rf, flaml and a tuning option for hgb. Since we need at least three non\u2011dummy families before we can finish and tuning hgb is unlikely to beat the already high hgb score beyond its standard error, we should train a new family. flaml is chosen to diversify the models."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "Remaining includes tune_hgb; tuning the best non\u2011dummy model (hgb) may yield improvement beyond the current top score (flaml 0.9935)."
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "rf is the only remaining family and we have not tried it yet; training it may improve the score."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2295,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": null,
+        "status": "done",
+        "tokens": 2295,
+        "wall_s": 115.5
+      },
+      "sulfur": {
+        "agent": 0.027889343143440562,
+        "agent_normalized": 0.8733732886966133,
+        "cost_usd": 0.0,
+        "dropped": [],
+        "dummy": 0.05705754239040816,
+        "failures": {},
+        "family": "rf",
+        "flaml": 0.023660368897162182,
+        "latency_s": 124.625,
+        "leakage_checked": true,
+        "linear": 0.04805448769388969,
+        "linear_normalized": 0.269575348894097,
+        "llm_cached": 0,
+        "llm_decisions": [
+          {
+            "action": "train",
+            "family": "hgb",
+            "reason": "We have only tried one non\u2011dummy model (linear). The remaining list includes new families, and the next logical step is to train a new model type (hgb) before considering tuning or finishing."
+          },
+          {
+            "action": "tune",
+            "family": "hgb",
+            "reason": "tune_hgb is available and may improve the best current score (0.0224) without trying a new family"
+          },
+          {
+            "action": "train",
+            "family": "rf",
+            "reason": "We have only tried two non\u2011dummy families (linear and hgb) and still have remaining candidates (rf, flaml). We cannot finish yet, so we should train a new model using one of the remaining families, e.g., random forest (rf)."
+          },
+          {
+            "action": "train",
+            "family": "flaml",
+            "reason": "We have three non\u2011dummy families already tried and only one family (flaml) left to explore. To potentially improve on the best RMSE (0.0201) we should train flaml next."
+          }
+        ],
+        "llm_fallbacks": 0,
+        "llm_first_try_valid": 4,
+        "llm_providers": [
+          "gemini",
+          "groq"
+        ],
+        "llm_repairs": 0,
+        "llm_requests": 4,
+        "llm_structured": 4,
+        "llm_tokens": 2241,
+        "n_steps": 14,
+        "passes_vs_linear": true,
+        "reviewer": "APPROVE",
+        "scale": 0.05192036662339483,
+        "status": "done",
+        "tokens": 2241,
+        "wall_s": 124.9
+      }
+    },
+    "planner": "llm"
+  }
+}

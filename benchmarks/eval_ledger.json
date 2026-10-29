@@ -54,6 +54,23 @@
     "result_file": "agent_v2.json",
     "status": "evaluated"
   },
+  "agent:3036c13663db807435bc2d7ce0f16edaa546ef7a497cb214ee2fc34e266e8410": {
+    "infra_retries": [],
+    "partitions": [
+      "MagicTelescope",
+      "jm1",
+      "eeg-eye-state",
+      "default-of-credit-card-clients",
+      "pendigits",
+      "letter",
+      "ailerons",
+      "sulfur",
+      "Brazilian_houses",
+      "houses"
+    ],
+    "result_file": "agent_v4_llm.json",
+    "status": "evaluated"
+  },
   "agent:552aff6a962a3b3b7d77a0b10e9e0361e9c0503b6f86a0d2769e28ade14944b4": {
     "infra_retries": [],
     "partitions": [
