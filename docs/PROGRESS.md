@@ -22,3 +22,4 @@ Done (local, committed on main, NOT pushed, full gate NOT run since the CV/LLM-v
 - S22 code: CV selection (k=5/3, 1-SE rule) in experiments + agent; LLM planner v2 (symbolic state, dedupe re-prompt, min-exploration) with unit tests. Dev before/after NOT run. LLM requests used today: groq 80, gemini 8.
 Not started: S23 (v4 partition, agent-frozen-v4, evals), S24 (explainability, LLM reviewer, OTel), README update, run-5 report.
 Next: run full gate, push, `gh run list`, fix infra.yml failures; then S22 dev runs (python -m benchmarks.agent_dev --planner llm1/llm2 --selection ...), S23, S24.
+RUN 5 COMPLETE: S21-S24 done and pushed; see docs/AUTOPILOT_REPORT_RUN5.md. CI runs ~18, ~77 min.
