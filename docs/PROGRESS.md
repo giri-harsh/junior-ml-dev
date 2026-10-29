@@ -23,3 +23,8 @@ Done (local, committed on main, NOT pushed, full gate NOT run since the CV/LLM-v
 Not started: S23 (v4 partition, agent-frozen-v4, evals), S24 (explainability, LLM reviewer, OTel), README update, run-5 report.
 Next: run full gate, push, `gh run list`, fix infra.yml failures; then S22 dev runs (python -m benchmarks.agent_dev --planner llm1/llm2 --selection ...), S23, S24.
 RUN 5 COMPLETE: S21-S24 done and pushed; see docs/AUTOPILOT_REPORT_RUN5.md. CI runs ~18, ~77 min.
+
+## RUN 6 (S25-S30 + stretch) - started 2026-10-30
+Budgets: CI runs used 0->2 (S25 push); LLM requests today: see data/llm_usage.json (cap 120/family/UTC day).
+S25 DONE (tag s25-done): leakage v3 (linear_combination detector, adaptive bounded detection, eval4: recall 29/30, twin FA 0/30). Cap bug fixed (gateway max_requests).
+NEXT: S26 critic calibration (dev only, <=40 requests): benchmarks/critic_calibration.py, harness/agent/critic.py v2.
