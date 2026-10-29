@@ -122,6 +122,23 @@
     "result_file": "agent_v3_llm.json",
     "status": "evaluated"
   },
+  "agent:f36f16a3277a7cbb7ddb06be8f96aea301c9b987486868194805924069bae712": {
+    "infra_retries": [],
+    "partitions": [
+      "mozilla4",
+      "electricity",
+      "nomao",
+      "sylva_prior",
+      "Amazon_employee_access",
+      "gas-drift",
+      "MiamiHousing2016",
+      "house_8L",
+      "fried",
+      "diamonds"
+    ],
+    "result_file": "agent_v5_scripted.json",
+    "status": "claimed"
+  },
   "leakage-code:2890a3d6a2cb794301e1d6c1a976cdeda33e7fc9cc0604dbce4884149a3a5dad": {
     "infra_retries": [],
     "partitions": [

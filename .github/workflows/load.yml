@@ -1,0 +1,60 @@
+name: load
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: load-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      INFRA_REQUIRE: "1"
+      LOAD_USER: loadadmin
+      LOAD_EXAMPLE: load_example.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with: {enable-cache: true}
+      - run: uv sync --python 3.11 --group dev --extra infra
+      - name: Throwaway secrets and admin credentials (never stored)
+        run: |
+          echo "JWT_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          echo "APPROVAL_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          echo "SCORER_SECRET=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+          PW="$(openssl rand -hex 12)"
+          echo "::add-mask::$PW"
+          echo "LOAD_PASSWORD=$PW" >> "$GITHUB_ENV"
+          HASH="$(uv run python -m harness.security.auth "$PW")"
+          echo "::add-mask::$HASH"
+          echo "ADMIN_USER=loadadmin" >> "$GITHUB_ENV"
+          echo "ADMIN_PASSWORD_HASH=$HASH" >> "$GITHUB_ENV"
+      - name: Predict-service container
+        run: |
+          uv run python -m benchmarks.load.make_bundle > bundle.json
+          bundle="$(uv run python -c "import json; print(json.load(open('bundle.json'))['bundle_dir'])")"
+          docker build -t jmd-load-predict "$bundle"
+          docker run -d --name predict -p 18000:8000 jmd-load-predict
+          for i in $(seq 1 60); do curl -sf http://localhost:18000/health && break || sleep 2; done
+      - name: API, worker and datastores (compose app profile)
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app up -d --wait
+      - name: Locust at three concurrency levels
+        run: |
+          mkdir -p load-out
+          for users in 5 25 100; do
+            uv run --with locust locust -f benchmarks/load/locustfile.py --headless \
+              -u "$users" -r "$users" -t 20s --csv "load-out/load_${users}" --only-summary || true
+          done
+          ls load-out
+      - name: Summarise
+        run: uv run python -m benchmarks.load.summarize load-out --ci-run-id "$GITHUB_RUN_ID" --out-dir load-out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: load-results
+          path: load-out/load_v1.json
+      - if: failure()
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app logs --tail 40 api || true
+      - if: always()
+        run: docker compose -f deploy/compose/docker-compose.yml --profile app down -v || true

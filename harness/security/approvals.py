@@ -55,8 +55,13 @@ def _unb64(s: str) -> bytes:
 
 class ApprovalStore:
     def __init__(
-        self, path: Path | str, secret: str, clock: Callable[[], float] | None = None
+        self,
+        path: Path | str,
+        secret: str,
+        clock: Callable[[], float] | None = None,
+        audit: Any | None = None,
     ) -> None:
+        self.audit = audit  # optional AuditLog: consumption and rejection are recorded
         if not secret:
             raise ValueError("approval secret must be set (no default secret exists)")
         import time
@@ -137,15 +142,29 @@ class ApprovalStore:
 
     def consume(self, token: str, action: str, run_id: str, payload: dict[str, Any]) -> None:
         """Validate and atomically mark used. Exactly one concurrent caller succeeds."""
-        self.validate(token, action, run_id, payload)
-        c = self._claims(token)
-        with closing(self._conn()) as conn:
-            cur = conn.execute(
-                "UPDATE approvals SET used_at=? WHERE id=? AND used_at IS NULL AND expires_at > ?",
-                (self.clock(), c["approval_id"], self.clock()),
+        try:
+            self.validate(token, action, run_id, payload)
+            c = self._claims(token)
+            with closing(self._conn()) as conn:
+                cur = conn.execute(
+                    "UPDATE approvals SET used_at=? WHERE id=? AND used_at IS NULL"
+                    " AND expires_at > ?",
+                    (self.clock(), c["approval_id"], self.clock()),
+                )
+                if cur.rowcount != 1:
+                    raise AlreadyUsed("token already used")
+        except ApprovalError as exc:
+            self._audit(
+                "approval_rejected", run_id, {"action": action, "reason": type(exc).__name__}
             )
-            if cur.rowcount != 1:
-                raise AlreadyUsed("token already used")
+            raise
+        self._audit(
+            "approval_consumed", run_id, {"action": action, "approval_id": c["approval_id"]}
+        )
+
+    def _audit(self, what: str, run_id: str, payload: dict[str, Any]) -> None:
+        if self.audit is not None:
+            self.audit.append(f"approval:{run_id}", what, payload)
 
     def as_validator(self, run_id: str, payload: dict[str, Any]) -> Callable[[str, str, str], bool]:
         """Adapter for harness.policies.actions.RunContext.approval_validator (non-consuming)."""

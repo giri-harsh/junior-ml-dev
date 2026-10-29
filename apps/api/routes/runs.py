@@ -26,8 +26,21 @@ from harness.obs import render_metrics
 from harness.queue import SQLiteJobQueue, Worker
 from harness.queue_arq import ArqJobQueue
 from harness.security.approvals import ApprovalStore
+from harness.security.ratelimit import RateLimiter
 
 router = APIRouter(tags=["runs"])
+# per admin session: 10 run submissions/resumes per minute (RUNS_RATE_PER_MIN overrides)
+limiter = RateLimiter(int(os.environ.get("RUNS_RATE_PER_MIN", "10")), 60.0)
+
+
+def rate_limited(admin: str = Depends(require_admin)) -> str:
+    if not limiter.allow(admin):
+        raise HTTPException(
+            429,
+            "too many run submissions",
+            headers={"Retry-After": str(int(limiter.retry_after(admin)) + 1)},
+        )
+    return admin
 
 
 def _path(env: str, default: str) -> str:
@@ -74,7 +87,7 @@ def _materialise(dataset_id: str) -> str:
 
 
 @router.post("/v1/runs", status_code=202)
-def submit_run(body: RunSubmit, admin: str = Depends(require_admin)) -> dict[str, str]:
+def submit_run(body: RunSubmit, admin: str = Depends(rate_limited)) -> dict[str, str]:
     path = _materialise(body.dataset_id)
     run_id = f"run-{uuid.uuid4().hex[:8]}"
     cfg = RunConfig(
@@ -121,9 +134,7 @@ class ResumeBody(BaseModel):
 
 
 @router.post("/v1/runs/{run_id}/resume", status_code=202)
-def resume_run(
-    run_id: str, body: ResumeBody, admin: str = Depends(require_admin)
-) -> dict[str, str]:
+def resume_run(run_id: str, body: ResumeBody, admin: str = Depends(rate_limited)) -> dict[str, str]:
     """Continue a run that is `awaiting_approval`, supplying the single-use approval token."""
     store = run_store()
     if store.status(run_id) != "awaiting_approval":

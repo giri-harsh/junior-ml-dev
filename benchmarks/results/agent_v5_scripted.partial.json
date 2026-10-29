@@ -1,0 +1,34 @@
+{
+ "electricity": {
+  "agent": 0.9877087224402661,
+  "cost_usd": 0.0,
+  "dropped": [],
+  "failures": {},
+  "family": "flaml",
+  "latency_s": 96.968,
+  "leakage_checked": true,
+  "n_steps": 14,
+  "reviewer": "APPROVE",
+  "scale": null,
+  "status": "done",
+  "tokens": 0,
+  "wall_s": 97.1
+ },
+ "mozilla4": {
+  "agent": 0.901886573954693,
+  "cost_usd": 0.0,
+  "dropped": [
+   "start"
+  ],
+  "failures": {},
+  "family": "flaml",
+  "latency_s": 71.969,
+  "leakage_checked": true,
+  "n_steps": 14,
+  "reviewer": "APPROVE",
+  "scale": null,
+  "status": "done",
+  "tokens": 0,
+  "wall_s": 72.2
+ }
+}

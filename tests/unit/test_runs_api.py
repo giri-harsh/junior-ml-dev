@@ -106,3 +106,49 @@ def test_deploy_approval_flow_through_the_api(
     assert api.get(f"/v1/runs/{rid}").json()["status"] in {"done", "budget_exhausted"}
     assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": "y" * 20}).status_code == 409
     assert api.post(f"/v1/approvals/{aid}/approve").status_code == 200  # token exists, but unused
+
+
+def test_run_submission_is_rate_limited(
+    api: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from harness.security.ratelimit import RateLimiter
+
+    monkeypatch.setattr(runs, "limiter", RateLimiter(2, 60.0))
+    _login(api)
+    did = api.post("/v1/datasets", files={"file": ("d.csv", make_csv(tmp_path).read_bytes())})
+    did = did.json()["dataset_id"]
+    body = {"dataset_id": did, "target": "y", "task_type": "binary", "metric": "roc_auc",
+            "budget": {"flaml_budget_s": 0, "tune_trials": 0}}  # fmt: skip
+    codes = [api.post("/v1/runs", json=body).status_code for _ in range(3)]
+    assert codes == [202, 202, 429]
+    r = api.post("/v1/runs", json=body)
+    assert r.status_code == 429 and int(r.headers["Retry-After"]) >= 1
+
+
+def test_audit_log_covers_every_tool_call_and_the_whole_approval_lifecycle(
+    api: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEPLOY_DIR", str(tmp_path / "deploy"))
+    _login(api)
+    did = api.post("/v1/datasets", files={"file": ("d.csv", make_csv(tmp_path).read_bytes())})
+    did = did.json()["dataset_id"]
+    body = {"dataset_id": did, "target": "y", "task_type": "binary", "metric": "roc_auc",
+            "deploy": True, "budget": {"flaml_budget_s": 0, "tune_trials": 0}}  # fmt: skip
+    rid = api.post("/v1/runs", json=body).json()["run_id"]
+    assert runs.work_once()
+    aid = api.get(f"/v1/runs/{rid}").json()["result"]["pending_approval"]["approval_id"]
+    token = api.post(f"/v1/approvals/{aid}/approve").json()["token"]
+    assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": token}).status_code == 202
+    assert runs.work_once()
+    res = api.get(f"/v1/runs/{rid}").json()
+    assert res["status"] in {"done", "budget_exhausted"}
+    entries = api.get("/v1/audit").json()
+    actions = [e["action"] for e in entries]
+    for needed in ("login", "run_submitted", "approval_requested", "approval_granted",
+                   "approval_consumed", "run_resumed"):  # fmt: skip
+        assert needed in actions, needed
+    n_steps = len(runs.run_store().checkpoints(rid))
+    assert actions.count("tool_call") == n_steps  # one audit row per executed step
+    assert api.get("/v1/audit/verify").json()["ok"] is True
+    # a replay of the spent token is refused and the refusal is recorded too
+    assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": token}).status_code == 409

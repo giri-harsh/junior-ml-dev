@@ -92,3 +92,8 @@ extend-immutable-calls = ["fastapi.File", "fastapi.Form", "fastapi.Header"]
 [[tool.mypy.overrides]]
 module = ["sklearn.*", "flaml.*", "joblib.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["benchmarks.load.locustfile", "locust.*"]
+ignore_errors = true
+ignore_missing_imports = true

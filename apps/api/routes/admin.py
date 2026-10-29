@@ -30,7 +30,9 @@ def approval_store() -> ApprovalStore:
     secret = os.environ.get("APPROVAL_SECRET", "")
     if not secret:
         raise HTTPException(503, "APPROVAL_SECRET is not configured")
-    return ApprovalStore(os.environ.get("APPROVAL_DB", "data/approvals.db"), secret)
+    return ApprovalStore(
+        os.environ.get("APPROVAL_DB", "data/approvals.db"), secret, audit=audit_log()
+    )
 
 
 def require_admin(request: Request) -> str:

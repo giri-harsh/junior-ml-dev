@@ -29,3 +29,4 @@ Budgets: CI runs used 0->2 (S25 push); LLM requests today: see data/llm_usage.js
 S25 DONE (tag s25-done): leakage v3 (linear_combination detector, adaptive bounded detection, eval4: recall 29/30, twin FA 0/30). Cap bug fixed (gateway max_requests).
 NEXT: S28 non-LLM parts now (v5 partition, baselines, freeze, scripted arm); LLM parts (S27 injection rerun, v5 LLM arm, critic eval) after UTC reset at 00:00 UTC (05:30 IST): Gemini 107/120 and Groq 120/120 used on 2026-10-29 UTC.
 S26 DONE (tag s26-done).
+S28: agent-frozen-v5 tagged at 1a3a3d8; scripted arm launched (log /tmp/v5_scripted.log, chain /tmp/v5_chain.log). If it crashed: python -m benchmarks.agent_benchmark --final --version v5 --planner scripted --resume. LLM arm AFTER UTC reset.
