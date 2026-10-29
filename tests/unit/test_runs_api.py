@@ -77,3 +77,32 @@ def test_submit_rejects_bad_input(api: TestClient) -> None:
     extra = {"dataset_id": "0" * 16, "target": "y", "task_type": "binary", "metric": "roc_auc"}
     assert api.post("/v1/runs", json={**extra, "path": "/etc/passwd"}).status_code == 422
     assert api.post("/v1/runs", json=extra).status_code in {404, 409}  # unknown dataset
+
+
+def test_ui_page_is_served(api: TestClient) -> None:
+    r = api.get("/ui")
+    assert r.status_code == 200 and "text/html" in r.headers["content-type"]
+    assert "Scripted planner (no LLM)" in r.text and "<script>" in r.text
+
+
+def test_deploy_approval_flow_through_the_api(
+    api: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEPLOY_DIR", str(tmp_path / "deploy"))
+    _login(api)
+    did = api.post("/v1/datasets", files={"file": ("d.csv", make_csv(tmp_path).read_bytes())})
+    did = did.json()["dataset_id"]
+    body = {
+        "dataset_id": did, "target": "y", "task_type": "binary", "metric": "roc_auc",
+        "deploy": True, "budget": {"flaml_budget_s": 0, "tune_trials": 0},
+    }  # fmt: skip
+    rid = api.post("/v1/runs", json=body).json()["run_id"]
+    assert runs.work_once()
+    got = api.get(f"/v1/runs/{rid}").json()
+    assert got["status"] == "awaiting_approval"
+    aid = got["result"]["pending_approval"]["approval_id"]
+    assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": "x" * 20}).status_code == 202
+    assert runs.work_once()  # a wrong token: deploy step fails safely, run still completes
+    assert api.get(f"/v1/runs/{rid}").json()["status"] in {"done", "budget_exhausted"}
+    assert api.post(f"/v1/runs/{rid}/resume", json={"approval_token": "y" * 20}).status_code == 409
+    assert api.post(f"/v1/approvals/{aid}/approve").status_code == 200  # token exists, but unused
