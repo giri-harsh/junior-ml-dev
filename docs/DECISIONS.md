@@ -68,3 +68,6 @@ Updated rule: every Python-driven file edit must pass encoding='utf-8' (cp1252 c
 63. Failed consume attempts (mismatch, forged) never burn the token; only a successful consume does. | burn on any attempt | Prevents an attacker from invalidating a legitimate approval by probing.
 64. Login and approvals return 503 when secrets are unset; no defaults. | dev defaults | Default credentials in a repo are a vulnerability.
 65. sqlite connections are wrapped in contextlib.closing. | `with sqlite3.connect()` | The context manager commits but does not close; it locked files on Windows.
+66. Merge gate is `ruff check . && mypy && pytest -q` (mypy per pyproject `files`, source only; `mypy .` also checks tests, which were never in scope). | `mypy .` | Tests are intentionally outside strict typing; 11 old test-only annotations would be churn.
+67. Experiments service pickles models with joblib and loads them only by slug id from EXPERIMENTS_DIR; never by caller path. | load arbitrary path | Unpickling untrusted files is code execution.
+68. Model selection uses a seeded holdout of the TRAIN file; recipes are then refit on all rows (`refit_full`) and the holdout score is not claimed for the refit. FLAML family is not refit (CV inside). | claim holdout score for refit | Would be a second, untested model.
