@@ -1,0 +1,490 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\critic_eval_v6.py --complete",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 38,
+    "notes": "FRESH planted set, critic v3 (schema-enforced answers to failed rule checks), real LLM",
+    "sandbox": "none"
+  },
+  "date": "2026-10-30T04:57:35+00:00",
+  "git_sha": "55dfe46980c500a6dffa52ab3c632dfcf9cc9d4d",
+  "name": "critic_v6",
+  "results": {
+    "clean_n": 19,
+    "error_statuses": {},
+    "false_alarm_wilson95": [
+      0.009351752490529969,
+      0.2463921533654521
+    ],
+    "false_alarms": 1,
+    "forced_concurrence": 0,
+    "gateway_stats": {
+      "cache_hits": 0,
+      "calls": 18,
+      "fallbacks": 18,
+      "fixture_hits": 16,
+      "repairs": 0,
+      "retries": 0,
+      "structured": 38,
+      "structured_failed": 0,
+      "structured_first_try_valid": 34
+    },
+    "no_output": 4,
+    "planted_n": 15,
+    "recall": 10,
+    "recall_by_type": {
+      "cv_instability": "1/2",
+      "gap_beyond_family_range": "2/3",
+      "partial_leakage_check": "2/2",
+      "rule_fail_baseline_margin": "0/3",
+      "tiny_test": "2/2",
+      "unresolved_leakage": "3/3"
+    },
+    "recall_wilson95": [
+      0.41713125151212976,
+      0.8482389930530876
+    ],
+    "rows": [
+      {
+        "concerns": [
+          "blocker: Unresolved data leakage detected in feature feat_a"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c00",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Leakage was detected in columns row_id and x3, but was not resolved."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c01",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved",
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Unresolved leakage detected in feature f7.",
+          "blocker: Train/validation gap rule check failed."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c02",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved",
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Train/validation gap over range top is 3.63, exceeding the maximum allowed threshold of 1.5."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c03",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Train/validation gap over range top is 1.92, exceeding the 1.5 threshold indicating severe overfitting."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c04",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c05",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Dataset has fewer than 200 rows (n_rows=60)"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c06",
+        "planted": "tiny_test",
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Dataset has fewer than 200 rows (n_rows: 140), leading to small sample size concerns."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c07",
+        "planted": "tiny_test",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c08",
+        "planted": "cv_instability",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Cross-validation SE ratio (0.356) is above 0.2, indicating cross-validation is too unstable to trust the ranking."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c09",
+        "planted": "cv_instability",
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage coverage is incomplete as detectors were skipped due to time bound.",
+          "blocker: Rule check train_val_gap failed."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c10",
+        "planted": "partial_leakage_check",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Leakage coverage is incomplete because detectors were skipped."
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c11",
+        "planted": "partial_leakage_check",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "c12",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "c13",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "c14",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c15",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c16",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c17",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c18",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c19",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Train-validation gap failure flagged by deterministic checks"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c20",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c21",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c22",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c23",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c24",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "note: Train/validation gap rule failed, but gap is within the expected range (gap_over_range_top=0.48 is <= 1.5)."
+        ],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c25",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "train_val_gap"
+        ],
+        "id": "c26",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c27",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c28",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c29",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c30",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c31",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "note: Leakage coverage is sampled_rows rather than complete"
+        ],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c32",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "note: Leakage coverage is sampled_rows rather than complete"
+        ],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c33",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c34",
+        "planted": null,
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c35",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c36",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "c37",
+        "planted": null,
+        "rule_failed": []
+      }
+    ],
+    "set_sha256": "6595774668473af9c58fb8c110f1658fd0940f7079cf557176d081ac77b88aaf"
+  }
+}

@@ -24,6 +24,8 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 
 - v5 runs, critic v2 vs rule reviewer: agreement 18/20 (Wilson 95% 0.70-0.97); confusion {'rule=APPROVE|critic=APPROVE': 18, 'rule=REQUEST_CHANGES|critic=APPROVE': 2}; 14 requests. Source: [`critic_v5.json`](../benchmarks/results/critic_v5.json).
 - Dev calibration (mutated states): see [`critic_calibration.json`](../benchmarks/results/critic_calibration.json).
+- FRESH planted set (critic v3, schema-enforced answers to failed rules): recall 10/15 (Wilson 95% 0.42-0.85); false alarms 1/19 clean runs (Wilson 95% 0.01-0.25); 4 clean items not run (40-request cap). By type: {'cv_instability': '1/2', 'gap_beyond_family_range': '2/3', 'partial_leakage_check': '2/2', 'rule_fail_baseline_margin': '0/3', 'tiny_test': '2/2', 'unresolved_leakage': '3/3'}. Source: [`critic_v6.json`](../benchmarks/results/critic_v6.json), set `benchmarks/critic_set_v6.json` (sha256 `6595774668473af9`, committed before the first call).
+- The v5 agreement above (18/20) is burned and post-hoc: the critic was tuned after reading v5-era failures.
 
 ## Infrastructure (GitHub Actions evidence)
 
