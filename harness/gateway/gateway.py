@@ -112,6 +112,7 @@ class Gateway:
         default_factory=lambda: float(os.environ.get("MAX_MONTHLY_USD", "0"))
     )
     max_retries: int = 3
+    max_429_retries: int = 1  # a rate-limit window outlasts the jittered backoff: fail over instead
     base_delay_s: float = 0.5
     max_delay_s: float = 8.0
     breaker_threshold: int = 3
@@ -133,6 +134,7 @@ class Gateway:
             "fixture_hits": 0, "structured": 0, "structured_first_try_valid": 0,
             "repairs": 0, "structured_failed": 0,
         }  # fmt: skip
+        self.error_statuses: dict[str, int] = {}  # failed attempts by HTTP status / error class
 
     def _emit(self, **ev: object) -> None:
         if self.on_event:
@@ -205,7 +207,11 @@ class Gateway:
             except ProviderError as exc:
                 if getattr(exc, "not_sent", False):
                     self.stats["calls"] -= 1  # a locally refused call is not a request
-                if not exc.retryable or attempt == self.max_retries:
+                if not getattr(exc, "not_sent", False):
+                    label = str(exc.status) if exc.status is not None else str(exc)
+                    self.error_statuses[label] = self.error_statuses.get(label, 0) + 1
+                limit = self.max_429_retries if exc.status == 429 else self.max_retries
+                if not exc.retryable or attempt >= limit:
                     raise
                 self.stats["retries"] += 1
                 self.sleep(self.backoff_delay(attempt))

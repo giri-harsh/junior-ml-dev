@@ -58,7 +58,7 @@ def boom(status: int = 429, retryable: bool = True):  # type: ignore[no-untyped-
 
 
 def test_retry_with_jittered_backoff_then_success() -> None:
-    p = MockProvider(lambda r, i: "ok" if i >= 2 else boom()(r, i))
+    p = MockProvider(lambda r, i: "ok" if i >= 2 else boom(503)(r, i))
     g, clock = gw([p])
     assert g.complete(req()).text == "ok"
     assert g.stats["retries"] == 2 and len(clock.slept) == 2
@@ -78,7 +78,15 @@ def test_429_storm_falls_through_the_chain() -> None:
     g, _ = gw([primary, backup])
     r = g.complete(req())
     assert r.provider == "backup" and g.stats["fallbacks"] == 1
-    assert primary.calls == g.max_retries + 1
+    assert primary.calls == g.max_429_retries + 1  # a rate limit fails over after one retry
+    assert g.error_statuses == {"429": g.max_429_retries + 1}
+
+
+def test_5xx_keeps_the_full_retry_budget_and_statuses_are_recorded() -> None:
+    p = MockProvider(boom(503), "p")
+    g, _ = gw([p, MockProvider(name="b")])
+    assert g.complete(req()).provider == "b"
+    assert p.calls == g.max_retries + 1 and g.error_statuses == {"503": g.max_retries + 1}
 
 
 def test_non_retryable_error_does_not_retry() -> None:

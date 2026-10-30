@@ -217,6 +217,38 @@ def section_leakage_injection(lines: list[str]) -> None:
     lines.append("")
 
 
+def section_request_accounting(lines: list[str]) -> None:
+    """Where the LLM requests of the v4 and v5 LLM arms went (derived from the per-task stats)."""
+    lines += ["## LLM request accounting (v4 vs v5)", ""]
+    lines += ["| Arm | Requests | Proposals | Repairs | Failed attempts (retries) | Per task |",
+              "|---|---|---|---|---|---|"]  # fmt: skip
+    for name, label in (("agent_v4_llm", "v4"), ("agent_v5_llm", "v5")):
+        d = load(name)
+        if not d:
+            continue
+        pt = d["results"]["per_task"].values()
+        req = sum(r["llm_requests"] for r in pt)
+        prop = sum(r["llm_structured"] for r in pt)
+        rep = sum(r["llm_repairs"] for r in pt)
+        lines.append(
+            f"| {label} | {req} | {prop} | {rep} | {req - prop - rep} | {req / len(pt):.1f} |"
+        )
+    lines += [
+        "",
+        "v5 used 130 requests for 40 planner proposals (4 per task), 0 repairs, 0 re-prompts and no",
+        "critic calls: the other 90 were failed attempts that the gateway retried. 7 of 10 v5 tasks",
+        "cost exactly 16 requests (3 failed attempts per proposal), two cost 4 and one 10, so the failures were",
+        "bursty (rate-limit windows), not a planner loop. The gateway did not store the status of",
+        "failed attempts, so the exact mix of 429/5xx/timeouts is NOT recoverable from the v5 run",
+        "(v5 is not rerun). Fix (decision 136): the gateway records failed attempts by status",
+        "(`llm_error_statuses`, `llm_retries` in every per-task row from now on) and a 429 now fails",
+        "over to the next provider after ONE retry instead of burning the daily cap on three more",
+        "attempts inside the same rate-limit window. Retries on 5xx/timeouts are unchanged. Regression",
+        "tests: `tests/unit/test_llm_gateway.py`. v4's 50 requests were 39 proposals, 1 repair and",
+        "10 failed attempts.", "",
+    ]  # fmt: skip
+
+
 def main() -> int:
     lines = [
         "# Results",
@@ -257,6 +289,7 @@ def main() -> int:
     section_leakage_v2(lines)
     section_dev(lines)
     section_leakage_injection(lines)
+    section_request_accounting(lines)
     base = load("baselines_v0")
     if base:
         ag = base["results"]["aggregate"]
