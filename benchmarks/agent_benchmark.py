@@ -225,6 +225,8 @@ def llm_stats(planner: Any) -> dict[str, Any]:
     return {
         "llm_requests": s["calls"] - s["cache_hits"] - s["fixture_hits"],
         "llm_cached": s["cache_hits"] + s["fixture_hits"],
+        "llm_retries": s["retries"],
+        "llm_error_statuses": dict(gw.error_statuses),
         "llm_structured": s["structured"],
         "llm_first_try_valid": s["structured_first_try_valid"],
         "llm_repairs": s["repairs"],
