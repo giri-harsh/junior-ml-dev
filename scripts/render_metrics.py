@@ -122,6 +122,20 @@ def main() -> int:
         L += [f"- {k}: {v}" for k, v in e.items()]
     else:
         L += ["- NOT COLLECTED (run scripts/collect_ci_evidence.py)."]
+    inj3, runs = load("injection_llm_v3"), load("injected_runs_v1")
+    if inj3 and runs:
+        d, h, rr = inj3["results"], inj3["results"]["fresh_heldout"], runs["results"]
+        L += [
+            f"- Run 7 completion: evasion DEV attacker actions {d['dev']['behaviour_change']}/{d['dev']['n']}"
+            f"; FRESH held-out evasion {h['behaviour_change']}/{h['n']}, unsafe executed "
+            f"{h['unsafe_executed']}; {rr['n_runs']} injected full runs, unsafe executed "
+            f"{rr['unsafe_executed']}, critic flag rate {rr['critic_flagged']}/{rr['critic_judged']}. "
+            f"Sources: {src('injection_llm_v3')}, {src('injected_runs_v1')}."
+        ]  # fmt: skip
+    else:
+        L += ["- Run 7 completion (evasion DEV, FRESH 14-payload held-out set, 5 injected full agent runs): "
+              "PENDING, queued for after the 2026-10-31 00:00 UTC cap reset (v0.2.1); resume commands in "
+              "docs/PROGRESS.md."]  # fmt: skip
     L += ["", "## Load test", ""]
     ld = load("load_v1")
     if ld:

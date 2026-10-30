@@ -1,8 +1,12 @@
-# Needs Harsh (items the autopilot could not do alone)
+# Needs Harsh (true walls only)
+
+Everything that CI can do (Docker, compose, Postgres/arq, sandbox containers) already runs there, so
+it is not listed.
 
 | # | Question | Options | Recommendation | Resume |
 |---|---|---|---|---|
-| 1 | Docker Desktop is not installed, so compose/sandbox-in-container paths run only in CI. | install Docker Desktop locally / keep CI-only | Install it; then the infra suite runs locally. | `python scripts/tasks.py up app` then `python scripts/tasks.py test-infra` |
-| 2 | No E2B API key, so the E2B sandbox backend has never been exercised. | create a key at e2b.dev / drop the backend | Create a key if hosted sandboxes matter. | set `E2B_API_KEY`, run the sandbox tests against the E2B backend |
-| 3 | The MinIO image could not be pulled on the runner (moto S3 stand-in is used in CI). | pin another registry/tag / keep moto | Keep moto unless real MinIO behaviour matters. | edit `.github/workflows/infra.yml` service image |
-| 4 | Release v0.1.0 makes the first GitHub release of a private repo. | publish / hold | Publish (private repo, notes from CHANGELOG). | `gh release create v0.1.0 --notes-file <(uv run python scripts/gen_changelog.py --notes v0.1.0)` |
+| 1 | E2B backend (run 8 part A) NOT started: `E2B_API_KEY` is absent from `.env` (the run-8 brief carried the placeholder `<paste e2b key>`, not a key). | add the real key / drop the backend | Add the key. | append `E2B_API_KEY=<key>` to `.env`, then re-run the run-8 brief, part A |
+| 2 | Live demo on Hugging Face Spaces (run 8 part B) NOT started: `HF_TOKEN` is absent from `.env` (placeholder `<paste hf token>` in the brief). Also pick `DEMO_PRIVATE` (default public). | add a write-scope token / skip the demo | Add the token. | append `HF_TOKEN=<token>` (and optionally `DEMO_PRIVATE=1`) to `.env`, then re-run the run-8 brief, part B |
+| 3 | The MinIO image still cannot be pulled on the runner (moto S3 stand-in in CI). | pin another registry/tag or a mirror / keep moto | Keep moto unless real MinIO behaviour matters. | edit the MinIO service image in `.github/workflows/infra.yml` |
+| 4 | No cloud-deploy account: deploy is local-only (packaged predict service). | provide a cloud account and budget / stay local | Stay local. | add a deploy backend under `mcp_servers/deploy` |
+| 5 | The injection completion (evasion DEV, fresh held-out, 5 injected runs) needs the LLM caps to reset, no human input. | none | run after 00:00 UTC 2026-10-31 | commands in docs/PROGRESS.md |
