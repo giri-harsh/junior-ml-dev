@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>junior-ml-dev: live demo</title>
+<meta name="description" content="A junior ML engineer that shows its work and catches its own mistakes. Live demo, scripted planner, small public samples.">
+<link rel="stylesheet" href="/demo-assets/demo.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="brand">junior-ml-dev</span>
+    <a class="repo" href="{{REPO_URL}}" rel="noopener">GitHub repository</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>A junior ML engineer that shows its work and catches its own mistakes.</h1>
+    <p class="lede">It profiles a tabular dataset, checks for leakage before modelling, trains and compares models
+      against baselines, has a deterministic reviewer sign off, and writes a report. Deployment is gated by a
+      single-use approval; this demo has deployment switched off.</p>
+    <div class="tiles">{{TILES}}</div>
+    <p class="fine">Figures above are read from <code>docs/METRICS.md</code> when this page is built
+      (file hash <code>{{METRICS_SHA}}</code>, built {{GENERATED}}). Details and caveats are below.</p>
+  </section>
+
+  <section id="try" class="panel">
+    <h2>Try it on a small public dataset</h2>
+    <p class="fine">Pick a sample and start a run. The agent uses the <strong>scripted planner (no LLM)</strong>.
+      Each run is capped at a hard wall clock and a short AutoML budget (limits shown once the page loads);
+      one run executes at a time, so you may wait in a short queue.</p>
+    <div id="limits" class="fine"></div>
+    <div id="samples" class="samples" role="radiogroup" aria-label="Sample dataset"></div>
+    <div class="actions">
+      <button id="go" type="button" disabled>Run the agent</button>
+      <span id="msg" class="msg" role="status" aria-live="polite"></span>
+    </div>
+    <ol id="steps" class="steps" hidden></ol>
+    <div id="result" class="result" hidden></div>
+    <iframe id="report" title="Run report" class="report" hidden sandbox></iframe>
+  </section>
+
+  <section>
+    <h2>{{HEADLINE_NAME}}</h2>
+    {{HEADLINE}}
+  </section>
+
+  <section class="more">
+    <h2>{{METRICS_TITLE}}: everything else</h2>
+    {{METRICS_INTRO}}
+    {{MORE}}
+  </section>
+
+  <section class="panel">
+    <h2>What this demo is, and is not</h2>
+    <ul>
+      <li>It runs the real agent harness on three small public OpenML tables bundled in the image. There are
+        no uploads, no model deployment, and no code execution sandbox on this server.</li>
+      <li>The planner is the deterministic scripted one. The benchmark numbers above come from larger
+        tasks and longer budgets than a demo run allows, so a demo run will not reproduce them.</li>
+      <li>Runs are rate limited, queued one at a time and deleted after a short while. Admin endpoints need a
+        login.</li>
+      <li>Source, tests and the full evaluation write-up: <a href="{{REPO_URL}}" rel="noopener">{{REPO_URL}}</a>.</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="wrap fine">junior-ml-dev demo. Numbers rendered from <code>docs/METRICS.md</code>.</footer>
+<script src="/demo-assets/demo.js" defer></script>
+</body>
+</html>
