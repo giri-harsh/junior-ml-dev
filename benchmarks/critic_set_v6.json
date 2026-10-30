@@ -1,0 +1,2151 @@
+{
+ "items": [
+  {
+   "id": "c00",
+   "planted": "unresolved_leakage",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.9163,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.168,
+     "lift_over_dummy_se": 67.15,
+     "se": 0.0062,
+     "train": 0.9862
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": false,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8724,
+      "family": "linear",
+      "se": 0.0062,
+      "train": 0.9024
+     },
+     {
+      "cv": 0.9163,
+      "family": "hgb",
+      "se": 0.0062,
+      "train": 0.9862
+     }
+    ],
+    "unresolved_leakage": [
+     "TARGET_LEAKAGE:feat_a"
+    ]
+   }
+  },
+  {
+   "id": "c01",
+   "planted": "unresolved_leakage",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.795,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.695,
+     "lift_over_dummy_se": 86.76,
+     "se": 0.0034,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": false,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7583,
+      "family": "linear",
+      "se": 0.0034,
+      "train": 0.7883
+     },
+     {
+      "cv": 0.795,
+      "family": "rf",
+      "se": 0.0034,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": [
+     "ID_LEAK:row_id",
+     "TARGET_LEAKAGE:x3"
+    ]
+   }
+  },
+  {
+   "id": "c02",
+   "planted": "unresolved_leakage",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7837,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.762,
+     "lift_over_dummy_se": 56.74,
+     "se": 0.005,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": false,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7594,
+      "family": "linear",
+      "se": 0.005,
+      "train": 0.7894
+     },
+     {
+      "cv": 0.7837,
+      "family": "rf",
+      "se": 0.005,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": [
+     "LEAKY_FEATURE:f7"
+    ]
+   }
+  },
+  {
+   "id": "c03",
+   "planted": "gap_beyond_family_range",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.58,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 5.25,
+     "lift_over_dummy_se": 22.22,
+     "se": 0.0036,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.5416,
+      "family": "linear",
+      "se": 0.0036,
+      "train": 0.5716
+     },
+     {
+      "cv": 0.58,
+      "family": "hgb",
+      "se": 0.0036,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c04",
+   "planted": "gap_beyond_family_range",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.62,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 3.167,
+     "lift_over_dummy_se": 16.67,
+     "se": 0.0072,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 26000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.605,
+      "family": "linear",
+      "se": 0.0072,
+      "train": 0.635
+     },
+     {
+      "cv": 0.62,
+      "family": "rf",
+      "se": 0.0072,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c05",
+   "planted": "gap_beyond_family_range",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.58,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 5.25,
+     "lift_over_dummy_se": 18.18,
+     "se": 0.0044,
+     "train": 1.0
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.5479,
+      "family": "linear",
+      "se": 0.0044,
+      "train": 0.5779
+     },
+     {
+      "cv": 0.58,
+      "family": "flaml",
+      "se": 0.0044,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c06",
+   "planted": "tiny_test",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8817,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.31,
+     "lift_over_dummy_se": 173.5,
+     "se": 0.0022,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 60,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8588,
+      "family": "linear",
+      "se": 0.0022,
+      "train": 0.8888
+     },
+     {
+      "cv": 0.8817,
+      "family": "hgb",
+      "se": 0.0022,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c07",
+   "planted": "tiny_test",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8106,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.181,
+     "lift_over_dummy_se": 39.82,
+     "se": 0.0078,
+     "train": 0.8668
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 140,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7617,
+      "family": "linear",
+      "se": 0.0078,
+      "train": 0.7917
+     },
+     {
+      "cv": 0.8106,
+      "family": "flaml",
+      "se": 0.0078,
+      "train": 0.8668
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c08",
+   "planted": "cv_instability",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8465,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.443,
+     "lift_over_dummy_se": 3.85,
+     "se": 0.09,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8302,
+      "family": "linear",
+      "se": 0.09,
+      "train": 0.8602
+     },
+     {
+      "cv": 0.8465,
+      "family": "hgb",
+      "se": 0.09,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c09",
+   "planted": "cv_instability",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8928,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.214,
+     "lift_over_dummy_se": 2.81,
+     "se": 0.14,
+     "train": 0.9769
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8738,
+      "family": "linear",
+      "se": 0.14,
+      "train": 0.9038
+     },
+     {
+      "cv": 0.8928,
+      "family": "flaml",
+      "se": 0.14,
+      "train": 0.9769
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c10",
+   "planted": "partial_leakage_check",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7886,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.604,
+     "lift_over_dummy_se": 48.92,
+     "se": 0.0059,
+     "train": 0.9629
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [
+     "detector skipped: time bound",
+     "linear_combination not run"
+    ],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7586,
+      "family": "linear",
+      "se": 0.0059,
+      "train": 0.7886
+     },
+     {
+      "cv": 0.7886,
+      "family": "flaml",
+      "se": 0.0059,
+      "train": 0.9629
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c11",
+   "planted": "partial_leakage_check",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8524,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.419,
+     "lift_over_dummy_se": 167.81,
+     "se": 0.0021,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [
+     "holdout too small for separator check"
+    ],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8261,
+      "family": "linear",
+      "se": 0.0021,
+      "train": 0.8561
+     },
+     {
+      "cv": 0.8524,
+      "family": "hgb",
+      "se": 0.0021,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c12",
+   "planted": "rule_fail_baseline_margin",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.9271,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.171,
+     "lift_over_dummy_se": 109.51,
+     "se": 0.0039,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": false,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8795,
+      "family": "linear",
+      "se": 0.0039,
+      "train": 0.9095
+     },
+     {
+      "cv": 0.9271,
+      "family": "rf",
+      "se": 0.0039,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c13",
+   "planted": "rule_fail_baseline_margin",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.9265,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.172,
+     "lift_over_dummy_se": 80.47,
+     "se": 0.0053,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": false,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.882,
+      "family": "linear",
+      "se": 0.0053,
+      "train": 0.912
+     },
+     {
+      "cv": 0.9265,
+      "family": "rf",
+      "se": 0.0053,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c14",
+   "planted": "rule_fail_baseline_margin",
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7443,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.416,
+     "lift_over_dummy_se": 48.86,
+     "se": 0.005,
+     "train": 0.8459
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": false,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.6946,
+      "family": "linear",
+      "se": 0.005,
+      "train": 0.7246
+     },
+     {
+      "cv": 0.7443,
+      "family": "flaml",
+      "se": 0.005,
+      "train": 0.8459
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c15",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8295,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.517,
+     "lift_over_dummy_se": 89.05,
+     "se": 0.0037,
+     "train": 1.0
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8049,
+      "family": "linear",
+      "se": 0.0037,
+      "train": 0.8349
+     },
+     {
+      "cv": 0.8295,
+      "family": "flaml",
+      "se": 0.0037,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c16",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7592,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.889,
+     "lift_over_dummy_se": 99.69,
+     "se": 0.0026,
+     "train": 0.9896
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7124,
+      "family": "linear",
+      "se": 0.0026,
+      "train": 0.7424
+     },
+     {
+      "cv": 0.7592,
+      "family": "hgb",
+      "se": 0.0026,
+      "train": 0.9896
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c17",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8035,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.18,
+     "lift_over_dummy_se": 56.2,
+     "se": 0.0054,
+     "train": 0.8581
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7602,
+      "family": "linear",
+      "se": 0.0054,
+      "train": 0.7902
+     },
+     {
+      "cv": 0.8035,
+      "family": "flaml",
+      "se": 0.0054,
+      "train": 0.8581
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c18",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.812,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.603,
+     "lift_over_dummy_se": 70.91,
+     "se": 0.0044,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7924,
+      "family": "linear",
+      "se": 0.0044,
+      "train": 0.8224
+     },
+     {
+      "cv": 0.812,
+      "family": "rf",
+      "se": 0.0044,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c19",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8367,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.485,
+     "lift_over_dummy_se": 56.12,
+     "se": 0.006,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8018,
+      "family": "linear",
+      "se": 0.006,
+      "train": 0.8318
+     },
+     {
+      "cv": 0.8367,
+      "family": "hgb",
+      "se": 0.006,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c20",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8415,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.464,
+     "lift_over_dummy_se": 74.24,
+     "se": 0.0046,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8079,
+      "family": "linear",
+      "se": 0.0046,
+      "train": 0.8379
+     },
+     {
+      "cv": 0.8415,
+      "family": "hgb",
+      "se": 0.0046,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c21",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7619,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.063,
+     "lift_over_dummy_se": 46.77,
+     "se": 0.0056,
+     "train": 0.7784
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7483,
+      "family": "linear",
+      "se": 0.0056,
+      "train": 0.7783
+     },
+     {
+      "cv": 0.7619,
+      "family": "flaml",
+      "se": 0.0056,
+      "train": 0.7784
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c22",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7466,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.328,
+     "lift_over_dummy_se": 91.33,
+     "se": 0.0027,
+     "train": 0.8275
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7205,
+      "family": "linear",
+      "se": 0.0027,
+      "train": 0.7505
+     },
+     {
+      "cv": 0.7466,
+      "family": "flaml",
+      "se": 0.0027,
+      "train": 0.8275
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c23",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8775,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.325,
+     "lift_over_dummy_se": 58.98,
+     "se": 0.0064,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 26000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8492,
+      "family": "linear",
+      "se": 0.0064,
+      "train": 0.8792
+     },
+     {
+      "cv": 0.8775,
+      "family": "hgb",
+      "se": 0.0064,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c24",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8377,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.271,
+     "lift_over_dummy_se": 58.22,
+     "se": 0.0058,
+     "train": 0.9292
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7914,
+      "family": "linear",
+      "se": 0.0058,
+      "train": 0.8214
+     },
+     {
+      "cv": 0.8377,
+      "family": "rf",
+      "se": 0.0058,
+      "train": 0.9292
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c25",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7418,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.696,
+     "lift_over_dummy_se": 38.38,
+     "se": 0.0063,
+     "train": 0.9101
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7223,
+      "family": "linear",
+      "se": 0.0063,
+      "train": 0.7523
+     },
+     {
+      "cv": 0.7418,
+      "family": "hgb",
+      "se": 0.0063,
+      "train": 0.9101
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c26",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.786,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.708,
+     "lift_over_dummy_se": 58.37,
+     "se": 0.0049,
+     "train": 0.9885
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 8000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7722,
+      "family": "linear",
+      "se": 0.0049,
+      "train": 0.8022
+     },
+     {
+      "cv": 0.786,
+      "family": "rf",
+      "se": 0.0049,
+      "train": 0.9885
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c27",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8978,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.257,
+     "lift_over_dummy_se": 142.07,
+     "se": 0.0028,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 26000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.877,
+      "family": "linear",
+      "se": 0.0028,
+      "train": 0.907
+     },
+     {
+      "cv": 0.8978,
+      "family": "rf",
+      "se": 0.0028,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c28",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8728,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.341,
+     "lift_over_dummy_se": 63.19,
+     "se": 0.0059,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 26000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8338,
+      "family": "linear",
+      "se": 0.0059,
+      "train": 0.8638
+     },
+     {
+      "cv": 0.8728,
+      "family": "rf",
+      "se": 0.0059,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c29",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.9083,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.225,
+     "lift_over_dummy_se": 151.22,
+     "se": 0.0027,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8738,
+      "family": "linear",
+      "se": 0.0027,
+      "train": 0.9038
+     },
+     {
+      "cv": 0.9083,
+      "family": "hgb",
+      "se": 0.0027,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c30",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8774,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.325,
+     "lift_over_dummy_se": 121.74,
+     "se": 0.0031,
+     "train": 1.0
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8517,
+      "family": "linear",
+      "se": 0.0031,
+      "train": 0.8817
+     },
+     {
+      "cv": 0.8774,
+      "family": "rf",
+      "se": 0.0031,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c31",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8814,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.311,
+     "lift_over_dummy_se": 152.56,
+     "se": 0.0025,
+     "train": 1.0
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 26000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8489,
+      "family": "linear",
+      "se": 0.0025,
+      "train": 0.8789
+     },
+     {
+      "cv": 0.8814,
+      "family": "flaml",
+      "se": 0.0025,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c32",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.9082,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.225,
+     "lift_over_dummy_se": 60.93,
+     "se": 0.0067,
+     "train": 1.0
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [
+     "rows sampled to 20000"
+    ],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8624,
+      "family": "linear",
+      "se": 0.0067,
+      "train": 0.8924
+     },
+     {
+      "cv": 0.9082,
+      "family": "hgb",
+      "se": 0.0067,
+      "train": 1.0
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c33",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7506,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.544,
+     "lift_over_dummy_se": 58.28,
+     "se": 0.0043,
+     "train": 0.8869
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [
+     "rows sampled to 20000"
+    ],
+    "metric": "roc_auc",
+    "n_rows": 3200,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7045,
+      "family": "linear",
+      "se": 0.0043,
+      "train": 0.7345
+     },
+     {
+      "cv": 0.7506,
+      "family": "flaml",
+      "se": 0.0043,
+      "train": 0.8869
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c34",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.7414,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.985,
+     "lift_over_dummy_se": 49.27,
+     "se": 0.0049,
+     "train": 0.9792
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [
+     "rows sampled to 20000"
+    ],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": false
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.6915,
+      "family": "linear",
+      "se": 0.0049,
+      "train": 0.7215
+     },
+     {
+      "cv": 0.7414,
+      "family": "hgb",
+      "se": 0.0049,
+      "train": 0.9792
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c35",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.8116,
+     "expected_gap_ratio": [
+      0.009,
+      0.79
+     ],
+     "family": "flaml",
+     "gap_ratio": 0.264,
+     "lift_over_dummy_se": 58.79,
+     "se": 0.0053,
+     "train": 0.8939
+    },
+    "chosen_family": "flaml",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 320,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7952,
+      "family": "linear",
+      "se": 0.0053,
+      "train": 0.8252
+     },
+     {
+      "cv": 0.8116,
+      "family": "flaml",
+      "se": 0.0053,
+      "train": 0.8939
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c36",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": true,
+    "chosen": {
+     "cv": 0.8245,
+     "expected_gap_ratio": [
+      0.011,
+      1.648
+     ],
+     "family": "rf",
+     "gap_ratio": 0.456,
+     "lift_over_dummy_se": 41.08,
+     "se": 0.0079,
+     "train": 0.9725
+    },
+    "chosen_family": "rf",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 48000,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.7792,
+      "family": "linear",
+      "se": 0.0079,
+      "train": 0.8092
+     },
+     {
+      "cv": 0.8245,
+      "family": "rf",
+      "se": 0.0079,
+      "train": 0.9725
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  },
+  {
+   "id": "c37",
+   "planted": null,
+   "summary": {
+    "budget_exhausted": false,
+    "chosen": {
+     "cv": 0.84,
+     "expected_gap_ratio": [
+      0.012,
+      1.446
+     ],
+     "family": "hgb",
+     "gap_ratio": 0.022,
+     "lift_over_dummy_se": 28.33,
+     "se": 0.012,
+     "train": 0.8475
+    },
+    "chosen_family": "hgb",
+    "direction": "higher_is_better",
+    "dropped_columns": 0,
+    "failed_steps": 0,
+    "leakage_detection_ran": true,
+    "leakage_partial": [],
+    "metric": "roc_auc",
+    "n_rows": 1500,
+    "rule_checks": {
+     "baseline_margin": true,
+     "leakage_checked": true,
+     "leakage_resolved": true,
+     "metric_matches_task": true,
+     "train_val_gap": true
+    },
+    "task_type": "binary",
+    "tried": [
+     {
+      "cv": 0.5,
+      "family": "dummy",
+      "se": 0.0,
+      "train": 0.5
+     },
+     {
+      "cv": 0.8018,
+      "family": "linear",
+      "se": 0.012,
+      "train": 0.8318
+     },
+     {
+      "cv": 0.84,
+      "family": "hgb",
+      "se": 0.012,
+      "train": 0.8475
+     }
+    ],
+    "unresolved_leakage": []
+   }
+  }
+ ],
+ "seed": 7001
+}
