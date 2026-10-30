@@ -1,0 +1,170 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\critic_eval_v5.py",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 20,
+    "notes": "REAL LLM critic (advisory) vs rule-based reviewer on v5 runs; critic v2 sees the rule check values but not the verdict",
+    "sandbox": "none"
+  },
+  "date": "2026-10-30T03:19:13+00:00",
+  "git_sha": "9c920c3f06c47dbe028eeef6a86c622dd0832964",
+  "name": "critic_v5",
+  "results": {
+    "agree": 18,
+    "agreement_rate": 0.9,
+    "agreement_wilson95": [
+      0.6989617935882066,
+      0.9721341060158468
+    ],
+    "confusion": {
+      "rule=APPROVE|critic=APPROVE": 18,
+      "rule=REQUEST_CHANGES|critic=APPROVE": 2
+    },
+    "n_runs": 20,
+    "n_valid": 20,
+    "requests": 14,
+    "rows": [
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "mozilla4"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "electricity"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "nomao"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "sylva_prior"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "REQUEST_CHANGES",
+        "task": "Amazon_employee_access"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "gas-drift"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "MiamiHousing2016"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "house_8L"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "fried"
+      },
+      {
+        "arm": "scripted",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "diamonds"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "mozilla4"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "electricity"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "nomao"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "sylva_prior"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "REQUEST_CHANGES",
+        "task": "Amazon_employee_access"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "gas-drift"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "MiamiHousing2016"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "house_8L"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "fried"
+      },
+      {
+        "arm": "llm",
+        "concerns": [],
+        "critic": "APPROVE",
+        "rule": "APPROVE",
+        "task": "diamonds"
+      }
+    ]
+  }
+}
