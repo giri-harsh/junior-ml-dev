@@ -3,11 +3,14 @@
 - SubprocessSandbox: dev/test only. NOT an isolation boundary (same user, same network).
 - LocalDockerBackend: builds a locked-down `docker run` command (network none, read-only root,
   non-root, cpu/mem/pid caps). Execution needs Docker: NOT RUN here.
-- E2BBackend: STUB. Needs the e2b SDK and E2B_API_KEY.
+- E2BBackend: one fresh E2B microVM per exec (internet disabled at creation), always killed in a
+  `finally`. Needs the optional `e2b` SDK (imported lazily) and E2B_API_KEY. Unit tests use a
+  mocked SDK; the live suite is tests/e2b (marker `e2b`).
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import subprocess
@@ -15,8 +18,10 @@ import sys
 import tempfile
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path, PurePosixPath
-from typing import Protocol
+from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
@@ -197,23 +202,155 @@ class LocalDockerBackend:
             shutil.rmtree(work, ignore_errors=True)
 
 
+class E2BUnavailable(NotImplementedError, RuntimeError):
+    """E2B cannot be used here: SDK not installed or E2B_API_KEY not set. Nothing was run."""
+
+
+_log = logging.getLogger(__name__)
+E2B_WORKDIR = "/workspace"  # same path as the Docker backend, so agent code is portable
+E2B_LIFETIME_MARGIN_S = 30  # server-side expiry = timeout + margin: bounds cost if our kill fails
+E2B_GRACE_S = 5.0  # extra wall-clock allowed past the command timeout before the force-kill
+
+
+def _load_e2b_sdk() -> Any:
+    try:
+        from e2b import Sandbox  # lazy: the package must import without the optional SDK
+    except ImportError as e:
+        raise E2BUnavailable("e2b SDK not installed (pip install 'e2b>=2.62,<3')") from e
+    return Sandbox
+
+
+def _entry_is_file(entry: Any) -> bool:
+    kind = getattr(entry, "type", None)
+    return str(getattr(kind, "value", kind)).lower() == "file"
+
+
 class E2BBackend:
-    """STUB: wire the e2b SDK here (internet disabled at sandbox creation). NOT RUN."""
+    """One fresh E2B sandbox per exec. Internet is disabled at creation (`allow_internet_access`).
+
+    Lifecycle per call: create -> upload main.py + the given files -> run with a wall-clock limit
+    -> download top-level `out_*` files -> kill (in `finally`, also on timeout and on any error).
+    If the SDK call hangs past timeout + grace, the sandbox is killed from this thread, which
+    breaks the blocked call; the sandbox also expires server-side after timeout + margin.
+    `sdk` (a Sandbox-like class with `.create(**kw)`) is injectable for the mocked unit tests.
+    """
 
     name = "e2b"
 
+    def __init__(
+        self,
+        api_key: str | None = None,
+        template: str | None = None,
+        sdk: Any = None,
+        python: str = "python3",
+    ) -> None:
+        self._api_key = api_key
+        self.template = template or os.environ.get("JMD_E2B_TEMPLATE") or None
+        self._sdk = sdk
+        self.python = python
+        self.last_timings: dict[str, float] = {}  # create_s/upload_s/exec_s/download_s/kill_s
+        self.kill_failures = 0
+
     def run_python(self, code: str, timeout_s: float, files: dict[str, bytes]) -> ExecResult:
-        raise NotImplementedError("E2BBackend is a STUB: needs the e2b SDK and E2B_API_KEY")
+        key = self._api_key or os.environ.get("E2B_API_KEY", "")
+        if not key:
+            raise E2BUnavailable("E2B_API_KEY not set: E2BBackend NOT RUN")
+        uploads = {safe_relpath(rel): data for rel, data in files.items()}  # before any spend
+        sdk = self._sdk if self._sdk is not None else _load_e2b_sdk()
+        timings: dict[str, float] = {}
+        t0 = time.perf_counter()
+        kw: dict[str, Any] = {
+            "timeout": int(timeout_s) + E2B_LIFETIME_MARGIN_S,
+            "allow_internet_access": False,
+            "metadata": {"app": "junior-ml-dev"},
+            "api_key": key,
+            "request_timeout": 60.0,
+        }
+        if self.template:
+            kw["template"] = self.template
+        box = sdk.create(**kw)
+        timings["create_s"] = round(time.perf_counter() - t0, 3)
+        pool: ThreadPoolExecutor | None = None
+        try:
+            t1 = time.perf_counter()
+            box.commands.run(
+                f"mkdir -p {E2B_WORKDIR} && chown $(id -u user):$(id -g user) {E2B_WORKDIR}",
+                user="root", timeout=30, request_timeout=30,
+            )  # fmt: skip
+            box.files.write(f"{E2B_WORKDIR}/main.py", code.encode("utf-8"), request_timeout=60)
+            for rel, data in uploads.items():
+                box.files.write(f"{E2B_WORKDIR}/{rel}", data, request_timeout=120)
+            timings["upload_s"] = round(time.perf_counter() - t1, 3)
+
+            t2 = time.perf_counter()
+            pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="jmd-e2b")
+            fut = pool.submit(self._exec, box, timeout_s)
+            try:
+                stdout, stderr, rc = fut.result(timeout=timeout_s + E2B_GRACE_S)
+            except FutureTimeout:
+                stdout, stderr, rc = "", "timeout", -9
+            timed_out = rc == -9 and stderr == "timeout"
+            timings["exec_s"] = round(time.perf_counter() - t2, 3)
+
+            out_files: dict[str, bytes] = {}
+            if not timed_out:
+                t3 = time.perf_counter()
+                out_files = self._download(box)
+                timings["download_s"] = round(time.perf_counter() - t3, 3)
+            return ExecResult(
+                stdout=stdout[:MAX_OUTPUT], stderr=stderr[:MAX_OUTPUT], exit_code=rc,
+                timed_out=timed_out, duration_s=round(time.perf_counter() - t0, 3),
+                files=out_files,
+            )  # fmt: skip
+        finally:
+            t4 = time.perf_counter()
+            try:
+                box.kill()
+            except Exception:  # noqa: BLE001 - never mask the result; server-side expiry bounds it
+                self.kill_failures += 1
+                _log.warning("e2b sandbox kill failed (it will expire server-side)")
+            timings["kill_s"] = round(time.perf_counter() - t4, 3)
+            self.last_timings = timings
+            if pool is not None:
+                pool.shutdown(wait=False, cancel_futures=True)
+
+    def _exec(self, box: Any, timeout_s: float) -> tuple[str, str, int]:
+        try:
+            r = box.commands.run(
+                f"{self.python} main.py", cwd=E2B_WORKDIR, timeout=timeout_s, request_timeout=30
+            )
+        except Exception as e:  # noqa: BLE001 - classified by shape: the SDK is imported lazily
+            if type(e).__name__ == "TimeoutException":
+                return "", "timeout", -9
+            if hasattr(e, "exit_code"):  # CommandExitException: a non-zero exit is a result
+                return (
+                    str(getattr(e, "stdout", "") or ""),
+                    str(getattr(e, "stderr", "") or ""),
+                    int(e.exit_code),
+                )
+            raise
+        return str(r.stdout or ""), str(r.stderr or ""), int(r.exit_code)
+
+    def _download(self, box: Any) -> dict[str, bytes]:
+        out: dict[str, bytes] = {}
+        for entry in sorted(box.files.list(E2B_WORKDIR), key=lambda e: str(e.name)):
+            name = str(entry.name)
+            size = getattr(entry, "size", 0) or 0
+            if _entry_is_file(entry) and name.startswith("out_") and size <= MAX_OUT_FILE:
+                out[name] = bytes(box.files.read(f"{E2B_WORKDIR}/{name}", format="bytes"))
+        return out
 
 
 def backend_from_env() -> SandboxBackend:
-    """JMD_SANDBOX=docker | local-unsafe (subprocess; NOT isolation). Unset: refuse."""
+    """JMD_SANDBOX=docker | e2b | local-unsafe (subprocess; NOT isolation). Unset: refuse."""
     choice = os.environ.get("JMD_SANDBOX", "")
     if choice == "docker":
         return LocalDockerBackend()
+    if choice == "e2b":
+        return E2BBackend()
     if choice == "local-unsafe":
         return SubprocessSandbox()
-    raise RuntimeError("no sandbox backend configured: set JMD_SANDBOX=docker")
+    raise RuntimeError("no sandbox backend configured: set JMD_SANDBOX=docker (or e2b)")
 
 
 def package_allowed(pkg: str) -> bool:
