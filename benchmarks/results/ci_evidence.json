@@ -1,0 +1,20 @@
+{
+  "command": "scripts/collect_ci_evidence.py",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 30,
+    "notes": "",
+    "sandbox": "none"
+  },
+  "date": "2026-10-30T02:55:12+00:00",
+  "git_sha": "2a8bec967ed549d2f3c476b2f36cdc6370695236",
+  "name": "ci_evidence",
+  "results": {
+    "latest ci": "success - run 40953422203 (451 s) on `2a8bec9` (merge: stretch 1-6)",
+    "latest infra": "success - run 40953422200 (446 s) on `2a8bec9` (merge: stretch 1-6)",
+    "latest load": "success - run 40945724068 (203 s) on `705cbdf` (load)",
+    "latest web": "success - run 40945730802 (28 s) on `705cbdf` (web)",
+    "runs sampled": "30 most recent, 18 success"
+  }
+}

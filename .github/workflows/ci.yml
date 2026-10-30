@@ -45,10 +45,7 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with: {enable-cache: true}
       - run: uv sync --python 3.11 --group dev --extra infra
-      # B613 (literal bidi characters in the injection scanner regex) is real and tracked in
-      # DECISIONS 131; it sits in a file frozen for the v5 evaluation and is removed from this skip
-      # list when the fix lands.
-      - run: uv run --with bandit bandit -r apps harness mcp_servers leakage datastory trajectory benchmarks scripts -ll -q --skip B613
+      - run: uv run --with bandit bandit -r apps harness mcp_servers leakage datastory trajectory benchmarks scripts -ll -q
       - run: uv run --with pip-audit pip-audit --skip-editable
       - run: uv run --with cyclonedx-bom cyclonedx-py environment --of JSON -o sbom.cdx.json
       - uses: actions/upload-artifact@v4
