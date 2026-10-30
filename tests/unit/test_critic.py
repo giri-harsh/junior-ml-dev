@@ -110,3 +110,84 @@ def test_v2_verdict_comes_only_from_blockers() -> None:
     gw = Gateway(providers=[MockProvider(lambda r, i: reply)])
     v = LLMCriticV2(gw).review_v2({"a": 1})
     assert v is not None and v.verdict == "REQUEST_CHANGES"
+
+
+def _v3_summary(failed: bool = True) -> dict[str, object]:
+    return {
+        "tried": [{"family": "dummy", "cv": 0.5, "se": 0.0, "train": 0.5}],
+        "chosen": {"cv": 0.8, "se": 0.1, "gap_ratio": 3.0, "expected_gap_ratio": [0.0, 1.0]},
+        "leakage_partial": ["detector skipped: time bound"],
+        "n_rows": 120,
+        "rule_checks": {"baseline_margin": not failed, "leakage_resolved": True},
+    }
+
+
+def test_v3_enrichment_derives_fields_from_the_summary_numbers() -> None:
+    from harness.agent.critic import enrich_v3
+
+    e = enrich_v3(_v3_summary())
+    assert e["failed_rule_checks"] == ["baseline_margin"] and e["small_sample"] is True
+    assert e["leakage_coverage"] == "incomplete"
+    assert e["chosen"]["cv_se_ratio"] == 0.333 and e["chosen"]["gap_over_range_top"] == 3.0
+    assert enrich_v3({"leakage_partial": ["rows sampled to 20000"]})["leakage_coverage"] == (
+        "sampled_rows"
+    )
+
+
+def test_v3_rejects_silent_approval_repairs_once_then_concurs_by_default() -> None:
+    from harness.agent.critic import LLMCriticV3
+
+    silent = json.dumps({"concerns": []})
+    gw = Gateway(providers=[MockProvider(lambda r, i: silent)])
+    v = LLMCriticV3(gw).review_v3(_v3_summary())
+    assert v is not None and v.verdict == "REQUEST_CHANGES"
+    assert v.defaulted_to_rules == ["baseline_margin"]
+    assert gw.stats["repairs"] == 1  # exactly one repair, then the default
+
+
+def test_v3_accepts_concurrence_or_numeric_dissent_but_not_vague_dissent() -> None:
+    from harness.agent.critic import LLMCriticV3
+
+    concur = json.dumps(
+        {"concerns": [{"text": "x", "severity": "blocker", "check": "baseline_margin"}]}
+    )
+    v = LLMCriticV3(Gateway(providers=[MockProvider(lambda r, i: concur)])).review_v3(_v3_summary())
+    assert v is not None and v.verdict == "REQUEST_CHANGES" and not v.defaulted_to_rules
+    ok = json.dumps(
+        {"concerns": [], "dissent": [{"check": "baseline_margin",
+                                      "evidence": "margin 0.0137 over linear is 4.5 se, large"}]}
+    )  # fmt: skip
+    v = LLMCriticV3(Gateway(providers=[MockProvider(lambda r, i: ok)])).review_v3(_v3_summary())
+    assert v is not None and v.verdict == "APPROVE" and not v.defaulted_to_rules
+    vague = json.dumps({"concerns": [], "dissent": [{"check": "baseline_margin",
+                                                    "evidence": "the rule seems too strict here"}]})  # fmt: skip
+    v = LLMCriticV3(Gateway(providers=[MockProvider(lambda r, i: vague)])).review_v3(_v3_summary())
+    assert v is not None and v.defaulted_to_rules == ["baseline_margin"]
+
+
+def test_v3_without_failed_checks_needs_no_answer() -> None:
+    from harness.agent.critic import LLMCriticV3
+
+    reply = json.dumps({"concerns": [{"text": "n small", "severity": "blocker"}]})
+    v = LLMCriticV3(Gateway(providers=[MockProvider(lambda r, i: reply)])).review_v3(
+        _v3_summary(failed=False)
+    )
+    assert v is not None and v.verdict == "REQUEST_CHANGES"
+
+
+def test_fresh_critic_set_is_hash_committed_and_sized() -> None:
+    from benchmarks.critic_eval_v6 import load_set, score
+
+    items = load_set()  # raises if the file no longer matches its committed sha256
+    planted = [i for i in items if i["planted"]]
+    assert len(items) >= 30 and len(planted) >= 10 and len(items) - len(planted) >= 20
+    assert {i["planted"] for i in planted} >= {
+        "unresolved_leakage", "gap_beyond_family_range", "tiny_test", "cv_instability",
+        "partial_leakage_check",
+    }  # fmt: skip
+    rows = [{"planted": "a", "critic": "REQUEST_CHANGES"}, {"planted": None, "critic": "APPROVE"},
+            {"planted": "a", "critic": None}]  # fmt: skip
+    s = score(rows)
+    assert (
+        s["recall"] == 1 and s["planted_n"] == 1 and s["false_alarms"] == 0 and s["no_output"] == 1
+    )
