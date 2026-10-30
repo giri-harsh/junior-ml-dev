@@ -2,7 +2,7 @@
 
 ## CI
 - Start: ci 41000366212 success. Item 3 merge: ci 41008428375, infra 41008428394 success.
-- Docs merge: ci 41010939801 (see `gh run list`); local gate 438 passed, coverage 92.04% (floor 91).
+- Docs merge: ci 41010939801 success; final commit ci 41012173499 success; v0.2.0 tagged on it; local gate 438 passed, coverage 92.04% (floor 91).
 - Actions budget this run: 6 runs, about 40 min (limit 15 / 200).
 
 ## 1. Request inflation (fixed, decision 136)
