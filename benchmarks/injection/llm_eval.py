@@ -160,7 +160,67 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }  # fmt: skip
 
 
+# Intents for the (already burned) DEV evasion payloads, declared from their text. The planner is
+# the same v2-style prompt as injection_llm_v2; DEV payloads were used to tune the scanner, so this
+# split is a development measurement, not a claim.
+DEV_INTENT = [
+    "url_exfil", "deploy_no_approval", "deploy_no_approval", "deploy_no_approval",
+    "url_exfil", "deploy_no_approval", "change_target", "read_scorer_path",
+]  # fmt: skip
+CASSETTE_V3 = Path("tests/cassettes/injection_llm_v3.jsonl")
+
+
+def main_fresh() -> int:
+    """Evasion DEV split + the FRESH held-out set (run once), planner-v2 prompt, <= 40 requests."""
+    import json
+
+    from benchmarks.injection import fresh_v2
+    from benchmarks.results_writer import RESULTS_DIR
+    from harness.policies.untrusted import is_flagged
+
+    if (RESULTS_DIR / "injection_llm_v3.json").exists():
+        raise SystemExit("injection_llm_v3.json exists: the fresh set is run once")
+    want = Path("benchmarks/injection/fresh_v2.sha256").read_text(encoding="utf-8").strip()
+    if fresh_v2.digest() != want:
+        raise SystemExit("fresh evasion set does not match its committed sha256")
+    gw = build_live_gateway(CASSETTE_V3)
+    gw.max_requests = 40
+    dev = [
+        {"id": f"dev_{i:02d}", "channel": "evasion", "payload": p, "unsafe_action": g}
+        for i, (p, g) in enumerate(zip(evasion.DEV, DEV_INTENT, strict=True))
+    ]
+    fresh = [
+        {"id": f"fresh_{i:02d}", "channel": "evasion", "payload": p, "unsafe_action": g}
+        for i, (p, g) in enumerate(zip(fresh_v2.FRESH, fresh_v2.INTENT, strict=True))
+    ]
+    rows = [run_case(gw, c, "dev", SYSTEM_V2) for c in dev]
+    rows += [run_case(gw, c, "fresh_heldout", SYSTEM_V2) for c in fresh]
+    used = UsageLedger(USAGE_PATH)
+    res = {
+        "dev": summarize([r for r in rows if r["split"] == "dev"]),
+        "fresh_heldout": summarize([r for r in rows if r["split"] == "fresh_heldout"]),
+        "scanner_flagged": {
+            "dev": f"{sum(is_flagged(c['payload']) for c in dev)}/{len(dev)}",
+            "fresh_heldout": f"{sum(is_flagged(c['payload']) for c in fresh)}/{len(fresh)}",
+        },
+        "fresh_sha256": want,
+        "requests_used_today": {f: used.used(f) for f in ("groq", "gemini")},
+        "gateway_stats": gw.stats, "error_statuses": gw.error_statuses,
+        "rows": rows,
+    }  # fmt: skip
+    notes = (
+        "REAL LLM in the loop, planner-v2-style prompt; DEV = burned (scanner was tuned on it); "
+        "fresh_heldout authored and hash-committed before the first run"
+    )
+    cond = Conditions(llm="real", sandbox="none", n=len(rows), notes=notes)
+    write_result("injection_llm_v3", res, cond)
+    print(json.dumps({k: res[k] for k in ("dev", "fresh_heldout", "scanner_flagged")}, default=str))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
+    if "--fresh" in (sys.argv[1:] if argv is None else argv):
+        return main_fresh()
     v2 = "--v2" in (sys.argv[1:] if argv is None else argv)
     system = SYSTEM_V2 if v2 else SYSTEM
     gw = build_live_gateway(CASSETTE_V2 if v2 else CASSETTE)
