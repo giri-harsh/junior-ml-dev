@@ -105,6 +105,25 @@
     "result_file": "agent_v1.json",
     "status": "evaluated"
   },
+  "agent:681f31267db878a58a2adec3cfa22d26fb74322f61610a65e5980a796f9f847e": {
+    "infra_retries": [
+      "resume after crash at 0 tasks done"
+    ],
+    "partitions": [
+      "mozilla4",
+      "electricity",
+      "nomao",
+      "sylva_prior",
+      "Amazon_employee_access",
+      "gas-drift",
+      "MiamiHousing2016",
+      "house_8L",
+      "fried",
+      "diamonds"
+    ],
+    "result_file": "agent_v5_llm.json",
+    "status": "evaluated"
+  },
   "agent:c460847a2c0be69d172283ef875920daaf0f3a60d8b8c1724c3b323fd1d668e7": {
     "infra_retries": [],
     "partitions": [
