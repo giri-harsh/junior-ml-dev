@@ -30,3 +30,11 @@ Docker, Postgres, Redis, E2B or an LLM key; none became reachable.
 | Docker work (compose up app, test-infra, docker-kill resume, container deploy) | WALL: Docker Desktop not installed | Run-4 rules forbid installing system software | install Docker Desktop yourself, then `python scripts/tasks.py up app` and `python scripts/tasks.py test-infra` |
 | E2B backend | WALL: no E2B_API_KEY | needs an account/key | create a key at e2b.dev, set E2B_API_KEY, run the sandbox test suite against the E2B backend |
 | v3 re-evaluation after any further change | not allowed | eval-once | needs a new unseen partition (v4) |
+
+## Run 6 additions
+| Item | Status | Why | Resume |
+|---|---|---|---|
+| S27 evasion DEV split with the real LLM | NOT RUN | 50-request budget is spent on the 41-case suite + 8 held-out payloads (49 requests); DEV payloads were already used to tune the scanner | extend `benchmarks/injection/llm_eval.py` with `evasion.DEV` and raise the cap |
+| S27 "critic flag rate on injected runs" | NOT APPLICABLE | the critic reviews finished runs; injection cases are single-step proposals with no run to review | needs an end-to-end injected run harness |
+| Docker / E2B / real MinIO | WALL | see NEEDS_HARSH.md 1-3 | |
+| Stretch 8 dead-code removal | nothing to remove | vulture at confidence 80 reports nothing; 60% hits are FastAPI handlers | |
