@@ -3,7 +3,9 @@
 The set (38 symbolic run summaries, 15 with a planted issue) and its sha256 were committed before
 any critic call. Reports recall on planted issues and the false-alarm rate on clean runs with
 Wilson CIs, per-type recall, and how often the schema forced a concurrence (defaulted_to_rules).
-Runs ONCE (refuses if the result exists). <= 40 requests, cached.
+Runs ONCE (refuses if the result exists). <= 40 requests in total, cached. `--complete` re-runs
+the SAME prompt only to fill items that got no output because a provider failed (the cassette
+replays everything that already succeeded); its cap is 40 minus what the first pass spent.
 
     uv run python -m benchmarks.critic_eval_v6
 """
@@ -53,16 +55,29 @@ def score(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }  # fmt: skip
 
 
-def main() -> int:
-    if (RESULTS_DIR / "critic_v6.json").exists():
-        raise SystemExit("critic_v6.json exists: the fresh set is evaluated once")
+def main(argv: list[str] | None = None) -> int:
+    import json
+    import time
+
+    complete = "--complete" in (sys.argv[1:] if argv is None else argv)
+    prior = RESULTS_DIR / "critic_v6.json"
+    spent = 0
+    if prior.exists():
+        first = json.loads(prior.read_text(encoding="utf-8"))["results"]
+        if not complete or not first["no_output"]:
+            raise SystemExit("critic_v6.json exists: the fresh set is evaluated once")
+        gs = first["gateway_stats"]
+        spent = gs["calls"] - gs["cache_hits"] - gs["fixture_hits"]
     items = load_set()
     gw = build_live_gateway(Path("tests/cassettes/critic_v6.jsonl"))
-    gw.max_requests = MAX_REQUESTS
+    gw.max_requests = MAX_REQUESTS - spent
     critic = LLMCriticV3(gw)
     rows: list[dict[str, Any]] = []
     for it in items:
+        before = gw.stats["calls"]
         v = critic.review_v3(it["summary"])
+        if gw.stats["calls"] > before:
+            time.sleep(6)  # the free Gemini tier rate-limits bursts; do not burn the cap on 429s
         rows.append({
             "id": it["id"], "planted": it["planted"],
             "rule_failed": sorted(k for k, ok in it["summary"]["rule_checks"].items() if not ok),

@@ -101,6 +101,20 @@ def main() -> int:
         L += ["- v5 critic agreement: NOT RUN."]
     if cc:
         L += [f"- Dev calibration (mutated states): see {src('critic_calibration')}."]
+    c6 = load("critic_v6")
+    if c6:
+        r = c6["results"]
+        w, fw = r["recall_wilson95"], r["false_alarm_wilson95"]
+        L += [
+            f"- FRESH planted set (critic v3, schema-enforced answers to failed rules): recall "
+            f"{r['recall']}/{r['planted_n']} (Wilson 95% {w[0]:.2f}-{w[1]:.2f}); false alarms "
+            f"{r['false_alarms']}/{r['clean_n']} clean runs (Wilson 95% {fw[0]:.2f}-{fw[1]:.2f}); "
+            f"{r['no_output']} clean items not run (40-request cap). By type: {r['recall_by_type']}. "
+            f"Source: {src('critic_v6')}, set `benchmarks/critic_set_v6.json` (sha256 "
+            f"`{r['set_sha256'][:16]}`, committed before the first call).",
+            "- The v5 agreement above (18/20) is burned and post-hoc: the critic was tuned after "
+            "reading v5-era failures.",
+        ]  # fmt: skip
     L += ["", "## Infrastructure (GitHub Actions evidence)", ""]
     ev = load("ci_evidence")
     if ev:
