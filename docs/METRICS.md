@@ -34,6 +34,7 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 - latest load: success - run 40945724068 (203 s) on `705cbdf` (load)
 - latest web: success - run 40945730802 (28 s) on `705cbdf` (web)
 - runs sampled: 30 most recent, 18 success
+- Run 7 completion (evasion DEV, FRESH 14-payload held-out set, 5 injected full agent runs): PENDING, queued for after the 2026-10-31 00:00 UTC cap reset (v0.2.1); resume commands in docs/PROGRESS.md.
 
 ## Load test
 
