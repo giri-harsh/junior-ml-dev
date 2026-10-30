@@ -245,3 +245,97 @@ def test_budget_denial_aborts_and_rolls_back(monkeypatch: pytest.MonkeyPatch) ->
         ev.reserve(60)
     assert ("commit", "groq", "0", "60") in sent  # the groq reservation was released
     assert ev.MAX_REQUESTS <= 60
+
+
+# --- the real main() path with a fake gateway/critic (no network, no budget file) ---------------
+class _GW:
+    def __init__(self) -> None:
+        self.stats = {"calls": 0, "cache_hits": 4, "fixture_hits": 9}
+        self.error_statuses: dict[str, int] = {"429": 1}
+        self.max_requests: int | None = None
+
+
+def _patch_main(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, prior_used: int | None, new_calls: int
+) -> tuple[list[tuple[str, ...]], _GW]:
+    import functools
+
+    gw = _GW()
+    sent: list[tuple[str, ...]] = []
+
+    class R:
+        returncode = 0
+
+    class Critic:
+        n = 0
+
+        def review_v3(self, summary: dict[str, Any]) -> Any:
+            if Critic.n < new_calls:  # only these reviews are uncached requests
+                gw.stats["calls"] += 1
+            Critic.n += 1
+            return _V("APPROVE")
+
+    monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
+    monkeypatch.setattr(ev, "_budget", lambda *a: (sent.append(a), R())[1])
+    monkeypatch.setattr(ev, "_usage", lambda: {"groq": 10, "gemini": 20})
+    monkeypatch.setattr(ev, "build_gateway", lambda: gw)
+    monkeypatch.setattr(ev, "make_critic", lambda g: Critic())
+    monkeypatch.setattr(ev, "run_items", functools.partial(ev.run_items, sleep=lambda s: None))
+    if prior_used is not None:
+        (tmp_path / f"{ev.RESULT_NAME}.json").write_text(
+            json.dumps({"results": {"no_output": 3, "requests_used": prior_used}}),
+            encoding="utf-8",
+        )
+    return sent, gw
+
+
+def test_complete_pass_cannot_overrun_the_total_cap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sent, gw = _patch_main(monkeypatch, tmp_path, prior_used=55, new_calls=4)
+    assert ev.main(["--complete"]) == 0
+    assert gw.max_requests == ev.MAX_REQUESTS - 55 == 5  # the gateway hard cap
+    assert [a for a in sent if a[0] == "reserve"] == [
+        ("reserve", "groq", "5"),
+        ("reserve", "gemini", "5"),
+    ]
+    res = json.loads((tmp_path / f"{ev.RESULT_NAME}.json").read_text(encoding="utf-8"))["results"]
+    # `calls` already excludes cache/fixture hits: the 4 + 9 hits must not be subtracted again
+    assert res["requests_this_pass"] == 4 and res["requests_used"] == 59
+    assert res["requests_first_pass"] == 55 and res["requests_used"] <= ev.MAX_REQUESTS
+    assert ("commit", "groq", "0", "5") in sent and ("commit", "gemini", "0", "5") in sent
+    # a repeat with the cap already spent must not run again
+    (tmp_path / f"{ev.RESULT_NAME}.json").write_text(
+        json.dumps({"results": {"no_output": 3, "requests_used": ev.MAX_REQUESTS}}),
+        encoding="utf-8",
+    )
+    with pytest.raises(SystemExit, match="request cap spent"):
+        ev.main(["--complete"])
+
+
+def test_first_pass_records_requests_and_cap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, gw = _patch_main(monkeypatch, tmp_path, prior_used=None, new_calls=7)
+    assert ev.main([]) == 0
+    assert gw.max_requests == ev.MAX_REQUESTS
+    res = json.loads((tmp_path / f"{ev.RESULT_NAME}.json").read_text(encoding="utf-8"))["results"]
+    assert res["requests_used"] == res["requests_first_pass"] == res["requests_this_pass"] == 7
+    assert "not paired" in res["vs_run7"]["note"]
+
+
+def test_failed_gateway_construction_releases_the_reservation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sent, _ = _patch_main(monkeypatch, tmp_path, prior_used=None, new_calls=0)
+
+    def boom() -> Any:
+        raise RuntimeError("missing GROQ_API_KEY")
+
+    monkeypatch.setattr(ev, "build_gateway", boom)
+    with pytest.raises(RuntimeError, match="missing"):
+        ev.main([])
+    n = str(ev.MAX_REQUESTS)
+    assert ("reserve", "groq", n) in sent and ("reserve", "gemini", n) in sent
+    assert ("commit", "groq", "0", n) in sent and ("commit", "gemini", "0", n) in sent
+    assert not (tmp_path / f"{ev.RESULT_NAME}.json").exists()

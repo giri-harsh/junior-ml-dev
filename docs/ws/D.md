@@ -81,6 +81,10 @@ only, as `run_summary` produces.
   per-provider usage (difference of `data/llm_usage.json`) and releases the rest, also on error.
 - 53 items cost 53 requests uncached; 7 spare for repair/429 retries. `--complete` re-runs the SAME
   prompt for items that got no output, with the cap reduced by what the first pass spent.
+- `requests_used` in the result is the cumulative count of uncached requests over all passes
+  (`gw.stats["calls"]` already excludes cache and fixture hits); `--complete` reads it from the prior
+  result, so repeated completions can never exceed the 60 total. Gateway construction sits inside the
+  try/finally that settles the budget reservation.
 - Pacing: 6 s after every uncached request (free Gemini tier rate-limits bursts).
 - `scripts/budget.py` is not on this branch (added on another branch of the run); the script calls
   it by path and works once merged. Tests mock the helper.

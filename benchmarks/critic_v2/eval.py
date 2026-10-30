@@ -150,6 +150,27 @@ def commit(n: int, used: dict[str, int]) -> None:
         _budget("commit", k, str(u), str(n))
 
 
+def build_gateway() -> Any:
+    from harness.gateway.live import build_live_gateway
+
+    return build_live_gateway(CASSETTE)
+
+
+def make_critic(gw: Any) -> Any:
+    from harness.agent.critic import LLMCriticV3
+
+    return LLMCriticV3(gw)
+
+
+def _usage() -> dict[str, int]:
+    """Requests recorded today per provider in the gateway's own usage ledger."""
+    from harness.gateway.limits import UsageLedger
+    from harness.gateway.live import USAGE_PATH
+
+    ledger = UsageLedger(USAGE_PATH)
+    return {k: ledger.used(k) for k in PROVIDERS}
+
+
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     complete, check = "--complete" in args, "--check" in args
@@ -165,33 +186,32 @@ def main(argv: list[str] | None = None) -> int:
         first = json.loads(prior.read_text(encoding="utf-8"))["results"]
         if not complete or not first["no_output"]:
             raise SystemExit(f"{prior.name} exists: the fresh set is evaluated once")
-        gs = first["gateway_stats"]
-        spent = gs["calls"] - gs["cache_hits"] - gs["fixture_hits"]
+        # cumulative uncached requests over all passes so far (cache/fixture hits never count)
+        spent = int(first["requests_used"])
     cap = MAX_REQUESTS - spent
     if cap <= 0:
         raise SystemExit("request cap spent")
 
-    from harness.agent.critic import LLMCriticV3
-    from harness.gateway.limits import UsageLedger
-    from harness.gateway.live import USAGE_PATH, build_live_gateway
-
     reserve(cap)
-    ledger = UsageLedger(USAGE_PATH)
-    before = {k: ledger.used(k) for k in PROVIDERS}
+    gw: Any = None
     rows: list[dict[str, Any]] = []
-    gw = build_live_gateway(CASSETTE)
-    gw.max_requests = cap
-    try:
-        critic = LLMCriticV3(gw)
-        rows = run_items(items, critic.review_v3, lambda: gw.stats["calls"])
-    finally:  # always return the unused part of the reservation
-        commit(cap, {k: ledger.used(k) - before[k] for k in PROVIDERS})
+    before: dict[str, int] = {}
+    try:  # the reservation is ALWAYS settled, also when building the gateway fails
+        before = _usage()
+        gw = build_gateway()
+        gw.max_requests = cap
+        rows = run_items(items, make_critic(gw).review_v3, lambda: gw.stats["calls"])
+    finally:
+        commit(cap, {k: v - before.get(k, v) for k, v in _usage().items()})
+    this_pass = int(gw.stats["calls"])  # `calls` already excludes cache and fixture hits
     res = {
         **score(rows),
         "set_sha256": SET.with_suffix(".sha256").read_text(encoding="utf-8").strip(),
         "forced_concurrence": sum(bool(r["defaulted_to_rules"]) for r in rows),
-        "requests_used": gw.stats["calls"] - gw.stats["cache_hits"] - gw.stats["fixture_hits"],
-        "max_requests": cap,
+        "requests_used": spent + this_pass,  # cumulative over passes; never above MAX_REQUESTS
+        "requests_first_pass": spent if spent else this_pass,
+        "requests_this_pass": this_pass,
+        "max_requests": MAX_REQUESTS,
         "gateway_stats": gw.stats,
         "error_statuses": gw.error_statuses,
         "rows": rows,
