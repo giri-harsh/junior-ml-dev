@@ -8,18 +8,25 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 [![infra](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml/badge.svg)](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml)
 
 > **Status (honest).** Two planners: a **scripted** one (deterministic, no LLM) and an **LLM** one
-> (Groq gpt-oss, Gemini fallback; cloud APIs only, hard-capped at 150 requests/day and 1 per 2 s
-> per provider). Headline = **v4**: 10 unseen OpenML tasks with >= 2,000 test rows each, each arm
-> evaluated once (scripted and LLM planner v2); v1-v3 are historical. Numbers: [docs/RESULTS.md](docs/RESULTS.md),
-> generated from `benchmarks/results/*.json`. What is verified where: the **ci** badge runs lint,
-> types, unit tests and gitleaks; the **infra** badge runs real Postgres, an arq worker container
-> that is `docker kill`ed mid-run and resumed, a generated predict-service container, and the Docker
-> sandbox suite (network blocked, read-only root, fork bomb contained, timeout kills the container).
-> Honest limits: the S3 service in CI/compose is a moto stand-in (MinIO no longer publishes pullable
-> images/binaries), E2B was never run (no key), the local subprocess sandbox is **not** isolation,
-> v4 per-task differences below ~0.02 are noise, and the LLM critic is advisory (it disagreed with
-> the rule-based reviewer on about half the runs). Gaps and resume steps: [docs/SKIPPED.md](docs/SKIPPED.md),
-> [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md).
+> (Groq gpt-oss, Gemini fallback; cloud APIs only, capped at 120 requests/day per provider and 1 per
+> 2 s). Headline = **v5**: 10 unseen OpenML tasks, each arm run once from the frozen tag
+> `agent-frozen-v5`. Normalized score (FLAML = 1): scripted 0.987, LLM planner 0.989 (95% CIs in
+> [docs/METRICS.md](docs/METRICS.md)); both beat the linear baseline (0.798) by about 0.19 and neither
+> is distinguishable from FLAML. Leakage detector v3: 29/30 planted bugs found on an unseen
+> partition, 0/30 false alarms on clean twins. Real-LLM prompt-injection rerun: 0/49 attacker actions
+> proposed, 0 unsafe executed. Every number is generated from `benchmarks/results/*.json` or a CI run:
+> [docs/METRICS.md](docs/METRICS.md), [docs/RESULTS.md](docs/RESULTS.md).
+>
+> **How to verify.** `python scripts/tasks.py gate` (ruff, mypy, pytest with a 91% coverage floor);
+> the **ci** badge runs the same plus bandit, pip-audit and an SBOM; **infra** runs real Postgres, an
+> arq worker container killed mid-run and resumed, and the Docker sandbox suite.
+>
+> **Limitations.** The S3 service in CI/compose is a moto stand-in (MinIO not pullable), E2B was never
+> run (no key), the local subprocess sandbox is **not** isolation, per-task differences below ~0.02
+> are noise, the LLM critic is advisory (18/20 agreement with the rules on v5), and load test numbers
+> come from a hosted runner (errors appear at 100 users). Gaps and resume steps:
+> [docs/SKIPPED.md](docs/SKIPPED.md), [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md),
+> [docs/NEEDS_HARSH.md](docs/NEEDS_HARSH.md).
 
 ## Architecture
 

@@ -89,6 +89,18 @@ def main() -> int:
         r = inj["results"]
         L += [f"- Real LLM in the loop ({name}): attacker action proposed {r['all']['behaviour_change']}/{r['all']['n']}, "
               f"unsafe actions executed {r['all']['unsafe_executed']}/{r['all']['n']}. Source: {src(name)}."]  # fmt: skip
+    cv = load("critic_v5")
+    cc = load("critic_calibration")
+    L += ["", "## Critic (advisory)", ""]
+    if cv:
+        r = cv["results"]
+        L += [f"- v5 runs, critic v2 vs rule reviewer: agreement {r['agree']}/{r['n_valid']} "
+              f"(Wilson 95% {r['agreement_wilson95'][0]:.2f}-{r['agreement_wilson95'][1]:.2f}); "
+              f"confusion {r['confusion']}; {r['requests']} requests. Source: {src('critic_v5')}."]  # fmt: skip
+    else:
+        L += ["- v5 critic agreement: NOT RUN."]
+    if cc:
+        L += [f"- Dev calibration (mutated states): see {src('critic_calibration')}."]
     L += ["", "## Infrastructure (GitHub Actions evidence)", ""]
     ev = load("ci_evidence")
     if ev:
