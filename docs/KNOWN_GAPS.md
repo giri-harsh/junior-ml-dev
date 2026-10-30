@@ -1,33 +1,19 @@
-# Known gaps (checks that could not run on this machine)
+# Known gaps (current as of run 7)
 
-| Gap | Why | Run later with |
+Older rows describing checks that "never ran" were removed: compose, Postgres/arq, the Docker
+sandbox suite, the kill-and-resume test and the generated predict service all run in CI
+(`infra.yml`, green). What remains:
+
+| Gap | Why | Resume |
 |---|---|---|
-| docker compose never started | Docker not installed | `python scripts/tasks.py up` then `python scripts/tasks.py test-integration` |
-| Scorer container cannot see `scorer_data` at runtime | needs Docker | integration test in the compose test target; a static check exists (`test_labels_not_in_worker_mount`) |
-| gitleaks | binary not installed; regex fallback used | `gitleaks detect --config .gitleaks.toml --no-banner` |
-| CI workflow never executed | no GitHub remote | push the repo and open a PR |
-| MCP tool-manifest pinning (PRD S12.4) | scheduled for S12 | n/a |
-| Leakage detector residual false positives (group probe on predictive low-cardinality ints; ordinal targets read as classes) | ADR-007 limitations 1-2 | extend real_dev, add structural entity check, re-tune, re-freeze (new hash, new eval partition needed) |
-| ObjectStore is local filesystem only (MinIO/S3 STUB) | Docker/MinIO unavailable | implement `MinioObjectStore` against the protocol in `apps/api/store.py`, then `python scripts/tasks.py test-integration` |
-| Profile job runs as a FastAPI background task (arq worker STUB) | Redis unavailable | arq worker arrives with the harness sprint |
-| LLM providers never called for real (Groq/Gemini/Ollama) | no keys, no local model | set GROQ_API_KEY or GEMINI_API_KEY and record fixtures (ADR-010) |
-| Sandbox egress/FS-escape/fork-bomb tests; LocalDockerBackend execution; E2B backend | no Docker, no E2B key | build image, set JMD_SANDBOX=docker, add integration tests (marker `integration`) |
-| Approvals/audit run on SQLite; Postgres + REVOKE variant not run; audit covers login and approvals only | no Postgres | port the two stores to Postgres, add integration tests, wire audit into every tool call |
-| deploy: containers never started; FLAML models not bundleable | Docker unavailable; FLAML object needs repo classes | `docker compose -f data/deploy/<run>/<model>/docker-compose.yml up -d --build` then `curl localhost:8000/health` |
-| Job queue is SQLite (arq + Redis STUB) | Redis/Postgres unavailable | implement `ArqJobQueue`, run tests/unit/test_queue.py contract against it |
-| Agent tools run in-process (trusted service code); agent-written code path (sandbox-exec run_python) is not exercised by the scripted planner | no Docker/E2B isolation | set JMD_SANDBOX=docker once an image exists |
-| Postgres run store, arq worker/queue, MinIO store, compose `app` profile (api+worker), `docker kill` resume test, generated predict-service container: code and `tests/infra` exist, NEVER RUN (no Docker/Postgres/Redis/MinIO). Compose file only YAML-validated; the minio healthcheck uses `curl`, which that image may lack | no Docker on this machine | `cp .env.example .env` (set JWT_SECRET, APPROVAL_SECRET), `python scripts/tasks.py up app`, `python scripts/tasks.py test-infra`; on failure `docker compose --profile app logs --tail 40 <svc>` |
-| arq re-delivery after a killed worker waits for the in-progress key to expire (ARQ_JOB_TIMEOUT + 10 s) | arq semantics, unverified here | set ARQ_JOB_TIMEOUT=30 for the kill test |
-| Docker/E2B sandbox backends still not run; subprocess sandbox has Windows job limits (2 GB, 2 processes, kill-on-close) but NO filesystem/network isolation | no Docker, no E2B key | build image, `JMD_SANDBOX=docker`, add `integration` tests |
-| CI workflow (ruff, mypy, unit pytest, gitleaks, compose config, infra job) only parsed as YAML; `act` absent | no GitHub remote | push and open a PR |
-| v2 post-hoc fixes not evaluated on held-out: strict id naming for numeric group candidates; reviewer `leakage_checked` | eval-once | needs a new freeze hash and an unseen partition |
-| In v2 cpu_act, detect_leakage exceeded its 60 s budget (machine under light load); that run had no leakage check and the then-reviewer approved | timing sensitivity | rerun forbidden by eval-once; v3 would also raise the budget |
-| LLM planner uses the LLM only for model-search choices; 21 of 35 proposals in the v3 LLM run were unusable (repeat or invalid family) and fell back to the script; it stopped the search early on kr-vs-kp and vowel and lost score there | design: prompts hold only numbers/family names | give the planner richer state (e.g. which families remain), still without dataset text |
-| Free-tier keys are shared with a live demo: caps (150/day, 1 per 2 s per family) are enforced in code, usage persists in data/llm_usage.json (UTC day) | policy | raise only with the owner's agreement |
-| v3 test sets are small (108-1639 rows): CIs are wide and per-task differences below ~0.02 are noise | dataset sizes | add larger unseen tasks in a future partition |
-| Brazilian_houses (v4): target `total_(BRL)` is (nearly) a linear sum of other columns; linear solves it (RMSE 12.9) and FLAML does not (298.7). The leakage detector did not flag it | linear-combination leakage is not a detector class | add a "target equals a linear combination of columns" check on a new partition |
-| ailerons (v4): FLAML and dummy are nearly equal in absolute RMSE, so its normalized score is undefined and excluded; scripted ailerons also lost its leakage check (time budget) and the reviewer asked for changes | tiny target scale / 60 s detector budget | raise the detect_leakage budget (v5) |
-| LLM critic is over-strict: it flags train-vs-CV gaps that tree models always show; agreement with the rule-based reviewer 9/19 | prompt design | calibrate on dev, not on v4 |
-| Critic evaluation used 31 requests (cap 30: a repair round trip counted after the last check) and covered 19 of 20 v4 runs | cap check happens before each call | stop at cap minus 2 |
-| S3 in CI/compose is moto, not MinIO; MinIO client code is exercised against it only | MinIO images/binaries not pullable | point MINIO_ENDPOINT at a real MinIO and rerun tests/infra |
-| E2B backend never run | no E2B_API_KEY | create a key, implement the backend, run the sandbox suite against it |
+| E2B backend never run | no `E2B_API_KEY` (NEEDS_HARSH 1) | create a key, run the sandbox suite against it |
+| S3 in CI/compose is moto, not MinIO | MinIO images are not pullable on the runner (NEEDS_HARSH 2) | point `MINIO_ENDPOINT` at a real MinIO, rerun `tests/infra` |
+| Deploy is local only | no cloud account (NEEDS_HARSH 3) | add a backend under `mcp_servers/deploy` |
+| Local subprocess sandbox is not isolation (Windows job limits only) | by design for dev | use `JMD_SANDBOX=docker` |
+| Hosted-runner load test shows 17.8% errors at 100 users | single-container API on a shared runner | add workers/pooling before claiming capacity |
+| v5 LLM arm used 130 requests for 40 proposals (90 failed attempts) | gateway retried 429/5xx and did not record statuses | fixed in run 7 (decision 136); v5 is not rerun, new evaluations get a new freeze hash |
+| Critic v3 fresh-set recall 10/15, false alarms 1/19, 4 clean items not run | 40-request cap; set design let numeric dissent through on 3 rule-fail items | a new, larger planted set (burned set cannot be reused) |
+| Injection results are proposals from a wider action space than production | the production planner sees no dataset text | an end-to-end injected-run harness with the production tool set (5 runs done in run 7) |
+| Per-task differences below ~0.02 are noise; test sets are small (v3-v5) | dataset sizes | add larger unseen tasks in a future partition |
+| LLM planner v2 is statistically tied with the scripted one on v5 (paired +0.001, CI includes 0) | the LLM only chooses model-search order | a planner that uses more than family order |
+| Leakage detector residual false positives (low-cardinality ints, ordinal targets) | ADR-007 limitations | extend dev data, add entity checks |
