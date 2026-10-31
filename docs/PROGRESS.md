@@ -59,3 +59,12 @@ Next priorities for future runs:
 2. Playwright e2e tests for web UI per PRD S9.5
 3. Integration of S6 charts into data story endpoint
 4. Other PRD gaps not blocked by missing services
+
+
+## RUN 11 (PRD gap closure, started 2026-10-31)
+Priority order: (1) PDF generation, (2) Wire S6 charts to data story, (3) Playwright e2e, (4) other gaps.
+Budgets: Groq 25/120, Gemini 25/120 (from Run 9), CI 0/20.
+
+S21.3 PDF generation: Code implemented (`harness/agent/pdf.py`, 13 unit tests) but WALL hit: WeasyPrint requires system libs (GTK/Pango via libgobject-2.0-0) not available on Windows. Tests can't run locally. Code is complete and follows PRD (single-page PDF, verified numbers, ≤3 charts, business-term metrics). Decision: document as partial completion, needs Linux/Docker environment or GTK install per WeasyPrint docs.
+
+NEXT: Priority 2 - integrate S6 charts into data story endpoint (NEW code alongside existing inline-SVG).

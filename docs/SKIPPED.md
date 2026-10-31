@@ -13,7 +13,7 @@ Docker, Postgres, Redis, E2B or an LLM key; none became reachable.
 | Agent roles beyond planner + deterministic reviewer (LLM reviewer, critic) | skipped | Needs an LLM | PRD S15-S16 |
 | Predict-in-sandbox scorer (agent supplies code that predicts inside the sandbox) | skipped | Needs working sandbox | PRD S11 |
 | Explainability (permutation importance) | DONE | Implemented in `mcp_servers/experiments/service.py::explain_model` with honest refit-on-75% holdout; called in agent report | integrated into reports (already done) |
-| PDF bundle (WeasyPrint) | skipped | Not implemented yet | PRD S21: install WeasyPrint, generate PDF from HTML report |
+| PDF bundle (WeasyPrint) | partially done (run 11) | Code implemented but WeasyPrint needs system libs (GTK/Pango) not available on Windows dev machine | PRD S21: install GTK libs per https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows, or use in Docker/Linux CI where libs are available |
 | Load test, tracing backend (OTel), dashboards | skipped | Needs services; logs, per-step trace JSON and /metrics exist | PRD S24 |
 | Docker compose / container deploy start | NOT RUN | Docker unavailable | `docker compose -f data/deploy/<run>/<model>/docker-compose.yml up -d --build` |
 | Ablations and stress runs of the agent benchmark | skipped | Eval-once: only one frozen evaluation exists | new freeze hash needs a new, unseen partition |
