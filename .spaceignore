@@ -1,0 +1,40 @@
+# Upload allowlist for the Hugging Face Space (read by scripts/deploy_space.py).
+# Gitignore-like, evaluated per file, the LAST matching line wins, and a file that matches nothing
+# is NOT uploaded. `*` first = deny everything; `!pattern` re-allows; `**` crosses directories.
+# Separately, scripts/deploy_space.py hard-refuses .env files, cassettes, benchmark raw data,
+# docs other than METRICS.md and anything a secret scan flags, whatever this file says.
+*
+
+# build inputs
+!pyproject.toml
+!uv.lock
+!Dockerfile.space
+
+# application code (no tests, no scripts, no docs, no CI)
+!apps/__init__.py
+!apps/api/**
+!apps/scorer/**
+!apps/web/dist/**
+!apps/web/demo/**
+!harness/**
+!trajectory/**
+!datastory/**
+!leakage/**
+!mcp_servers/**
+
+# the three benchmark modules the import graph needs; no results, no task data
+!benchmarks/__init__.py
+!benchmarks/metrics.py
+!benchmarks/tasks/__init__.py
+!benchmarks/tasks/registry.py
+!benchmarks/tasks/registry.yaml
+
+# the only doc the image needs: the landing page is rendered from it at build time
+!docs/METRICS.md
+
+# re-deny inside the allowed trees
+**/__pycache__/**
+*.pyc
+*.db
+*.sqlite
+*.log
