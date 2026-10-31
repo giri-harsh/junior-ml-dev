@@ -1,15 +1,32 @@
-"""Unit tests for PDF report generation (PRD S21.3)."""
+"""Unit tests for PDF report generation (PRD S21.3).
+
+Note: These tests require WeasyPrint which needs GTK/Pango system libraries.
+On Windows, these libraries are not available by default.
+Tests will be skipped on Windows unless GTK is installed.
+"""
 
 from __future__ import annotations
 
+import sys
 import tempfile
 from pathlib import Path
 
 import pytest
-from pypdf import PdfReader  # type: ignore[import-untyped]
 
-from harness.agent.models import RunConfig, RunTask
-from harness.agent.pdf import generate_pdf
+# Skip all tests in this module on Windows due to WeasyPrint GTK dependency
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="WeasyPrint requires GTK/Pango system libraries not available on Windows"
+)
+
+# Conditional imports to avoid import errors on Windows
+if sys.platform != "win32":
+    from pypdf import PdfReader  # type: ignore[import-untyped]
+    from harness.agent.pdf import generate_pdf
+    from harness.agent.models import RunConfig, RunTask
+else:
+    # Dummy definitions for Windows
+    PdfReader = RunConfig = RunTask = generate_pdf = None  # type: ignore
 
 
 @pytest.fixture
@@ -205,3 +222,4 @@ def test_pdf_limits_leaderboard_to_top_5(sample_config: RunConfig, tmp_path: Pat
     
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1
+
