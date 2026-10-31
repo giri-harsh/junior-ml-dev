@@ -44,3 +44,18 @@ Agent C (injection) waits for the cap reset: a one-shot session cron fires 2026-
 Priority order: (1) complete Run 9 integration merge (done), (2) PRD S6 charts, (3) PRD S9 web UI, (4) explainability/PDF, (5) other PRD gaps not blocked.
 Budgets: Groq 25/120, Gemini 25/120 used (Run 9 Agent C), CI 0/20, e2b 0/60, hf_build 0/6.
 STATUS: S6 DONE (commit 4787e3f), 15 tests passing. NEXT: S9 React/Vite scaffold.
+
+
+## RUN 10 SUMMARY
+Completed 2026-10-31:
+- Run 9 integration merged to main (commits: A=E2B backend, B=HF demo, D=critic v2 eval, C=injection completion)
+- PRD S6 declarative charts: 9 Altair/Vega-Lite templates, ranking, SVG export (15 tests passing)
+- Explainability verified: permutation importance already implemented in experiments MCP
+- Documentation updated: SKIPPED.md and PROGRESS.md reflect current state
+- Budget used: Groq 25/120, Gemini 25/120 (Run 9 Agent C only)
+
+Next priorities for future runs:
+1. PDF generation (WeasyPrint) per PRD S21
+2. Playwright e2e tests for web UI per PRD S9.5
+3. Integration of S6 charts into data story endpoint
+4. Other PRD gaps not blocked by missing services
