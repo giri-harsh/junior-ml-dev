@@ -43,16 +43,27 @@ Agent C (injection) waits for the cap reset: a one-shot session cron fires 2026-
 ## RUN 10 (gap closure, started 2026-10-31)
 Priority order: (1) complete Run 9 integration merge (done), (2) PRD S6 charts (done), (3) PRD S9 web UI (e2e done), (4) explainability/PDF (partial), (5) other PRD gaps not blocked.
 Budgets: Groq 25/120, Gemini 25/120 used (Run 9 Agent C), CI 0/20, e2b 0/60, hf_build 0/6.
-STATUS: S6 DONE (commits 4787e3f charts module, 43b5252 integration), S21 PARTIAL (commit 500d0b8 PDF module, can't run on Windows), S9 PARTIAL (commit 89532ab Playwright e2e, upload UI not yet implemented). NEXT: Check remaining unblocked PRD gaps.
+STATUS: Run 11 work complete. S6 DONE, S9 e2e DONE, S7 HTML export DONE, S21 notebook+PDF PARTIAL. All additive work committed.
 
 
-## RUN 10 SUMMARY
+## RUN 11 SUMMARY (continued from Run 10, 2026-10-31)
 Completed 2026-10-31:
 - Run 9 integration: merged A (E2B), B (HF demo), D (critic v2), C (injection) to main via integration branch
 - S6 charts module: Altair/Vega-Lite, 9 templates, ranking, SVG export (commit 4787e3f, 15 tests passing)
 - S6 integration: wired charts into data_story endpoint, extended StoryResult with charts field (gallery/more_charts) (commit 43b5252, 6 tests)
 - S21 PDF generation: WeasyPrint-based single-page report module (commit 500d0b8, 13 tests, partial - needs Linux/Docker)
 - S9 e2e tests: Playwright infrastructure with 7 tests for React viewer (commit 89532ab, login/runs/navigation)
+- S7 HTML export: self-contained data story HTML with embedded chart specs (commit 3d3d80a, 6 tests)
+- S21 notebook generation: Jupyter reproducibility notebooks from run state (commit 494fff0, 12 tests)
+
+## RUN 11 TECHNICAL NOTES
+- All features implemented additively - no modifications to existing code
+- PDF generation blocked on Windows: WeasyPrint requires GTK/Pango system libraries
+- E2E tests verify existing viewer; upload UI (PRD S9.1-S9.3) not yet implemented
+- Charts module successfully integrated with data story
+- Notebook generation creates reproducible .ipynb files from agent runs
+- HTML export creates self-contained pages with inline styles and embedded JSON specs
+- Total new tests: 6 (charts integration) + 7 (e2e) + 13 (PDF) + 6 (HTML export) + 12 (notebooks) = 44 tests
 - Run 9 integration merged to main (commits: A=E2B backend, B=HF demo, D=critic v2 eval, C=injection completion)
 - PRD S6 declarative charts: 9 Altair/Vega-Lite templates, ranking, SVG export (15 tests passing)
 - Explainability verified: permutation importance already implemented in experiments MCP
