@@ -1,0 +1,626 @@
+{
+  "command": "C:\\Work\\Projects\\junior-ml-dev\\benchmarks\\critic_v2\\eval.py",
+  "conditions": {
+    "llm": "real",
+    "machine_id": "Harsh-Pc",
+    "n": 53,
+    "notes": "FRESH planted set v2 (unambiguous rule failures), critic v3, real LLM",
+    "sandbox": "none"
+  },
+  "date": "2026-10-31T03:50:40+00:00",
+  "git_sha": "d4f2232f9d1e8b10a4c39ffb46aae07a68e927c5",
+  "name": "critic_v2_eval",
+  "results": {
+    "baseline_margin_dissent": 4,
+    "clean_n": 25,
+    "error_statuses": {},
+    "false_alarm_wilson95": [
+      0.0,
+      0.13319649395317873
+    ],
+    "false_alarms": 0,
+    "forced_concurrence": 0,
+    "gateway_stats": {
+      "cache_hits": 0,
+      "calls": 45,
+      "fallbacks": 0,
+      "fixture_hits": 0,
+      "repairs": 0,
+      "retries": 0,
+      "structured": 53,
+      "structured_failed": 0,
+      "structured_first_try_valid": 45
+    },
+    "max_requests": 60,
+    "no_output": 8,
+    "planted_n": 20,
+    "recall": 15,
+    "recall_by_type": {
+      "cv_instability": "1/1",
+      "gap_beyond_family_range": "3/3",
+      "leakage_not_run": "2/2",
+      "lift_below_one": "2/2",
+      "metric_task_mismatch": "2/2",
+      "partial_leakage_check": "3/3",
+      "rule_fail_baseline_margin": "0/4",
+      "tiny_test": "1/2",
+      "unresolved_leakage": "1/1"
+    },
+    "recall_wilson95": [
+      0.5312949900419365,
+      0.888139947210597
+    ],
+    "requests_first_pass": 45,
+    "requests_this_pass": 45,
+    "requests_used": 45,
+    "rows": [
+      {
+        "concerns": [
+          "blocker: Leakage coverage incomplete"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d00",
+        "planted": "partial_leakage_check",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d01",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d02",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Train/validation gap exceeds acceptable range"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d03",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d04",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage coverage is incomplete"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d05",
+        "planted": "partial_leakage_check",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d06",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "d07",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d08",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "d09",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Train/validation gap exceeds allowed range"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d10",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d11",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d12",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage not resolved"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d13",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d14",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage coverage incomplete"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d15",
+        "planted": "partial_leakage_check",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "d16",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d17",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Cross-validation SE ratio too high",
+          "blocker: Lift over dummy SE below 1"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d18",
+        "planted": "lift_below_one",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d19",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d20",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: cv_se_ratio above 0.2"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d21",
+        "planted": "cv_instability",
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage detection did not run"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d22",
+        "planted": "leakage_not_run",
+        "rule_failed": [
+          "leakage_checked"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d23",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d24",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d25",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d26",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d27",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Train/validation gap too large"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d28",
+        "planted": "gap_beyond_family_range",
+        "rule_failed": [
+          "train_val_gap"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Small sample size (45 rows) below threshold"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d29",
+        "planted": "tiny_test",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d30",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d31",
+        "planted": "tiny_test",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d32",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Cross-validation SE ratio too high",
+          "blocker: Lift over dummy SE below 1"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d33",
+        "planted": "lift_below_one",
+        "rule_failed": []
+      },
+      {
+        "concerns": [
+          "blocker: Leakage check failed"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d34",
+        "planted": "leakage_not_run",
+        "rule_failed": [
+          "leakage_checked"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Metric does not match task type"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d35",
+        "planted": "metric_task_mismatch",
+        "rule_failed": [
+          "metric_matches_task"
+        ]
+      },
+      {
+        "concerns": [
+          "blocker: Metric f1_macro does not match regression task"
+        ],
+        "critic": "REQUEST_CHANGES",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d36",
+        "planted": "metric_task_mismatch",
+        "rule_failed": [
+          "metric_matches_task"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d37",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d38",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d39",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [
+          "baseline_margin"
+        ],
+        "id": "d40",
+        "planted": "rule_fail_baseline_margin",
+        "rule_failed": [
+          "baseline_margin"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d41",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d42",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d43",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": "APPROVE",
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d44",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d45",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d46",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d47",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d48",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d49",
+        "planted": "cv_instability",
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d50",
+        "planted": null,
+        "rule_failed": []
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d51",
+        "planted": "unresolved_leakage",
+        "rule_failed": [
+          "leakage_resolved"
+        ]
+      },
+      {
+        "concerns": [],
+        "critic": null,
+        "defaulted_to_rules": [],
+        "dissent": [],
+        "id": "d52",
+        "planted": null,
+        "rule_failed": []
+      }
+    ],
+    "set_sha256": "bfdcaf09a5aa03463394a799311f9cf150a68d3abaef55d4c8ca0104415bf628",
+    "vs_run7": {
+      "note": "DIFFERENT set, not paired: run 7's baseline-margin items were defensible numerically (set-design flaw); run 9's are not, so recall is not comparable item for item and differences are not attributable to the critic alone.",
+      "run7": {
+        "false_alarm_wilson95": [
+          0.009351752490529969,
+          0.2463921533654521
+        ],
+        "false_alarms": "1/19",
+        "recall": "10/15",
+        "recall_wilson95": [
+          0.41713125151212976,
+          0.8482389930530876
+        ],
+        "set": "benchmarks/critic_set_v6.json"
+      },
+      "run9": {
+        "false_alarms": "0/25",
+        "recall": "15/20",
+        "set": "benchmarks/critic_v2/set_v2.json"
+      }
+    }
+  }
+}
