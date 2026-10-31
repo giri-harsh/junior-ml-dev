@@ -58,7 +58,9 @@ def gate() -> int:
         run("uv", "run", "ruff", "check", ".")
         or run("uv", "run", "ruff", "format", "--check", ".")
         or run("uv", "run", "mypy")
-        or run("uv", "run", "pytest", "-q", "-m", "not infra and not llm and not compose")
+        or run(
+            "uv", "run", "pytest", "-q", "-m", "not infra and not llm and not compose and not e2b"
+        )
     )
 
 
@@ -87,7 +89,15 @@ def audit() -> int:
 
 
 def coverage() -> int:
-    return run("uv", "run", "pytest", "-q", "-m", "not infra and not llm and not compose", "--cov")
+    return run(
+        "uv",
+        "run",
+        "pytest",
+        "-q",
+        "-m",
+        "not infra and not llm and not compose and not e2b",
+        "--cov",
+    )
 
 
 def changelog() -> int:

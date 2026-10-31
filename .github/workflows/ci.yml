@@ -23,7 +23,7 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
-      - run: uv run pytest -q -m "not integration and not infra and not llm" --cov --cov-fail-under=91
+      - run: uv run pytest -q -m "not integration and not infra and not llm and not e2b" --cov --cov-fail-under=91
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -133,7 +133,8 @@ def test_docker_command_is_locked_down() -> None:
     assert cmd[cmd.index("--user") + 1] == "65534:65534" and "no-new-privileges" in cmd
 
 
-def test_e2b_is_an_explicit_stub() -> None:
+def test_e2b_without_a_key_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("E2B_API_KEY", raising=False)  # a set key would create a real sandbox
     with pytest.raises(NotImplementedError):
         E2BBackend().run_python("print(1)", 1, {})
 
