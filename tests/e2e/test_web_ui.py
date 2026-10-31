@@ -39,26 +39,28 @@ def api_is_running() -> bool:
     try:
         with socket.create_connection(("localhost", 8000), timeout=2):
             return True
-    except (socket.error, socket.timeout):
+    except (TimeoutError, OSError):
         return False
 
 
 @pytest.mark.skipif(not has_node(), reason="Node.js not available")
-@pytest.mark.skipif(not has_playwright(), reason="Playwright not installed (run: cd apps/web && npm install)")
+@pytest.mark.skipif(
+    not has_playwright(), reason="Playwright not installed (run: cd apps/web && npm install)"
+)
 @pytest.mark.skipif(not api_is_running(), reason="API server not running at localhost:8000")
 def test_web_ui_e2e() -> None:
     """Run Playwright e2e tests for the React run viewer.
-    
+
     PRD S9.5: e2e tests verify the UI works end-to-end.
     """
     web_dir = Path(__file__).parents[2] / "apps" / "web"
-    
+
     # Set environment variables for tests
     env = os.environ.copy()
     # Admin credentials if available
     if "ADMIN_USER" in env and "ADMIN_PASSWORD" in env:
         pass  # Already set
-    
+
     # Run Playwright tests
     result = subprocess.run(
         ["npx", "playwright", "test"],
@@ -68,7 +70,7 @@ def test_web_ui_e2e() -> None:
         timeout=120,
         env=env,
     )
-    
+
     # Print output for debugging
     if result.stdout:
         print("\n=== Playwright stdout ===")
@@ -76,7 +78,7 @@ def test_web_ui_e2e() -> None:
     if result.stderr:
         print("\n=== Playwright stderr ===")
         print(result.stderr)
-    
+
     # Check result
     assert result.returncode == 0, f"Playwright tests failed with exit code {result.returncode}"
 
@@ -95,6 +97,6 @@ def test_e2e_tests_exist() -> None:
     web_dir = Path(__file__).parents[2] / "apps" / "web"
     e2e_dir = web_dir / "e2e"
     assert e2e_dir.exists(), "e2e directory not found"
-    
+
     test_files = list(e2e_dir.glob("*.spec.js"))
     assert len(test_files) > 0, "No .spec.js files found in e2e directory"

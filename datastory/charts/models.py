@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class ChartSpec(BaseModel):
     """Vega-Lite chart specification with metadata.
-    
+
     Per PRD S6.5: deterministic alt text, spec ≤500 KB, mapped to insights.
     """
 

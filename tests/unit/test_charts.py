@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from datastory.charts import ChartSpec, generate_chart_candidates, render_spec_to_svg
+from datastory.charts import generate_chart_candidates, render_spec_to_svg
 from datastory.charts.ranking import rank_charts
 from datastory.charts.templates import (
     box_by_class,

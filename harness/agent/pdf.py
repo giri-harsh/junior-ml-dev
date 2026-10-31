@@ -41,15 +41,15 @@ def generate_pdf(
     out_path: Path,
 ) -> None:
     """Generate single-page stakeholder PDF from run state (PRD S21.3).
-    
+
     All numbers are computed deterministically from state (no LLM-generated claims).
     Charts limited to ≤3 for single-page constraint.
-    
+
     Args:
         cfg: Run configuration
         state: Run state dict (from write_report context)
         out_path: Output PDF path
-    
+
     Raises:
         ValueError: If generated PDF is not exactly 1 page (PRD acceptance criterion)
     """
@@ -59,24 +59,24 @@ def generate_pdf(
     review = state.get("review", {})
     prof = state.get("profile", {})
     expl = state.get("explain") or {}
-    
+
     # Select best model
     chosen = state.get("chosen") or (board[0]["model_id"] if board else "none")
-    chosen_model = next((m for m in board if m["model_id"] == chosen), {})
-    
+    chosen_model: dict[str, Any] = next((m for m in board if m["model_id"] == chosen), {})
+
     # Business metrics (verified from state, not generated)
     n_rows = prof.get("n_rows", "?")
     n_cols = prof.get("n_cols", "?")
     val_score = chosen_model.get("val_score", float("nan"))
     family = chosen_model.get("family", "n/a")
-    
+
     # Leakage summary
     n_findings = len(findings)
     high_severity = sum(1 for f in findings if f.get("severity") == "high")
-    
+
     # Top features (≤3 for space)
     top_features = [(i["feature"], i["mean_drop"]) for i in expl.get("top", [])][:3]
-    
+
     # Build HTML for PDF
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -184,8 +184,8 @@ def generate_pdf(
         </div>
         <div class="metric-box">
             <div class="metric-label">Quality Checks</div>
-            <div class="metric-value {'pass' if review.get('verdict') == 'APPROVE' else 'fail'}">
-                {_t(str(review.get('verdict', 'n/a')))}
+            <div class="metric-value {"pass" if review.get("verdict") == "APPROVE" else "fail"}">
+                {_t(str(review.get("verdict", "n/a")))}
             </div>
         </div>
     </div>
@@ -194,7 +194,7 @@ def generate_pdf(
     <p>
         <strong>Leakage findings:</strong> {n_findings} total
         ({high_severity} high severity).
-        {'All findings addressed.' if n_findings == 0 else 'See detailed report for remediation.'}
+        {"All findings addressed." if n_findings == 0 else "See detailed report for remediation."}
     </p>
     
     {_render_findings_table(findings[:5])}
@@ -202,7 +202,7 @@ def generate_pdf(
     <h2>Model Comparison</h2>
     {_render_leaderboard_table(board[:5], cfg.task.metric)}
     
-    {_render_feature_importance(top_features, cfg.task.metric) if top_features else ''}
+    {_render_feature_importance(top_features, cfg.task.metric) if top_features else ""}
     
     <h2>Intended Use</h2>
     <p>
@@ -221,20 +221,20 @@ def generate_pdf(
 </body>
 </html>
 """
-    
+
     # Generate PDF
     pdf_bytes = HTML(string=html_content).write_pdf()
-    
+
     # Verify single-page constraint (PRD S21 acceptance)
-    from pypdf import PdfReader  # type: ignore[import-untyped]
-    
+    from pypdf import PdfReader
+
     reader = PdfReader(BytesIO(pdf_bytes))
     if len(reader.pages) != 1:
         raise ValueError(
             f"Generated PDF has {len(reader.pages)} pages, expected exactly 1 "
             "(PRD S21 acceptance criterion)"
         )
-    
+
     # Write to file
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes(pdf_bytes)
@@ -244,7 +244,7 @@ def _render_findings_table(findings: list[dict[str, Any]]) -> str:
     """Render leakage findings table (limited to top 5 for space)."""
     if not findings:
         return "<p><em>No leakage findings detected.</em></p>"
-    
+
     rows = "\n".join(
         f"<tr><td>{_t(f['severity'])}</td><td>{_t(f['type'])}</td>"
         f"<td>{_t(', '.join(f['columns'][:3]), 80)}</td></tr>"
@@ -260,7 +260,7 @@ def _render_leaderboard_table(board: list[dict[str, Any]], metric: str) -> str:
     """Render model leaderboard (limited to top 5 for space)."""
     if not board:
         return "<p><em>No models trained.</em></p>"
-    
+
     rows = "\n".join(
         f"<tr><td>{_t(m['model_id'], 30)}</td><td>{_t(m['family'])}</td>"
         f"<td>{m['val_score']:.4f}</td></tr>"
@@ -274,10 +274,7 @@ def _render_leaderboard_table(board: list[dict[str, Any]], metric: str) -> str:
 
 def _render_feature_importance(features: list[tuple[str, float]], metric: str) -> str:
     """Render top 3 features by permutation importance."""
-    rows = "\n".join(
-        f"<tr><td>{_t(feat)}</td><td>{val:.4f}</td></tr>"
-        for feat, val in features
-    )
+    rows = "\n".join(f"<tr><td>{_t(feat)}</td><td>{val:.4f}</td></tr>" for feat, val in features)
     return f"""<h2>Top Predictive Features</h2>
     <p><em>Permutation importance: score drop when feature is shuffled</em></p>
     <table>

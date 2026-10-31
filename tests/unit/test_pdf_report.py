@@ -8,7 +8,6 @@ Tests will be skipped on Windows unless GTK is installed.
 from __future__ import annotations
 
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -16,14 +15,15 @@ import pytest
 # Skip all tests in this module on Windows due to WeasyPrint GTK dependency
 pytestmark = pytest.mark.skipif(
     sys.platform == "win32",
-    reason="WeasyPrint requires GTK/Pango system libraries not available on Windows"
+    reason="WeasyPrint requires GTK/Pango system libraries not available on Windows",
 )
 
 # Conditional imports to avoid import errors on Windows
 if sys.platform != "win32":
     from pypdf import PdfReader  # type: ignore[import-untyped]
-    from harness.agent.pdf import generate_pdf
+
     from harness.agent.models import RunConfig, RunTask
+    from harness.agent.pdf import generate_pdf
 else:
     # Dummy definitions for Windows
     PdfReader = RunConfig = RunTask = generate_pdf = None  # type: ignore
@@ -72,7 +72,7 @@ def test_generate_pdf_creates_single_page(
     """Test PDF generation creates exactly 1 page (PRD S21 acceptance)."""
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, sample_state, pdf_path)
-    
+
     assert pdf_path.exists()
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1, f"Expected 1 page, got {len(reader.pages)}"
@@ -84,11 +84,11 @@ def test_pdf_contains_key_metrics(
     """Test PDF contains verified numbers from state."""
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, sample_state, pdf_path)
-    
+
     # Extract text from PDF
     reader = PdfReader(pdf_path)
     text = reader.pages[0].extract_text()
-    
+
     # Verify key metrics present
     assert "1000 rows" in text
     assert "10 columns" in text
@@ -108,7 +108,7 @@ def test_pdf_with_no_findings(sample_config: RunConfig, tmp_path: Path) -> None:
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     reader = PdfReader(pdf_path)
     text = reader.pages[0].extract_text()
     assert "0 total" in text or "No leakage" in text
@@ -125,7 +125,7 @@ def test_pdf_with_no_explainability(sample_config: RunConfig, tmp_path: Path) ->
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     # Should still be exactly 1 page
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1
@@ -148,7 +148,7 @@ def test_pdf_sanitizes_untrusted_content(sample_config: RunConfig, tmp_path: Pat
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     reader = PdfReader(pdf_path)
     text = reader.pages[0].extract_text()
     # Should not contain raw script tags
@@ -166,7 +166,7 @@ def test_pdf_handles_missing_optional_fields(sample_config: RunConfig, tmp_path:
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1
     text = reader.pages[0].extract_text()
@@ -176,11 +176,11 @@ def test_pdf_handles_missing_optional_fields(sample_config: RunConfig, tmp_path:
 def test_pdf_metric_formatting() -> None:
     """Test business-friendly metric formatting."""
     from harness.agent.pdf import _format_metric
-    
+
     assert "accuracy" in _format_metric("roc_auc", 0.85).lower()
     assert "0.850" in _format_metric("roc_auc", 0.85)
     assert "higher is better" in _format_metric("roc_auc", 0.85).lower()
-    
+
     assert "error" in _format_metric("rmse", 12.5).lower()
     assert "12.500" in _format_metric("rmse", 12.5)
     assert "lower is better" in _format_metric("rmse", 12.5).lower()
@@ -200,7 +200,7 @@ def test_pdf_limits_findings_to_top_5(sample_config: RunConfig, tmp_path: Path) 
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1  # Still fits on one page
 
@@ -219,7 +219,6 @@ def test_pdf_limits_leaderboard_to_top_5(sample_config: RunConfig, tmp_path: Pat
     }
     pdf_path = tmp_path / "report.pdf"
     generate_pdf(sample_config, state, pdf_path)
-    
+
     reader = PdfReader(pdf_path)
     assert len(reader.pages) == 1
-

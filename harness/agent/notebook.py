@@ -3,7 +3,11 @@
 Generates Jupyter notebook from accepted agent code with metadata, seeds, and environment.
 """
 
+# mypy: disable-error-code="no-untyped-call"
+
 from __future__ import annotations
+
+from typing import Any
 
 import nbformat
 from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
@@ -11,24 +15,21 @@ from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 from harness.agent.models import RunConfig, StepRecord
 
 
-def generate_notebook(
-    cfg: RunConfig, state: dict, records: list[StepRecord]
-) -> nbformat.NotebookNode:
+def generate_notebook(cfg: RunConfig, state: dict[str, Any], records: list[StepRecord]) -> Any:
     """Generate reproducibility notebook from run state (PRD S21.1).
-    
+
     Notebook contains:
     - Setup: imports, seeds, data loading
     - Code cells from accepted steps
     - Model training and evaluation
     - Metadata: Python version, seeds, run config
-    
+
     Returns nbformat NotebookNode ready to write with nbformat.write().
     """
     nb = new_notebook()
-    
+
     # Header
-    nb.cells.append(
-        new_markdown_cell(f"""# Reproducibility Notebook: {cfg.run_id}
+    header_text = f"""# Reproducibility Notebook: {cfg.run_id}
 
 Generated from junior-ml-dev agent run.
 
@@ -41,9 +42,9 @@ Generated from junior-ml-dev agent run.
 
 ## Setup
 Install dependencies and set random seeds.
-""")
-    )
-    
+"""
+    nb.cells.append(new_markdown_cell(header_text))
+
     # Setup cell: imports and seeds
     setup_code = f"""# Setup
 import numpy as np
@@ -58,15 +59,14 @@ np.random.seed(SEED)
 print(f"Setup complete with seed={{SEED}}")
 """
     nb.cells.append(new_code_cell(setup_code))
-    
+
     # Data loading
-    nb.cells.append(
-        new_markdown_cell("""## Data Loading
+    data_header = """## Data Loading
 
 Load the dataset and prepare train/test split.
-""")
-    )
-    
+"""
+    nb.cells.append(new_markdown_cell(data_header))
+
     data_code = f"""# Load data
 df = pd.read_parquet("{cfg.task.data_path}")
 print(f"Loaded {{len(df)}} rows, {{len(df.columns)}} columns")
@@ -75,48 +75,49 @@ print(f"Loaded {{len(df)}} rows, {{len(df.columns)}} columns")
 df.head()
 """
     nb.cells.append(new_code_cell(data_code))
-    
+
     # Dropped columns (if any)
     dropped = state.get("dropped", [])
     if dropped:
-        nb.cells.append(new_markdown_cell("## Column Drops\n\nColumns dropped due to leakage/ID policy."))
+        drop_header = "## Column Drops\n\nColumns dropped due to leakage/ID policy."
+        nb.cells.append(new_markdown_cell(drop_header))
+
         drop_code = f"""# Drop columns identified as leakage risks
 dropped_columns = {dropped!r}
 df = df.drop(columns=dropped_columns)
 print(f"Dropped {{len(dropped_columns)}} columns: {{dropped_columns}}")
 """
         nb.cells.append(new_code_cell(drop_code))
-    
+
     # Feature engineering (from accepted steps)
     final_code = state.get("final_code", "")
     if final_code:
-        nb.cells.append(
-            new_markdown_cell("""## Feature Engineering
+        fe_header = """## Feature Engineering
 
 Feature engineering code accepted by the agent.
-""")
-        )
+"""
+        nb.cells.append(new_markdown_cell(fe_header))
         nb.cells.append(new_code_cell(final_code))
-    
+
     # Model training
     chosen = state.get("chosen")
     model_info = state.get("models", {}).get(chosen or "", {})
     family = model_info.get("family", "unknown")
-    
-    nb.cells.append(
-        new_markdown_cell(f"""## Model Training
+
+    train_header = f"""## Model Training
 
 Train {family} model on the prepared data.
-""")
-    )
-    
+"""
+    nb.cells.append(new_markdown_cell(train_header))
+
+    stratify_param = f'y if "{cfg.task.task_type}" != "regression" else None'
     train_code = f"""# Train/test split
 target = "{cfg.task.target}"
 X = df.drop(columns=[target])
 y = df[target]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=SEED, stratify=y if "{cfg.task.task_type}" != "regression" else None
+    X, y, test_size=0.2, random_state=SEED, stratify={stratify_param}
 )
 
 print(f"Train: {{len(X_train)}} rows, Test: {{len(X_test)}} rows")
@@ -126,20 +127,19 @@ print(f"Train: {{len(X_train)}} rows, Test: {{len(X_test)}} rows")
 # This notebook demonstrates the data preparation pipeline
 """
     nb.cells.append(new_code_cell(train_code))
-    
+
     # Results summary
     val_score = model_info.get("val_score", "n/a")
-    nb.cells.append(
-        new_markdown_cell(f"""## Results
+    results_text = f"""## Results
 
 - Chosen model: {chosen or "none"}
 - Family: {family}
 - Validation {cfg.task.metric}: {val_score}
 
 See the full bundle for model artifacts and detailed results.
-""")
-    )
-    
+"""
+    nb.cells.append(new_markdown_cell(results_text))
+
     # Metadata
     nb.metadata = {
         "kernelspec": {
@@ -160,12 +160,12 @@ See the full bundle for model artifacts and detailed results.
             "metric": cfg.task.metric,
         },
     }
-    
+
     return nb
 
 
 def write_notebook(
-    cfg: RunConfig, state: dict, records: list[StepRecord], output_path: str
+    cfg: RunConfig, state: dict[str, Any], records: list[StepRecord], output_path: str
 ) -> None:
     """Generate and write notebook to file."""
     nb = generate_notebook(cfg, state, records)

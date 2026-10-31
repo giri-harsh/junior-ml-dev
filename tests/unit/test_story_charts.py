@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
 from datastory.models import ColumnProfile, DatasetProfile, TargetProfile
 from datastory.story import build_charts
@@ -152,7 +151,7 @@ def test_build_charts_with_valid_data() -> None:
     )
     insights = [{"id": "insight1", "type": "high_correlation", "importance": 1.0}]
     result = build_charts(df, profile, insights, top_n=12)
-    
+
     assert "gallery" in result
     assert "more_charts" in result
     assert isinstance(result["gallery"], list)
@@ -220,7 +219,7 @@ def test_build_charts_respects_top_n() -> None:
         suspected_group=[],
     )
     result = build_charts(df, profile, [], top_n=3)
-    
+
     # Gallery should have at most 3 charts
     assert len(result["gallery"]) <= 3
 
@@ -271,7 +270,7 @@ def test_build_charts_includes_chart_metadata() -> None:
         suspected_group=[],
     )
     result = build_charts(df, profile, [], top_n=12)
-    
+
     # Check that charts have required fields
     all_charts = result["gallery"] + result["more_charts"]
     for chart in all_charts:

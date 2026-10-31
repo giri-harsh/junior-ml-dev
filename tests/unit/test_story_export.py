@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datastory.export import story_to_html
-from datastory.models import ColumnProfile, DatasetProfile, StoryResult, TargetProfile
+from datastory.models import DatasetProfile, StoryResult, TargetProfile
 from leakage.models import Finding, FindingType, Severity
 
 
@@ -35,11 +35,11 @@ def test_story_to_html_basic() -> None:
         markdown="# Test Story\n\nThis is a test.",
         charts={},
     )
-    
+
     html = story_to_html(story)
-    
+
     assert "<!DOCTYPE html>" in html
-    assert "<html lang=\"en\">" in html
+    assert '<html lang="en">' in html
     assert "Data Story" in html
     assert "100" in html  # Row count
     assert "3" in html  # Column count
@@ -84,9 +84,9 @@ def test_story_to_html_with_findings() -> None:
         markdown="Story text",
         charts={},
     )
-    
+
     html = story_to_html(story)
-    
+
     assert "Leakage Findings" in html
     assert "HIGH" in html
     assert "target_leakage" in html
@@ -137,9 +137,9 @@ def test_story_to_html_with_charts() -> None:
         markdown="Story with charts",
         charts=charts,
     )
-    
+
     html = story_to_html(story)
-    
+
     assert "Chart Gallery" in html
     assert "Test bar chart" in html
     assert "test_chart_1" in html
@@ -176,9 +176,9 @@ def test_story_to_html_escapes_dangerous_content() -> None:
         markdown="<b>Bold text</b>",
         charts={},
     )
-    
+
     html = story_to_html(story)
-    
+
     # Should be escaped
     assert "&lt;script&gt;" in html
     assert "<script>" not in html
@@ -207,16 +207,16 @@ def test_story_to_html_self_contained() -> None:
         markdown="Test",
         charts={},
     )
-    
+
     html = story_to_html(story)
-    
+
     # No external CSS links
-    assert '<link' not in html or 'href=' not in html
+    assert "<link" not in html or "href=" not in html
     # No external script tags
-    assert '<script src=' not in html
+    assert "<script src=" not in html
     # Has inline styles
-    assert '<style>' in html
-    assert '</style>' in html
+    assert "<style>" in html
+    assert "</style>" in html
 
 
 def test_story_to_html_custom_title() -> None:
@@ -241,8 +241,8 @@ def test_story_to_html_custom_title() -> None:
         markdown="Test",
         charts={},
     )
-    
+
     html = story_to_html(story, title="Custom Title")
-    
+
     assert "<title>Custom Title</title>" in html
     assert "<h1>Custom Title</h1>" in html

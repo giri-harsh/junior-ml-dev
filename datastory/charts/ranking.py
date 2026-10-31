@@ -34,9 +34,9 @@ def rank_charts(
     top_n: int = 12,
 ) -> tuple[list[ChartSpec], list[ChartSpec]]:
     """Rank charts and split into gallery (top N) and 'More charts' (PRD S6.3).
-    
+
     Ranking = insight importance × clarity prior × novelty penalty.
-    
+
     Clarity priors (template-specific, hand-tuned):
     - histogram_density: 0.9 (clear, common)
     - top_k_bar: 0.9
@@ -47,7 +47,7 @@ def rank_charts(
     - missingness_matrix: 0.7
     - time_trend: 0.8
     - mi_bar: 0.95 (high signal)
-    
+
     Returns (gallery, more_charts).
     """
     clarity_priors = {
@@ -85,12 +85,13 @@ def rank_charts(
     # Sort by score descending
     scored.sort(key=lambda x: -x[0])
 
-    # Deduplicate by column set (PRD S6 acceptance: no two gallery charts share identical column set)
+    # Deduplicate by column set (PRD S6 acceptance)
+    # No two gallery charts share identical column set
     seen_cols: set[frozenset[str]] = set()
     gallery: list[ChartSpec] = []
     more: list[ChartSpec] = []
 
-    for score, chart in scored:
+    for _score, chart in scored:
         col_set = frozenset(chart.columns)
         if col_set not in seen_cols and len(gallery) < top_n:
             chart.rank = len(gallery) + 1

@@ -92,13 +92,13 @@ def build_charts(
     top_n: int = 12,
 ) -> dict[str, list[dict[str, object]]]:
     """Generate ranked charts from dataframe and profile (PRD S6).
-    
+
     Returns dict with 'gallery' (top N) and 'more_charts' (rest).
     Requires pandas.DataFrame and datastory.charts module.
     """
     try:
         import pandas as pd
-        from datastory.charts.models import ChartSpec
+
         from datastory.charts.ranking import rank_charts
         from datastory.charts.templates import generate_chart_candidates
     except ImportError:

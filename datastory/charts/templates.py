@@ -7,12 +7,13 @@ aggregation/sampling (≤5k points/chart).
 
 from __future__ import annotations
 
+import contextlib
 from typing import Any
 
 import altair as alt
 import numpy as np
 import pandas as pd
-from scipy.cluster import hierarchy  # type: ignore[import]
+from scipy.cluster import hierarchy  # type: ignore[import-untyped]
 
 from datastory.charts.models import ChartSpec
 
@@ -26,9 +27,7 @@ def _sample(df: pd.DataFrame, n: int = MAX_POINTS) -> pd.DataFrame:
     return df.sample(n=n, random_state=42).reset_index(drop=True)
 
 
-def histogram_with_density(
-    df: pd.DataFrame, col: str, insight_id: str | None = None
-) -> ChartSpec:
+def histogram_with_density(df: pd.DataFrame, col: str, insight_id: str | None = None) -> ChartSpec:
     """Histogram + density overlay (PRD S6.1)."""
     df_plot = _sample(df[[col]].dropna())
     chart = (
@@ -45,7 +44,12 @@ def histogram_with_density(
         .mark_line(color="red")
         .encode(x=f"{col}:Q", y=alt.Y("density:Q", title="Density"))
     )
-    spec = (chart + density).properties(width=400, height=250, title=f"Distribution of {col}").to_dict()  # fmt: skip
+    # fmt: skip
+    spec = (
+        (chart + density)
+        .properties(width=400, height=250, title=f"Distribution of {col}")
+        .to_dict()
+    )
     return ChartSpec(
         chart_id=f"hist_{col}",
         spec=spec,
@@ -56,9 +60,7 @@ def histogram_with_density(
     )
 
 
-def top_k_bar(
-    df: pd.DataFrame, col: str, k: int = 10, insight_id: str | None = None
-) -> ChartSpec:
+def top_k_bar(df: pd.DataFrame, col: str, k: int = 10, insight_id: str | None = None) -> ChartSpec:
     """Top-k categories + 'Other' bar chart (PRD S6.1)."""
     counts = df[col].value_counts()
     top = counts.head(k)
@@ -256,8 +258,10 @@ def missingness_matrix(df: pd.DataFrame, insight_id: str | None = None) -> Chart
                 data.append({"row": idx, "column": col})
     if not data:
         # No missing data: create empty chart
-        chart = alt.Chart(pd.DataFrame({"x": [0]})).mark_text(text="No missing data").properties(
-            width=400, height=100
+        chart = (
+            alt.Chart(pd.DataFrame({"x": [0]}))
+            .mark_text(text="No missing data")
+            .properties(width=400, height=100)
         )
         spec = chart.to_dict()
         return ChartSpec(
@@ -322,7 +326,9 @@ def time_trend(
 ) -> ChartSpec:
     """Time trend + rolling mean (PRD S6.1)."""
     df_plot = _sample(df[[time_col, value_col]].dropna().sort_values(time_col))
-    df_plot["rolling"] = df_plot[value_col].rolling(window=min(20, len(df_plot) // 10), min_periods=1).mean()  # fmt: skip
+    # fmt: skip
+    window = min(20, len(df_plot) // 10)
+    df_plot["rolling"] = df_plot[value_col].rolling(window=window, min_periods=1).mean()
 
     line = (
         alt.Chart(df_plot)
@@ -360,7 +366,7 @@ def generate_chart_candidates(
     profile: dict[str, Any],
 ) -> list[ChartSpec]:
     """Generate chart candidates mapped to insights (PRD S6.2).
-    
+
     Returns unranked candidates; ranking happens in ranking.py.
     """
     charts: list[ChartSpec] = []
@@ -390,10 +396,8 @@ def generate_chart_candidates(
     else:
         for col in numeric_cols[:3]:
             if col != target and col in df.columns and target in df.columns:
-                try:
+                with contextlib.suppress(Exception):
                     charts.append(box_by_class(df, col, target))
-                except Exception:
-                    pass
 
     # MI bar if available
     mi_insight = next((i for i in insights if i.get("type") == "mutual_information"), None)
@@ -409,16 +413,12 @@ def generate_chart_candidates(
         time_col = time_cols[0]
         value_col = numeric_cols[0]
         if time_col in df.columns and value_col in df.columns:
-            try:
+            with contextlib.suppress(Exception):
                 charts.append(time_trend(df, time_col, value_col))
-            except Exception:
-                pass
 
     # Clustered heatmap for correlations
     if len(numeric_cols) >= 3:
-        try:
+        with contextlib.suppress(Exception):
             charts.append(clustered_heatmap(df, numeric_cols[:10]))
-        except Exception:
-            pass
 
     return charts
