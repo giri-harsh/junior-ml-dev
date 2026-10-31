@@ -38,3 +38,9 @@ RUN 7 RESUME COMMANDS (after 00:00 UTC 2026-10-31; caps: Groq/Gemini 120 each; c
  - follow-up docs/release (v0.2.1): `uv run python scripts/render_metrics.py && uv run python scripts/render_results.py`, add the injection numbers to README/RESUME_BULLETS/KNOWN_GAPS, run the gate, merge --no-ff, tag v0.2.1, `gh release create v0.2.1`.
 RUN 9 (multi-agent, started 2026-10-30 06:25 UTC): LIVE_E2B=no, LIVE_HF=no, LLM_AVAILABLE=no. Agents A (ws-a-e2b), B (ws-b-demo), D (ws-d-critic) dispatched in worktrees; merge order A -> B -> D -> C via branch `integration`, verifier E per branch. Stale r7 waiter killed. Budget ledger: `uv run python scripts/budget.py status`.
 Agent C (injection) waits for the cap reset: a one-shot session cron fires 2026-10-31 05:37 IST (00:07 UTC). If the session is gone, dispatch C by hand after 00:00 UTC 2026-10-31: worktree branch ws-c-injection from main, verify `python -m benchmarks.injection.fresh_v2` == benchmarks/injection/fresh_v2.sha256 (e45a51c0...), `python scripts/budget.py reserve gemini 25` (and groq), then `PYTHONUTF8=1 python -m benchmarks.injection.llm_eval --fresh` then `PYTHONUTF8=1 python -m benchmarks.injection.injected_runs`, commit results (injection_llm_v3.json, injected_runs_v1.json, cassettes), verify, merge, docs refresh, `gh release create v0.3.1`. D's eval: command in docs/ws/D.md after merge.
+
+
+## RUN 10 (gap closure, started 2026-10-31)
+Priority order: (1) complete Run 9 integration merge (done), (2) PRD S6 charts, (3) PRD S9 web UI, (4) explainability/PDF, (5) other PRD gaps not blocked.
+Budgets: Groq 25/120, Gemini 25/120 used (Run 9 Agent C), CI 0/20, e2b 0/60, hf_build 0/6.
+STATUS: S6 DONE (commit 4787e3f), 15 tests passing. NEXT: S9 React/Vite scaffold.
