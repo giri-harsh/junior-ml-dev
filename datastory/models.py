@@ -70,3 +70,7 @@ class StoryResult(BaseModel):
     findings: list[Finding]
     markdown: str
     meta: dict[str, Any] = Field(default_factory=dict)
+    charts: dict[str, list[dict[str, Any]]] = Field(
+        default_factory=dict,
+        description="Vega-Lite chart specs (PRD S6) - keys: 'gallery' (top N), 'more_charts' (rest)",
+    )

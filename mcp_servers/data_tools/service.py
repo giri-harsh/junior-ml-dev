@@ -194,5 +194,14 @@ def data_story(req: StoryRequest) -> StoryResult:
         leak.findings,
         {"run_id": run_id, "thresholds_sha256": leak.thresholds_sha256, "seed": req.seed},
     )
-    _event(run_id, "data_story", {"markdown_chars": len(story.markdown)})
+    
+    # Generate charts (PRD S6) - new additive feature
+    from datastory.story import build_charts
+    # Create insights list from findings - charts don't need to link back to specific findings
+    insights = [{"type": f.type.value, "importance": float(f.confidence)} for f in leak.findings]
+    charts_data = build_charts(df, prof, insights, top_n=12)
+    story.charts = charts_data
+    
+    n_charts = len(charts_data.get("gallery", [])) + len(charts_data.get("more_charts", []))
+    _event(run_id, "data_story", {"markdown_chars": len(story.markdown), "charts": n_charts})
     return story

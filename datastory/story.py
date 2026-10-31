@@ -85,6 +85,59 @@ def build_markdown(profile: DatasetProfile, findings: list[Finding]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_charts(
+    df: object,
+    profile: DatasetProfile,
+    insights: list[dict[str, object]],
+    top_n: int = 12,
+) -> dict[str, list[dict[str, object]]]:
+    """Generate ranked charts from dataframe and profile (PRD S6).
+    
+    Returns dict with 'gallery' (top N) and 'more_charts' (rest).
+    Requires pandas.DataFrame and datastory.charts module.
+    """
+    try:
+        import pandas as pd
+        from datastory.charts.models import ChartSpec
+        from datastory.charts.ranking import rank_charts
+        from datastory.charts.templates import generate_chart_candidates
+    except ImportError:
+        # Charts module not available, return empty
+        return {"gallery": [], "more_charts": []}
+
+    if not isinstance(df, pd.DataFrame):
+        return {"gallery": [], "more_charts": []}
+
+    # Determine target column
+    target = profile.target.name if profile.target else ""
+    if not target or target not in df.columns:
+        # No valid target, return empty
+        return {"gallery": [], "more_charts": []}
+
+    # Convert profile to dict for chart generation
+    profile_dict = {
+        "columns": [
+            {
+                "name": c.name,
+                "semantic_type": c.semantic_type,
+            }
+            for c in profile.columns
+        ]
+    }
+
+    # Generate candidates
+    candidates = generate_chart_candidates(df, target, list(insights), profile_dict)
+
+    # Rank and split
+    gallery, more = rank_charts(candidates, list(insights), top_n=top_n)
+
+    # Convert to dicts for JSON serialization
+    return {
+        "gallery": [c.model_dump() for c in gallery],
+        "more_charts": [c.model_dump() for c in more],
+    }
+
+
 def build_story(
     profile: DatasetProfile, findings: list[Finding], meta: dict[str, object] | None = None
 ) -> StoryResult:

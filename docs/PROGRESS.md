@@ -48,6 +48,9 @@ STATUS: S6 DONE (commit 4787e3f), 15 tests passing. NEXT: S9 React/Vite scaffold
 
 ## RUN 10 SUMMARY
 Completed 2026-10-31:
+- Run 9 integration: merged A (E2B), B (HF demo), D (critic v2), C (injection) to main via integration branch
+- S6 charts module: Altair/Vega-Lite, 9 templates, ranking, SVG export (commit 4787e3f, 15 tests passing)
+- S6 integration: wired charts into data_story endpoint, extended StoryResult with charts field (gallery/more_charts)
 - Run 9 integration merged to main (commits: A=E2B backend, B=HF demo, D=critic v2 eval, C=injection completion)
 - PRD S6 declarative charts: 9 Altair/Vega-Lite templates, ranking, SVG export (15 tests passing)
 - Explainability verified: permutation importance already implemented in experiments MCP
