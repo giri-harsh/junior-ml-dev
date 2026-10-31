@@ -5,15 +5,17 @@ Docker, Postgres, Redis, E2B or an LLM key; none became reachable.
 
 | Item | Status | Why | Resume |
 |---|---|---|---|
-| PRD S6 chart candidates (Vega-Lite/Altair) | DONE (run 10) | Implemented as NEW module in `datastory/charts/` with 9 templates, ranking, SVG export; runs alongside existing inline-SVG in reports | integration into data story endpoint and HTML export |
-| PRD S9 React/Vite UI, Playwright e2e | replaced by a minimal static page `/ui` | No node toolchain exercised; the static page covers login, upload, run, status, approval, report; no browser e2e was run | scaffold `apps/web` per PRD S9 |
+| Item | Status | Why | Resume |
+|---|---|---|---|
+| PRD S6 chart candidates (Vega-Lite/Altair) | DONE (run 10-11) | Implemented as NEW module in `datastory/charts/` with 9 templates, ranking, SVG export; integrated into data_story MCP endpoint (run 11, commit 43b5252) | HTML export with embedded specs (PRD S7.5) |
+| PRD S9 React/Vite UI, Playwright e2e | PARTIAL (run 11) | Playwright e2e infrastructure added (commit 89532ab); 7 tests for existing viewer (login, runs list, navigation); upload UI (S9.1-S9.3) not yet implemented | scaffold upload/story pages per PRD S9.1-S9.3 |
 | E2B backend, Docker sandbox execution, egress/escape tests | stub | No Docker, no E2B key | build image, `JMD_SANDBOX=docker`, add `integration` tests |
 | arq + Redis job queue, Postgres run store/approvals/audit | stub (SQLite used) | Redis/Postgres unavailable | implement `ArqJobQueue`, run `tests/unit/test_queue.py` contract against it |
 | Real LLM planner runs | NOT RUN | No provider key | set `GROQ_API_KEY` or `GEMINI_API_KEY`, record fixtures, run the LLM planner on <=3 dev tasks |
 | Agent roles beyond planner + deterministic reviewer (LLM reviewer, critic) | skipped | Needs an LLM | PRD S15-S16 |
 | Predict-in-sandbox scorer (agent supplies code that predicts inside the sandbox) | skipped | Needs working sandbox | PRD S11 |
 | Explainability (permutation importance) | DONE | Implemented in `mcp_servers/experiments/service.py::explain_model` with honest refit-on-75% holdout; called in agent report | integrated into reports (already done) |
-| PDF bundle (WeasyPrint) | partially done (run 11) | Code implemented but WeasyPrint needs system libs (GTK/Pango) not available on Windows dev machine | PRD S21: install GTK libs per https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows, or use in Docker/Linux CI where libs are available |
+| PDF bundle (WeasyPrint) | partially done (run 11) | Code implemented (commit 500d0b8) but WeasyPrint needs system libs (GTK/Pango) not available on Windows dev machine; 13 unit tests written, cannot run locally | PRD S21: install GTK libs per https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows, or test in Docker/Linux CI where libs are available |
 | Load test, tracing backend (OTel), dashboards | skipped | Needs services; logs, per-step trace JSON and /metrics exist | PRD S24 |
 | Docker compose / container deploy start | NOT RUN | Docker unavailable | `docker compose -f data/deploy/<run>/<model>/docker-compose.yml up -d --build` |
 | Ablations and stress runs of the agent benchmark | skipped | Eval-once: only one frozen evaluation exists | new freeze hash needs a new, unseen partition |

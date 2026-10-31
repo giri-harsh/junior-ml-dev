@@ -41,9 +41,9 @@ Agent C (injection) waits for the cap reset: a one-shot session cron fires 2026-
 
 
 ## RUN 10 (gap closure, started 2026-10-31)
-Priority order: (1) complete Run 9 integration merge (done), (2) PRD S6 charts (done), (3) PRD S9 web UI, (4) explainability/PDF (partial), (5) other PRD gaps not blocked.
+Priority order: (1) complete Run 9 integration merge (done), (2) PRD S6 charts (done), (3) PRD S9 web UI (e2e done), (4) explainability/PDF (partial), (5) other PRD gaps not blocked.
 Budgets: Groq 25/120, Gemini 25/120 used (Run 9 Agent C), CI 0/20, e2b 0/60, hf_build 0/6.
-STATUS: S6 DONE (commit 4787e3f charts module, commit 43b5252 integration), S21 PARTIAL (commit 500d0b8 PDF module, can't run on Windows). NEXT: S9 React/Vite web UI.
+STATUS: S6 DONE (commits 4787e3f charts module, 43b5252 integration), S21 PARTIAL (commit 500d0b8 PDF module, can't run on Windows), S9 PARTIAL (commit 89532ab Playwright e2e, upload UI not yet implemented). NEXT: Check remaining unblocked PRD gaps.
 
 
 ## RUN 10 SUMMARY
@@ -52,6 +52,7 @@ Completed 2026-10-31:
 - S6 charts module: Altair/Vega-Lite, 9 templates, ranking, SVG export (commit 4787e3f, 15 tests passing)
 - S6 integration: wired charts into data_story endpoint, extended StoryResult with charts field (gallery/more_charts) (commit 43b5252, 6 tests)
 - S21 PDF generation: WeasyPrint-based single-page report module (commit 500d0b8, 13 tests, partial - needs Linux/Docker)
+- S9 e2e tests: Playwright infrastructure with 7 tests for React viewer (commit 89532ab, login/runs/navigation)
 - Run 9 integration merged to main (commits: A=E2B backend, B=HF demo, D=critic v2 eval, C=injection completion)
 - PRD S6 declarative charts: 9 Altair/Vega-Lite templates, ranking, SVG export (15 tests passing)
 - Explainability verified: permutation importance already implemented in experiments MCP
