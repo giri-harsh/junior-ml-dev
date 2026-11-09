@@ -31,6 +31,7 @@ from apps.api.demo.config import REPO_URL as REPO_URL_CONFIG
 from apps.api.demo.samples import BY_KEY, SAMPLES, public_info
 
 REPO_URL = REPO_URL_CONFIG
+LIVE_URL = "https://junior-ml-dev-demo.onrender.com/"
 BLOB = f"{REPO_URL}/blob/main/"
 SITE_BASE = "/junior-ml-dev-demo/"  # GitHub Pages project path (404.html needs absolute URLs)
 SRC_LINK = re.compile(r'<a href="' + re.escape(BLOB) + r'[^"]*"[^>]*>(.*?)</a>', re.S)
@@ -284,8 +285,10 @@ models against baselines, has a deterministic reviewer sign off, and writes a re
 gated by a single-use approval.</p>
 <div class="notice"><strong>This is a static site, not a live demo.</strong> The example runs below
 were computed once with the project's scripted planner (no LLM) on {E(runs[0].machine if runs else "a laptop")},
-and are shown as recorded. A live, interactive version needs a host that runs Python; a free
-Hugging Face account cannot create Docker or Gradio Spaces. {source_note(repo_private)}</div>
+and are shown as recorded. A live, interactive version runs separately on a free Render instance:
+<a href="{LIVE_URL}" rel="noopener">{LIVE_URL}</a> (it sleeps when idle, so the first visit can take
+about a minute; it is slower and lighter than the runs here: leakage detectors skipped, no FLAML).
+Hugging Face Docker and Gradio Spaces need a paid account. {source_note(repo_private)}</div>
 <h2>Headline: {landing.inline(head_name)}</h2>
 <div class="tiles">{landing.tiles(head_body)}</div>
 <p class="fine">Read from <code>docs/METRICS.md</code> when this site was built (file hash
@@ -445,8 +448,10 @@ generated from result files, with the planner and LLM mode stated in every row.<
 <p>A hosted demo runs the same runner with uploads, deployment and the code sandbox switched off, the scripted
 planner only, a {MAX_WALL_S:.0f} s hard wall clock (the agent itself stops searching at a shorter soft
 wall and wraps up, which is why the example runs list both), a {MAX_FLAML_S:.0f} s AutoML ceiling, one run at a time and per-address rate limits.
-That mode exists in the repository (<code>DEMO_MODE=1</code>) and is covered by tests, but has no free
-host today. {source_note(repo_private)}</p>
+That mode exists in the repository (<code>DEMO_MODE=1</code>), is covered by tests and runs live on a
+free Render instance at <a href="{LIVE_URL}" rel="noopener">{LIVE_URL}</a>. The free instance has a throttled CPU, so
+it skips the leakage detectors (recorded as a partial check), turns FLAML off and keeps a warm worker process.
+{source_note(repo_private)}</p>
 """
     return page(
         "Architecture: junior-ml-dev", delink(body, repo_private), active="architecture.html"
