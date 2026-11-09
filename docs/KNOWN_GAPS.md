@@ -8,7 +8,7 @@ sandbox suite, the kill-and-resume test and the generated predict service all ru
 |---|---|---|
 | E2B parquet paths not run live (2 tests skipped) | needs a custom E2B template with pyarrow; in-sandbox pip is impossible with internet off | build the template (`docs/ws/A.md`), then `JMD_E2B_PARQUET_TEMPLATE=... pytest tests/e2b` |
 | E2B network deny is verified only from inside the VM (TCP handshake completes, no data/DNS); default template has passwordless sudo | provider behaviour | prefer a locked-down template; do not rely on E2B alone for hostile code |
-| No live demo (static site only) | Hugging Face Docker/Gradio Spaces need PRO | upgrade, then `scripts/deploy_space.py` |
+| The live demo (Render free, 0.1 vCPU) skips the leakage detectors, runs without FLAML, sleeps when idle (cold start about 33 s, first run about 106 s) | the free CPU is about 22x slower than a laptop | a paid instance removes the cuts; the demo run is otherwise the real agent |
 | GitHub Actions on the private repo end in `startup_failure` since 2026-11-09 (even manual dispatch of `web`) | not a workflow-file error (files unchanged since the last working run); likely an account/billing limit | check Settings > Billing > Actions; CI green is unverified for main HEAD |
 | S3 in CI/compose is moto, not MinIO | MinIO images are not pullable on the runner (NEEDS_HARSH 2) | point `MINIO_ENDPOINT` at a real MinIO, rerun `tests/infra` |
 | Deploy is local only | no cloud account (NEEDS_HARSH 3) | add a backend under `mcp_servers/deploy` |

@@ -1,0 +1,43 @@
+{
+  "command": "scripts/deploy_render.py verify (+ cold start probe)",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 3,
+    "notes": "live demo on Render free; timings from the public internet to the service; scripted planner",
+    "sandbox": "none"
+  },
+  "date": "2026-11-09T18:16:08+00:00",
+  "git_sha": "b9e347a141be9b74156e44f5dbf3614bd1a91f87",
+  "name": "demo_render_v1",
+  "results": {
+    "admin_without_auth": 401,
+    "cold_start": "health 32.7 s after >15 min idle; first sample run 105.8 s end to end (includes ~45-60 s warm-worker boot); status done",
+    "commands": "python scripts/deploy_render.py verify; cold start: scripts in docs/ws/R.md",
+    "cut_to_fit": "FLAML off; leakage detectors skipped (recorded as a PARTIAL check); hard wall 60 s, soft wall 35 s; web process no longer imports the full API (225 MB -> 63 MB); a warm fork server loads pandas/scikit-learn/lightgbm once (they took 44 s per run on the 0.1 vCPU).",
+    "deploy_absent": 404,
+    "health_status": 200,
+    "host": "Render free plan (512 MB, 0.1 vCPU)",
+    "landing_status": 200,
+    "peak_rss_mb": "309-327 MB local (Windows psutil process tree, FLAML 15 s); web process alone 63 MB idle",
+    "report_status": [
+      200,
+      200,
+      200
+    ],
+    "run_status": [
+      "done",
+      "done",
+      "done"
+    ],
+    "sample": "diabetes",
+    "sample_run_p50_s": 49.8,
+    "sample_run_s": [
+      49.8,
+      50.6,
+      49.0
+    ],
+    "upload_rejected": 403,
+    "url": "https://junior-ml-dev-demo.onrender.com"
+  }
+}
