@@ -6,8 +6,8 @@ clean runs with Wilson CIs, per-type recall, error statuses and requests used, p
 field against run 7 (a DIFFERENT set, so the two are not paired).
 
 Runs ONCE: refuses if the result file exists. `--complete` re-runs the SAME prompt only to fill
-items that got no output because a provider failed (the cassette replays everything that
-succeeded); its cap is MAX_REQUESTS minus what the first pass spent. `--check` verifies the hash
+items that got no output (first pass: the gateway token budget of 40,000 ran out after 45
+answers, no provider failed; the cassette replays everything that succeeded); its cap is MAX_REQUESTS minus what the first pass spent. `--check` verifies the hash
 and prints the plan without any LLM call.
 
 Budget: reserves the request cap on the shared ledger (`scripts/budget.py`) before the run and

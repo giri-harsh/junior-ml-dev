@@ -140,3 +140,7 @@ Resume command, from a checkout that has the keys in its `.env` (the main checko
     PYTHONUTF8=1 .venv/Scripts/python.exe -m benchmarks.critic_v2.eval --complete
 
 Expected cost: at most 8 requests (15 reserved per provider, released afterwards), 6 s pacing.
+
+## Completion result (run 10, orchestrator-run)
+
+Correction to the notes above: the 8 no-output items of the first pass were caused by the gateway token budget (`Budget(max_tokens=40_000)`: the 45 cached answers used 39,284 tokens), not by a provider failure (first pass: 0 error statuses). The completion ran from the main checkout on the merged branch: `PYTHONUTF8=1 python -m benchmarks.critic_v2.eval --complete`, 8 requests (Groq), 0 errors, 0 still no-output. First pass kept verbatim under `first_pass` (recall 15/20, false alarms 0/25). Completed (all 53 items): recall 18/23 (Wilson 95% 0.58-0.90), false alarms 0/30 (0.00-0.11). The three completed planted items were unresolved leakage x2 and cv_instability x1 (all caught); the 5 clean completed items raised no false alarm. rule_fail_baseline_margin stays 0/4 (the model dissents with numbers on all four): a documented weakness, unchanged by the completion.

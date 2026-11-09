@@ -32,7 +32,7 @@ e2b SDK 2.62.0 (the version coded and type-checked against). Numbers below come 
    is counted (`kill_failures`) and logged, never masks the result. Per-stage timings are kept in
    `last_timings` (create/upload/exec/download/kill).
 
-## Live results (2026-11-07)
+## Live results (latency run 2026-11-07; final suite run 2026-11-09)
 
 Latency, 20 sequential execs of a tiny stdlib program, default template, internet disabled,
 20/20 ok (`benchmarks/results/e2b_v1.json`, `total_s` = create+upload+exec+download):
@@ -49,7 +49,7 @@ Latency, 20 sequential execs of a tiny stdlib program, default template, interne
 Kill time is not part of `total_s`. Small sample (n=20, one machine, one afternoon): treat as an
 order-of-magnitude figure, not a benchmark.
 
-Live suite on the default template (`pytest tests/e2b -q -rs`):
+Live suite (`pytest tests/e2b -q -rs`; the final 8-passed/2-skipped run used `JMD_E2B_TEMPLATE=code-interpreter-v1`, the earlier failures were on the default template):
 
 | test | result |
 |------|--------|
