@@ -28,7 +28,8 @@ SERVICE_NAME = "junior-ml-dev-demo"
 SETTING_NAMES = ("RENDER_API_KEY", "RENDER_SERVICE_ID", "DEMO_URL")
 SECRET_NAMES = ("JWT_SECRET", "APPROVAL_SECRET", "DEMO_ADMIN_PASSWORD")
 PLAIN_ENV = {
-    "DEMO_MODE": "1", "DEMO_MAX_WALL_S": "60", "DEMO_SOFT_WALL_S": "45", "DEMO_FLAML_S": "15",
+    "DEMO_MODE": "1", "DEMO_MAX_WALL_S": "60", "DEMO_SOFT_WALL_S": "35", "DEMO_FLAML_S": "0",
+    "DEMO_LEAKAGE_S": "8",
     "DEMO_PROXY_HOPS": "1", "COOKIE_SECURE": "1",
 }  # fmt: skip
 ROOT = Path(__file__).resolve().parents[1]

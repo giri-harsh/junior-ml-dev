@@ -6,6 +6,7 @@ is covered by per-server smoke tests). Planners never supply paths, targets or r
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -72,10 +73,21 @@ def profile_dataset(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     }  # fmt: skip
 
 
+def _leakage_budget_s() -> float:
+    """60 s by default; JMD_LEAKAGE_BUDGET_S can only LOWER it (the public demo runs on a throttled
+    CPU and needs detection to stop early; the review then records the check as partial)."""
+    try:
+        return max(1.0, min(60.0, float(os.environ.get("JMD_LEAKAGE_BUDGET_S", "60"))))
+    except ValueError:
+        return 60.0
+
+
 def detect_leakage(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
     t = ctx.cfg.task
     res = dt.detect_leakage(
-        dt.LeakageRequest(path=t.data_path, target=t.target, run_id=t.name, time_budget_s=60)
+        dt.LeakageRequest(
+            path=t.data_path, target=t.target, run_id=t.name, time_budget_s=_leakage_budget_s()
+        )
     )
     return {
         "findings": [f.model_dump(mode="json") for f in res.findings],

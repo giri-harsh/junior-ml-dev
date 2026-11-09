@@ -78,3 +78,39 @@ def test_render_env_helpers_read_only_named_keys_and_handle_indent(tmp_path: Pat
     dr.set_local_env(p, "DEMO_ADMIN_PASSWORD", "pw2")  # type: ignore[attr-defined]
     lines = [x for x in p.read_text(encoding="utf-8").splitlines() if x.startswith("DEMO_ADMIN")]
     assert lines == ["DEMO_ADMIN_PASSWORD=pw2"]
+
+
+def test_leakage_budget_can_only_be_lowered(monkeypatch: object) -> None:
+    import pytest
+
+    mp = pytest.MonkeyPatch()
+    try:
+        from harness.agent.tools import _leakage_budget_s
+
+        mp.delenv("JMD_LEAKAGE_BUDGET_S", raising=False)
+        assert _leakage_budget_s() == 60.0
+        mp.setenv("JMD_LEAKAGE_BUDGET_S", "8")
+        assert _leakage_budget_s() == 8.0
+        mp.setenv("JMD_LEAKAGE_BUDGET_S", "500")
+        assert _leakage_budget_s() == 60.0  # never raised above the default
+        mp.setenv("JMD_LEAKAGE_BUDGET_S", "junk")
+        assert _leakage_budget_s() == 60.0
+    finally:
+        mp.undo()
+
+
+def test_child_env_maps_the_demo_leakage_budget(monkeypatch: object, tmp_path: Path) -> None:
+    import pytest
+
+    from apps.api.demo.service import DemoJob, child_env
+
+    mp = pytest.MonkeyPatch()
+    try:
+        mp.setenv("DEMO_LEAKAGE_S", "8")
+        job = DemoJob.__new__(DemoJob)
+        job.data_dir, job.run_dir = tmp_path, tmp_path / "run"  # type: ignore[misc]
+        env = child_env(job)
+        assert env["JMD_LEAKAGE_BUDGET_S"] == "8"
+        assert not any(k in env for k in ("JWT_SECRET", "DEMO_ADMIN_PASSWORD", "RENDER_API_KEY"))
+    finally:
+        mp.undo()

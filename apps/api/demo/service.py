@@ -78,6 +78,8 @@ def child_env(job: DemoJob) -> dict[str, str]:
         EXPERIMENTS_DIR=str((job.run_dir / "exp").resolve()),
         TRAJECTORY_DIR=str((job.run_dir / "traj").resolve()),
     )  # fmt: skip
+    if os.environ.get("DEMO_LEAKAGE_S"):  # lowers (never raises) the leakage-detection budget
+        env["JMD_LEAKAGE_BUDGET_S"] = os.environ["DEMO_LEAKAGE_S"]
     return env
 
 
@@ -325,6 +327,27 @@ class DemoService:
             self._thread = None
 
     # --- reads --------------------------------------------------------------------------------
+    def progress(self, run_id: str) -> dict[str, Any] | None:
+        """Steps the agent finished so far (tool name + seconds), read from the run's own SQLite
+        checkpoints. Public: tool names and timings only, nothing from the data."""
+        db = self.runs_dir / run_id / "out" / "agent.db"
+        if not db.is_file():
+            db = self.runs_dir / run_id / "agent.db"
+        if not db.is_file():
+            return None
+        try:
+            with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=1)) as c:
+                rows = c.execute("SELECT record FROM checkpoints ORDER BY idx").fetchall()
+        except sqlite3.Error:
+            return None
+        steps = []
+        for (raw,) in rows:
+            rec = json.loads(raw)
+            steps.append((str(rec["step"]["tool"]), round(float(rec.get("latency_s", 0.0)), 1)))
+        if not steps:
+            return {"steps_done": 0}
+        return {"steps_done": len(steps), "last_step": steps[-1][0], "steps": steps}
+
     def public_status(self, run_id: str) -> dict[str, Any] | None:
         row = self._row(run_id)
         if row is None:
@@ -350,6 +373,10 @@ class DemoService:
                 "timeout": f"stopped at the {self.s.max_wall_s:.0f} s limit",
                 "interrupted": "the server restarted before this run finished",
             }.get(row["status"], "the run failed")
+        if row["status"] in ("running", "done", "failed", "timeout"):
+            prog = self.progress(run_id)
+            if prog is not None:
+                out["progress"] = prog
         return out
 
     def report_path(self, run_id: str) -> Path | None:

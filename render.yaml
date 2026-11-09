@@ -15,9 +15,11 @@ services:
       - key: DEMO_MAX_WALL_S
         value: "60"
       - key: DEMO_SOFT_WALL_S
-        value: "45"
+        value: "35"
       - key: DEMO_FLAML_S
-        value: "15"
+        value: "0"
+      - key: DEMO_LEAKAGE_S
+        value: "8"
       - key: DEMO_PROXY_HOPS
         value: "1"
       - key: COOKIE_SECURE
