@@ -40,7 +40,7 @@ USER 1000
 
 # Free plan (512 MB, 0.1 CPU): hard wall 60 s, soft wall 35 s, FLAML off, leakage detection 8 s.
 # Measured peak process-tree RSS of a sample run is about 330 MB (docs/ws/R.md).
-ENV DEMO_MODE=1     DEMO_DATA_DIR=/app/data/demo/samples     DEMO_SITE_DIR=/app/data/demo/site     DEMO_STATE_DIR=/app/data/demo/state     DEMO_MAX_WALL_S=60     DEMO_SOFT_WALL_S=35     DEMO_FLAML_S=0     DEMO_LEAKAGE_S=8     DEMO_PROXY_HOPS=1     COOKIE_SECURE=1
+ENV DEMO_MODE=1     DEMO_DATA_DIR=/app/data/demo/samples     DEMO_SITE_DIR=/app/data/demo/site     DEMO_STATE_DIR=/app/data/demo/state     DEMO_MAX_WALL_S=60     DEMO_SOFT_WALL_S=35     DEMO_FLAML_S=0     DEMO_LEAKAGE_S=8     DEMO_ZYGOTE=1     DEMO_PROXY_HOPS=1     COOKIE_SECURE=1
 
 EXPOSE 10000
 # One worker process: the run queue and rate limits live in this process. Bind 0.0.0.0:$PORT.
