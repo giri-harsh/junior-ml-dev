@@ -17,7 +17,7 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 > proposed, 0 unsafe executed (run-6 payload sets); a fresh 14-payload evasion set also produced 0 attacker actions proposed (Wilson upper bound 21.5%), and the scanner flagged only 1 of those 14, so the structural guard and the model's own behaviour carry the result. Every number is generated from `benchmarks/results/*.json` or a CI run:
 > [docs/METRICS.md](docs/METRICS.md), [docs/RESULTS.md](docs/RESULTS.md).
 >
-> **Demo.** A static, precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . A live Hugging Face Space was not possible on a free account (Docker and Gradio Spaces need PRO). The E2B sandbox backend ran live: 20/20 execs, total p50 1.87 s / p95 2.67 s ([docs/ws/A.md](docs/ws/A.md)).
+> **Live demo:** [![live demo](https://img.shields.io/badge/live%20demo-Render%20free-46E3B7)](https://junior-ml-dev-demo.onrender.com) https://junior-ml-dev-demo.onrender.com (sample runs only, scripted planner, no uploads; it sleeps when idle: health 32.7 s after idle, first run about 106 s, then a sample run p50 49.8 s; the free 0.1 vCPU forced FLAML off and the leakage detectors to be skipped, see [docs/ws/R.md](docs/ws/R.md)). Static precomputed examples: https://giri-harsh.github.io/junior-ml-dev-demo/ . A Hugging Face Space was not possible on a free account. The E2B sandbox backend ran live: 20/20 execs, total p50 1.87 s / p95 2.67 s ([docs/ws/A.md](docs/ws/A.md)).
 >
 > **How to verify.** `python scripts/tasks.py gate` (ruff, mypy, pytest with a 91% coverage floor);
 > the **ci** badge runs the same plus bandit, pip-audit and an SBOM; **infra** runs real Postgres, an

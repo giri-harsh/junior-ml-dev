@@ -2,7 +2,7 @@
 
 **Project summary (header, 2 lines).** junior-ml-dev: an autonomous tabular-ML agent (15 MCP tools,
 rule-based reviewer, leakage detector, injection guard, E2B sandbox backend) evaluated once on unseen
-OpenML partitions from frozen commits; 672 tests, 92.6% coverage. Static demo: https://giri-harsh.github.io/junior-ml-dev-demo/
+OpenML partitions from frozen commits; 672 tests, 92.6% coverage. Live demo: https://junior-ml-dev-demo.onrender.com (static examples: https://giri-harsh.github.io/junior-ml-dev-demo/)
 
 - **Engineered** an autonomous tabular-ML agent on 15 MCP tools across 4 servers with CV-based model
   selection and a deterministic reviewer; on 10 unseen OpenML tasks (frozen commit, evaluated once)
@@ -35,3 +35,5 @@ Not claimed: the LLM planner does not beat the scripted planner (paired +0.001, 
 neither beats FLAML (paired -0.011, CI includes 0). The live demo is a static precomputed site; a live
 Hugging Face Space was not possible on a free account. CI on the private repo is currently not
 running (Actions `startup_failure`), so the latest green CI run is v0.2.0-era.
+
+Added for the live demo (run 11): **Engineered** a public Render free-tier deployment of the agent (512 MB, 0.1 vCPU): cut the web process from 225 MB to 63 MB, replaced per-run imports (44 s on that CPU) with a warm fork server, and verified live: 3/3 sample runs complete at a p50 of 49.8 s, admin endpoints 401, uploads 403, cold start 33 s to health and about 106 s to the first finished run. *Source: docs/METRICS.md "Demo" ([demo_render_v1.json](../benchmarks/results/demo_render_v1.json)). Cost of fitting the plan: FLAML off and leakage detectors skipped in the demo.*

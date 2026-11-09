@@ -168,9 +168,22 @@ def main() -> int:
         ]  # fmt: skip
     else:
         L += ["- NOT RUN."]
-    L += ["", "## Demo", "",
-          "- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . "
-          "A live Space was not possible: Hugging Face requires PRO for Docker and Gradio Spaces on this account."]  # fmt: skip
+    L += ["", "## Demo", ""]
+    dm = load("demo_render_v1")
+    if dm:
+        r = dm["results"]
+        L += [
+            f"- LIVE (host: Render free plan, 512 MB, 0.1 vCPU): {r['url']} . Verified: health {r['health_status']}, "
+            f"landing {r['landing_status']}, admin without auth {r['admin_without_auth']}, upload attempt "
+            f"{r['upload_rejected']}, deploy path {r['deploy_absent']}, reports {r['report_status']}. "
+            f"Sample run (diabetes) p50 {r['sample_run_p50_s']} s over {len(r['sample_run_s'])} runs "
+            f"({r['sample_run_s']}). Cold start after >15 min idle: {r.get('cold_start', 'not measured')}. "
+            f"Local peak process-tree RSS of a sample run: {r['peak_rss_mb']}. Source: {src('demo_render_v1')}.",
+            f"- Cut to fit the free plan: {r['cut_to_fit']}",
+        ]  # fmt: skip
+    L += [
+        "- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ ."
+    ]
     L += ["", "## Infrastructure (GitHub Actions evidence)", ""]
     ev = load("ci_evidence")
     if ev:

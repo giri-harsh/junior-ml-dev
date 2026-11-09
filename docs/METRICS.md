@@ -37,7 +37,9 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 
 ## Demo
 
-- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . A live Space was not possible: Hugging Face requires PRO for Docker and Gradio Spaces on this account.
+- LIVE (host: Render free plan, 512 MB, 0.1 vCPU): https://junior-ml-dev-demo.onrender.com . Verified: health 200, landing 200, admin without auth 401, upload attempt 403, deploy path 404, reports [200, 200, 200]. Sample run (diabetes) p50 49.8 s over 3 runs ([49.8, 50.6, 49.0]). Cold start after >15 min idle: health 32.7 s after >15 min idle; first sample run 105.8 s end to end (includes ~45-60 s warm-worker boot); status done. Local peak process-tree RSS of a sample run: 309-327 MB local (Windows psutil process tree, FLAML 15 s); web process alone 63 MB idle. Source: [`demo_render_v1.json`](../benchmarks/results/demo_render_v1.json).
+- Cut to fit the free plan: FLAML off; leakage detectors skipped (recorded as a PARTIAL check); hard wall 60 s, soft wall 35 s; web process no longer imports the full API (225 MB -> 63 MB); a warm fork server loads pandas/scikit-learn/lightgbm once (they took 44 s per run on the 0.1 vCPU).
+- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ .
 
 ## Infrastructure (GitHub Actions evidence)
 
