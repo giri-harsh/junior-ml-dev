@@ -330,11 +330,19 @@ class DemoService:
     def progress(self, run_id: str) -> dict[str, Any] | None:
         """Steps the agent finished so far (tool name + seconds), read from the run's own SQLite
         checkpoints. Public: tool names and timings only, nothing from the data."""
+        timeline: dict[str, Any] = {}
+        tl = self.runs_dir / run_id / "timeline.json"
+        if tl.is_file():
+            try:
+                raw = json.loads(tl.read_text(encoding="utf-8"))
+                timeline = {"child_imports_s": raw.get("imports_s")}
+            except (OSError, ValueError):
+                timeline = {}
         db = self.runs_dir / run_id / "out" / "agent.db"
         if not db.is_file():
             db = self.runs_dir / run_id / "agent.db"
         if not db.is_file():
-            return None
+            return timeline or None
         try:
             with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=1)) as c:
                 rows = c.execute("SELECT record FROM checkpoints ORDER BY idx").fetchall()
@@ -345,8 +353,8 @@ class DemoService:
             rec = json.loads(raw)
             steps.append((str(rec["step"]["tool"]), round(float(rec.get("latency_s", 0.0)), 1)))
         if not steps:
-            return {"steps_done": 0}
-        return {"steps_done": len(steps), "last_step": steps[-1][0], "steps": steps}
+            return {**timeline, "steps_done": 0}
+        return {**timeline, "steps_done": len(steps), "last_step": steps[-1][0], "steps": steps}
 
     def public_status(self, run_id: str) -> dict[str, Any] | None:
         row = self._row(run_id)
