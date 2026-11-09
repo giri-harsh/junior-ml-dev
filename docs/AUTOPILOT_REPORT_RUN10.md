@@ -54,9 +54,13 @@ HF PRO for Docker Spaces; real MinIO; a cloud-deploy account; GitHub Actions bil
 repo; decision on the gmail address in the public demo repo's commit metadata.
 
 ## Decisions
-140 critic completion labelled and token-budget cause corrected; 141 static demo chosen after
-HF 402; 142 coverage floor kept at 91 (tests added, not lowered); 143 release made with CI
-unverifiable, stated in the notes.
+140 critic completion (token-budget cause corrected); 141 static demo after HF 402; 142 coverage floor
+kept at 91 (tests added); 143 release with CI unverifiable, stated in the notes.
+
+## Git
+Tags (new only, no -f): v0.3.0, plus r7-* from run 7. Merged local branches deleted with -d; clean
+worktrees removed (B2's ignored `data/demo` scratch went with its worktree; the site is already
+published); `ws-f-coverage` worktree left (locked). Attribution grep over 80 commits: empty. Pushed.
 
 ## Estimated complete
-About 93%: everything is built and locally verified; open items are CI (billing) and a live Space.
+About 93%; open: CI (billing) and a live Space.
