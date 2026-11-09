@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Red wine quality (OpenML 40691): example run</title><meta name="description" content="junior-ml-dev: an agent that shows its work and catches its own mistakes. Static demo with pre-computed runs and verified benchmark numbers."><link rel="stylesheet" href="../../style.css"></head><body><header class="top"><div class="wrap"><span class="brand">junior-ml-dev</span><nav><a href="../../index.html">Home</a><a href="../../results.html">Benchmark results</a><a href="../../architecture.html">Architecture</a></nav></div></header><main class="wrap">
+<p class="fine"><a href="../../index.html">Home</a> / example runs</p>
+<h1>Red wine quality (OpenML 40691)</h1>
+<p class="lede">1599 wines, 11 physico-chemical measurements, predict the sensory quality score.</p>
+<div class="notice">Pre-computed on 2026-11-09 07:51 UTC on a developer laptop (Windows 11), CPU only. Scripted planner, no LLM, no network
+calls during the run. Dataset: <a href="https://www.openml.org/d/40691" rel="noopener">OpenML 40691</a>.</div>
+<dl class="kv">
+<dt>Task</dt><dd>regression, target <code>quality</code>, metric <code>rmse</code>, 1599 rows x 12 columns</dd>
+<dt>Status</dt><dd>budget_exhausted</dd>
+<dt>Chosen model</dt><dd><code>rf</code></dd>
+<dt>Validation rmse</dt><dd>0.5802</dd>
+<dt>Reviewer verdict</dt><dd>APPROVE</dd>
+<dt>Columns dropped for leakage</dt><dd>none</dd>
+<dt>Steps</dt><dd>11</dd>
+<dt>Wall time</dt><dd>77.6 s (process start to report); agent clock 66.7 s. One run on a shared machine that was busy with other jobs: a timing sample, not a benchmark.</dd>
+<dt>Budgets</dt><dd>soft wall 55 s, FLAML 15 s, 3 tuning trials</dd>
+</dl>
+<h2>Agent steps</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>tool</th><th>server</th><th>ok</th><th>latency (s)</th></tr></thead><tbody><tr><td>0</td><td><code>profile_dataset</code></td><td>data-tools</td><td>yes</td><td>1.27</td></tr><tr><td>1</td><td><code>detect_leakage</code></td><td>data-tools</td><td>yes</td><td>15.92</td></tr><tr><td>2</td><td><code>decide_leakage</code></td><td>agent</td><td>yes</td><td>0.00</td></tr><tr><td>3</td><td><code>train_model</code></td><td>experiments</td><td>yes</td><td>0.17</td></tr><tr><td>4</td><td><code>train_model</code></td><td>experiments</td><td>yes</td><td>0.28</td></tr><tr><td>5</td><td><code>train_model</code></td><td>experiments</td><td>yes</td><td>17.91</td></tr><tr><td>6</td><td><code>train_model</code></td><td>experiments</td><td>yes</td><td>22.58</td></tr><tr><td>7</td><td><code>compare_models</code></td><td>experiments</td><td>yes</td><td>0.08</td></tr><tr><td>8</td><td><code>review</code></td><td>agent</td><td>yes</td><td>0.00</td></tr><tr><td>9</td><td><code>explain_model</code></td><td>experiments</td><td>yes</td><td>8.14</td></tr><tr><td>10</td><td><code>report</code></td><td>agent</td><td>yes</td><td>0.02</td></tr></tbody></table></div>
+<h2>The agent's own report</h2>
+<p><a href="report.html">Open the report on its own page</a>.</p>
+<iframe class="report" src="report.html" title="Agent report for Red wine quality (OpenML 40691)" sandbox></iframe>
+</main><footer class="wrap fine">Static site generated from the project repository. No code runs on this page.</footer></body></html>

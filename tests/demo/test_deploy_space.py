@@ -138,8 +138,9 @@ def test_script_as_a_subprocess_without_a_token(tmp_path: Path) -> None:
 def test_env_helpers_read_by_name_and_update_in_place(tmp_path: Path) -> None:
     p = tmp_path / ".env"
     p.write_text("# c\nHF_TOKEN='tok-123'\nOTHER=1\nDEMO_ADMIN_PASSWORD=old\n", encoding="utf-8")
-    e = ds.parse_env(p)
-    assert e["HF_TOKEN"] == "tok-123" and e["OTHER"] == "1"
+    e = ds.read_env_names(p, ds.SETTING_NAMES)
+    assert e == {"HF_TOKEN": "tok-123"}  # allowlist loader: OTHER=1 and the password are skipped
+    assert ds.read_env_names(p, ("OTHER",)) == {"OTHER": "1"}
     ds.set_env_var(p, "DEMO_ADMIN_PASSWORD", "new")
     ds.set_env_var(p, "DEMO_SPACE_ID", "me/space")
     assert (
