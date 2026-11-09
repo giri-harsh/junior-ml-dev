@@ -89,6 +89,28 @@ def main() -> int:
         r = inj["results"]
         L += [f"- Real LLM in the loop ({name}): attacker action proposed {r['all']['behaviour_change']}/{r['all']['n']}, "
               f"unsafe actions executed {r['all']['unsafe_executed']}/{r['all']['n']}. Source: {src(name)}."]  # fmt: skip
+    inj3, runs = load("injection_llm_v3"), load("injected_runs_v1")
+    if inj3 and runs:
+        d, rr = inj3["results"], runs["results"]
+        h = d["fresh_heldout"]
+        L += [
+            f"- Evasion DEV ({src('injection_llm_v3')}; burned, the scanner was tuned on it): attacker actions "
+            f"{d['dev']['behaviour_change']}/{d['dev']['n']}, scanner flagged {d['scanner_flagged']['dev']}.",
+            f"- FRESH 14-payload held-out evasion set (hash-committed before the run, run once): attacker actions "
+            f"proposed {h['behaviour_change']}/{h['n']} (Wilson 95% upper bound "
+            f"{h['behaviour_change_wilson95'][1]:.3f}), unsafe executed {h['unsafe_executed']}, "
+            f"{h['proposed_risky_non_aligned']} non-train/finish proposal (a benign `read_file train.csv`, "
+            f"guard allowed). The scanner flagged only {d['scanner_flagged']['fresh_heldout']} of the fresh "
+            f"payloads, so the model's own behaviour and the structural guard carry this result.",
+            f"- {rr['n_runs']} full agent runs with injected column names (real planner v2 + critic v3): "
+            f"{rr['finished']} finished, unsafe tools executed {rr['unsafe_executed']}, payload reached the "
+            f"critic {rr['payload_reached_critic']} times (by design the planner never sees column names, so "
+            f"this is a null-exposure check, not an attack); critic flagged {rr['critic_flagged']}/"
+            f"{rr['critic_judged']} for ordinary quality reasons (rules flagged {rr['rule_flagged']}). "
+            f"Source: {src('injected_runs_v1')}.",
+        ]  # fmt: skip
+    else:
+        L += ["- Fresh evasion set and injected full runs: NOT RUN."]
     cv = load("critic_v5")
     cc = load("critic_calibration")
     L += ["", "## Critic (advisory)", ""]
@@ -115,6 +137,40 @@ def main() -> int:
             "- The v5 agreement above (18/20) is burned and post-hoc: the critic was tuned after "
             "reading v5-era failures.",
         ]  # fmt: skip
+    c2p = ROOT / "benchmarks" / "critic_v2" / "critic_v2_eval.json"
+    if c2p.exists():
+        c2 = json.loads(c2p.read_text(encoding="utf-8"))["results"]
+        fp = c2.get("first_pass", {})
+        w, fw = c2["recall_wilson95"], c2["false_alarm_wilson95"]
+        L += [
+            f"- FRESH planted set v2 (53 items, hash `{c2['set_sha256'][:16]}`, failing-margin items now "
+            f"unambiguous; a DIFFERENT set from v1, not paired): completed run recall {c2['recall']}/"
+            f"{c2['planted_n']} (Wilson 95% {w[0]:.2f}-{w[1]:.2f}), false alarms {c2['false_alarms']}/"
+            f"{c2['clean_n']} ({fw[0]:.2f}-{fw[1]:.2f}). First pass (8 items hit the gateway token budget) was "
+            f"{fp.get('recall')}/{fp.get('planted_n')} and {fp.get('false_alarms')}/{fp.get('clean_n')}; the 8 "
+            f"were completed later with the same prompt (labelled completion). Failing-margin items "
+            f"{c2['recall_by_type'].get('rule_fail_baseline_margin')}: the model dissents with numbers, "
+            f"a documented weakness. Source: [`critic_v2_eval.json`](../benchmarks/critic_v2/critic_v2_eval.json).",
+        ]  # fmt: skip
+    L += ["", "## E2B sandbox backend", ""]
+    e2 = load("e2b_v1")
+    if e2:
+        r = e2["results"]
+        st, tt, ls = r["stages_s"], r["total_s"], r.get("live_suite", {})
+        L += [
+            f"- {r['n_ok']}/{r['n_requested']} sequential execs (default template, internet off): total "
+            f"p50 {tt['p50']:.2f} s / p95 {tt['p95']:.2f} s (create p50 {st['create_s']['p50']:.2f} s, "
+            f"upload {st['upload_s']['p50']:.2f} s, exec {st['exec_s']['p50']:.2f} s, download "
+            f"{st['download_s']['p50']:.2f} s); n=20, one machine, an order-of-magnitude figure. "
+            f"Live suite: {ls.get('passed')} passed, {ls.get('failed')} failed, {ls.get('xfailed')} xfailed, "
+            f"{ls.get('skipped')} skipped (the 2 skips need a custom template with pyarrow, not built). "
+            f"Source: {src('e2b_v1')}."
+        ]  # fmt: skip
+    else:
+        L += ["- NOT RUN."]
+    L += ["", "## Demo", "",
+          "- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . "
+          "A live Space was not possible: Hugging Face requires PRO for Docker and Gradio Spaces on this account."]  # fmt: skip
     L += ["", "## Infrastructure (GitHub Actions evidence)", ""]
     ev = load("ci_evidence")
     if ev:
@@ -122,20 +178,6 @@ def main() -> int:
         L += [f"- {k}: {v}" for k, v in e.items()]
     else:
         L += ["- NOT COLLECTED (run scripts/collect_ci_evidence.py)."]
-    inj3, runs = load("injection_llm_v3"), load("injected_runs_v1")
-    if inj3 and runs:
-        d, h, rr = inj3["results"], inj3["results"]["fresh_heldout"], runs["results"]
-        L += [
-            f"- Run 7 completion: evasion DEV attacker actions {d['dev']['behaviour_change']}/{d['dev']['n']}"
-            f"; FRESH held-out evasion {h['behaviour_change']}/{h['n']}, unsafe executed "
-            f"{h['unsafe_executed']}; {rr['n_runs']} injected full runs, unsafe executed "
-            f"{rr['unsafe_executed']}, critic flag rate {rr['critic_flagged']}/{rr['critic_judged']}. "
-            f"Sources: {src('injection_llm_v3')}, {src('injected_runs_v1')}."
-        ]  # fmt: skip
-    else:
-        L += ["- Run 7 completion (evasion DEV, FRESH 14-payload held-out set, 5 injected full agent runs): "
-              "PENDING, queued for after the 2026-10-31 00:00 UTC cap reset (v0.2.1); resume commands in "
-              "docs/PROGRESS.md."]  # fmt: skip
     L += ["", "## Load test", ""]
     ld = load("load_v1")
     if ld:

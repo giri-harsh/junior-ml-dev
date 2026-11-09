@@ -6,14 +6,17 @@ sandbox suite, the kill-and-resume test and the generated predict service all ru
 
 | Gap | Why | Resume |
 |---|---|---|
-| E2B backend never run | no `E2B_API_KEY` (NEEDS_HARSH 1) | create a key, run the sandbox suite against it |
+| E2B parquet paths not run live (2 tests skipped) | needs a custom E2B template with pyarrow; in-sandbox pip is impossible with internet off | build the template (`docs/ws/A.md`), then `JMD_E2B_PARQUET_TEMPLATE=... pytest tests/e2b` |
+| E2B network deny is verified only from inside the VM (TCP handshake completes, no data/DNS); default template has passwordless sudo | provider behaviour | prefer a locked-down template; do not rely on E2B alone for hostile code |
+| No live demo (static site only) | Hugging Face Docker/Gradio Spaces need PRO | upgrade, then `scripts/deploy_space.py` |
+| GitHub Actions on the private repo end in `startup_failure` since 2026-11-09 (even manual dispatch of `web`) | not a workflow-file error (files unchanged since the last working run); likely an account/billing limit | check Settings > Billing > Actions; CI green is unverified for main HEAD |
 | S3 in CI/compose is moto, not MinIO | MinIO images are not pullable on the runner (NEEDS_HARSH 2) | point `MINIO_ENDPOINT` at a real MinIO, rerun `tests/infra` |
 | Deploy is local only | no cloud account (NEEDS_HARSH 3) | add a backend under `mcp_servers/deploy` |
 | Local subprocess sandbox is not isolation (Windows job limits only) | by design for dev | use `JMD_SANDBOX=docker` |
 | Hosted-runner load test shows 17.8% errors at 100 users | single-container API on a shared runner | add workers/pooling before claiming capacity |
 | v5 LLM arm used 130 requests for 40 proposals (90 failed attempts) | gateway retried 429/5xx and did not record statuses | fixed in run 7 (decision 136); v5 is not rerun, new evaluations get a new freeze hash |
-| Critic v3 fresh-set recall 10/15, false alarms 1/19, 4 clean items not run | 40-request cap; set design let numeric dissent through on 3 rule-fail items | a new, larger planted set (burned set cannot be reused) |
-| Injection results are proposals from a wider action space than production | the production planner sees no dataset text | an end-to-end injected-run harness with the production tool set (5 runs done in run 7) |
+| Critic v3 does not catch rule-failed baseline margins (0/4 on set v2; 0/3 on v1) | the schema lets a numeric dissent stand, and the model dissents | tighten the schema (treat a failed `baseline_margin` as non-dissentable) and evaluate on a NEW set |
+| Injection: the prompt scanner flags 1/14 novel evasions (8/8 on its tuning set); the 5 injected full runs never exposed the payload to the planner | planner sees no dataset text by design | a harness whose agent can actually read column names, plus a better scanner |
 | Per-task differences below ~0.02 are noise; test sets are small (v3-v5) | dataset sizes | add larger unseen tasks in a future partition |
 | LLM planner v2 is statistically tied with the scripted one on v5 (paired +0.001, CI includes 0) | the LLM only chooses model-search order | a planner that uses more than family order |
 | Leakage detector residual false positives (low-cardinality ints, ordinal targets) | ADR-007 limitations | extend dev data, add entity checks |
