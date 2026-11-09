@@ -73,6 +73,8 @@ def base_child_env() -> dict[str, str]:
     """Job-independent part of the run environment (also used by the warm fork server)."""
     env = {k: os.environ[k] for k in _ENV_PASSTHROUGH if k in os.environ}
     env.update(PYTHONUTF8="1", JMD_TRACE="off", DEMO_MODE="1", OMP_NUM_THREADS="2")
+    if os.environ.get("DEMO_LEAKAGE_MODE") == "skip":
+        env["JMD_LEAKAGE_MODE"] = "skip"  # the leakage detectors are too slow for the free CPU
     if os.environ.get("DEMO_LEAKAGE_S"):  # lowers (never raises) the leakage-detection budget
         env["JMD_LEAKAGE_BUDGET_S"] = os.environ["DEMO_LEAKAGE_S"]
     return env

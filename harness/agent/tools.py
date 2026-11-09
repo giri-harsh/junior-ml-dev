@@ -83,6 +83,13 @@ def _leakage_budget_s() -> float:
 
 
 def detect_leakage(ctx: ToolCtx, args: dict[str, Any]) -> dict[str, Any]:
+    if os.environ.get("JMD_LEAKAGE_MODE") == "skip":
+        # Public demo on a throttled CPU: a single detector can run for minutes. The check is
+        # recorded as PARTIAL (the reviewer treats that as a warning, never as 'leakage checked').
+        return {
+            "findings": [], "counts": {}, "thresholds_sha256": "", "partial": True,
+            "partial_reasons": ["demo: leakage detectors skipped to fit the free CPU"],
+        }  # fmt: skip
     t = ctx.cfg.task
     res = dt.detect_leakage(
         dt.LeakageRequest(
