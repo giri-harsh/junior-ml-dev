@@ -1,0 +1,30 @@
+# Render blueprint for the public demo (free plan). Secrets (JWT_SECRET, APPROVAL_SECRET,
+# DEMO_ADMIN_PASSWORD) are set through the Render API, never in this file.
+services:
+  - type: web
+    name: junior-ml-dev-demo
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DEMO_MODE
+        value: "1"
+      - key: DEMO_MAX_WALL_S
+        value: "60"
+      - key: DEMO_SOFT_WALL_S
+        value: "45"
+      - key: DEMO_FLAML_S
+        value: "15"
+      - key: DEMO_PROXY_HOPS
+        value: "1"
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: JWT_SECRET
+        sync: false
+      - key: APPROVAL_SECRET
+        sync: false
+      - key: DEMO_ADMIN_PASSWORD
+        sync: false

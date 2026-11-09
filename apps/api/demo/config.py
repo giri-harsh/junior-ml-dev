@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_URL = "https://github.com/giri-harsh/junior-ml-dev"
+STATIC_SITE_URL = "https://giri-harsh.github.io/junior-ml-dev-demo/"  # precomputed example runs
 
 # Ceilings (the task contract). Env overrides are clamped to these.
 MAX_WALL_S = 90.0  # hard wall clock for one run, process start to finish

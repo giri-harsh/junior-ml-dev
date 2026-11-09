@@ -1,0 +1,47 @@
+# Render (free plan, docker runtime) image for the public demo; same app as Dockerfile.space.
+# CPU only, runtime dependencies only (no dev group), no Node. Listens on $PORT (Render sets it).
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_NO_CACHE=1
+
+# libgomp: OpenMP runtime used by lightgbm / xgboost / scikit-learn wheels
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install "uv==0.11.32"
+
+WORKDIR /app
+
+# Runtime dependencies, exactly as pinned in uv.lock. The only CUDA wheel in the lock is
+# nvidia-nccl-cu12 (an optional xgboost GPU dependency): it is dropped, and the build fails
+# loudly if xgboost / lightgbm / flaml cannot import without it.
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-dev --no-hashes --no-emit-project --format requirements-txt -o /tmp/req.txt \
+    && grep -v '^nvidia-' /tmp/req.txt > /tmp/req.cpu.txt \
+    && uv pip install --system --no-deps -r /tmp/req.cpu.txt \
+    && python -c "import xgboost, lightgbm, flaml, sklearn, pandas, fastapi; print('deps ok')"
+
+COPY --chown=1000:1000 . /app
+ENV PYTHONPATH=/app
+
+# Build-time data: three small public OpenML samples (fetched here, never committed) and the
+# landing page rendered from docs/METRICS.md. One retry covers a transient OpenML hiccup.
+RUN python -m apps.api.demo.prepare --data-dir /app/data/demo/samples --site-dir /app/data/demo/site \
+        --metrics /app/docs/METRICS.md \
+    || (sleep 20 && python -m apps.api.demo.prepare --data-dir /app/data/demo/samples \
+        --site-dir /app/data/demo/site --metrics /app/docs/METRICS.md)
+
+RUN mkdir -p /app/data/demo/state && chown -R 1000:1000 /app/data
+USER 1000
+
+# Demo ceilings for the free plan (512 MB, shared CPU): hard wall 60 s, soft wall 45 s, FLAML 15 s.
+# Measured peak process-tree RSS of a sample run is about 330 MB (docs/ws/R.md).
+ENV DEMO_MODE=1     DEMO_DATA_DIR=/app/data/demo/samples     DEMO_SITE_DIR=/app/data/demo/site     DEMO_STATE_DIR=/app/data/demo/state     DEMO_MAX_WALL_S=60     DEMO_SOFT_WALL_S=45     DEMO_FLAML_S=15     DEMO_PROXY_HOPS=1     COOKIE_SECURE=1
+
+EXPOSE 10000
+# One worker process: the run queue and rate limits live in this process. Bind 0.0.0.0:$PORT.
+CMD ["sh", "-c", "exec uvicorn apps.api.demo.app:app --host 0.0.0.0 --port ${PORT:-10000} --workers 1"]

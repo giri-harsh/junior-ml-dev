@@ -14,7 +14,7 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
-from apps.api.demo.config import REPO_URL
+from apps.api.demo.config import REPO_URL, STATIC_SITE_URL
 
 _CODE = re.compile(r"`([^`]+)`")
 _LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
@@ -161,6 +161,7 @@ def render_landing(metrics_md: str, template: str, *, now: datetime | None = Non
     )
     subs = {
         "REPO_URL": REPO_URL,
+        "STATIC_URL": STATIC_SITE_URL,
         "METRICS_TITLE": inline(title.splitlines()[0] if title else "Verified metrics"),
         "METRICS_INTRO": blocks_to_html(title.splitlines()[1:]) if "\n" in title else "",
         "HEADLINE_NAME": inline(head_name),
