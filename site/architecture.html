@@ -23,6 +23,8 @@ generated from result files, with the planner and LLM mode stated in every row.<
 <p>A hosted demo runs the same runner with uploads, deployment and the code sandbox switched off, the scripted
 planner only, a 90 s hard wall clock (the agent itself stops searching at a shorter soft
 wall and wraps up, which is why the example runs list both), a 20 s AutoML ceiling, one run at a time and per-address rate limits.
-That mode exists in the repository (<code>DEMO_MODE=1</code>) and is covered by tests, but has no free
-host today. The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</p>
+That mode exists in the repository (<code>DEMO_MODE=1</code>), is covered by tests and runs live on a
+free Render instance at <a href="https://junior-ml-dev-demo.onrender.com/" rel="noopener">https://junior-ml-dev-demo.onrender.com/</a>. The free instance has a throttled CPU, so
+it skips the leakage detectors (recorded as a partial check), turns FLAML off and keeps a warm worker process.
+The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</p>
 </main><footer class="wrap fine">Static site generated from the project repository. No code runs on this page.</footer></body></html>

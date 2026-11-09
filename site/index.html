@@ -6,20 +6,22 @@ models against baselines, has a deterministic reviewer sign off, and writes a re
 gated by a single-use approval.</p>
 <div class="notice"><strong>This is a static site, not a live demo.</strong> The example runs below
 were computed once with the project's scripted planner (no LLM) on a developer laptop (Windows 11), CPU only,
-and are shown as recorded. A live, interactive version needs a host that runs Python; a free
-Hugging Face account cannot create Docker or Gradio Spaces. The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</div>
+and are shown as recorded. A live, interactive version runs separately on a free Render instance:
+<a href="https://junior-ml-dev-demo.onrender.com/" rel="noopener">https://junior-ml-dev-demo.onrender.com/</a> (it sleeps when idle, so the first visit can take
+about a minute; it is slower and lighter than the runs here: leakage detectors skipped, no FLAML).
+Hugging Face Docker and Gradio Spaces need a paid account. The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</div>
 <h2>Headline: Agent benchmark v5 (headline; unseen partition, each arm run once)</h2>
 <div class="tiles"><div class="tile"><div class="tile-k">SCRIPTED planner (no LLM)</div><div class="tile-v">0.987 [0.949, 1.011]</div><div class="tile-s">pass vs linear: 7/10 (Wilson 0.40-0.89)</div></div>
 <div class="tile"><div class="tile-k">REAL-LLM planner v2</div><div class="tile-v">0.989 [0.950, 1.012]</div><div class="tile-s">pass vs linear: 8/10 (Wilson 0.49-0.94)</div></div></div>
 <p class="fine">Read from <code>docs/METRICS.md</code> when this site was built (file hash
-<code>9b23a881c766</code>, built 2026-11-09 08:20 UTC). Full tables, intervals and caveats:
+<code>51e907642319</code>, built 2026-11-09 18:20 UTC). Full tables, intervals and caveats:
 <a href="results.html">benchmark results</a>.</p>
 <h2>Example runs</h2>
 <p class="fine">Three small public OpenML tables, each run once with the same code and limits the repository's demo mode
 uses (scripted planner, FLAML 15 s).
 A demo run has two limits: a 55 s soft wall after which the agent stops searching and wraps up (review, report), and a 90 s hard limit at which the whole process is killed (the AutoML ceiling is 20 s). Wrap-up and process start come on top of the soft wall, so a finished run can take longer than it. Wall times are from one machine
 and will differ elsewhere. These are demo-scale tasks, not the benchmark.</p>
-<div class="cards"><div class="card"><b><a href="runs/diabetes/index.html">Pima diabetes (OpenML 37)</a></b><div class="fine">768 rows, binary, metric roc_auc</div><div class="fine">chosen model <code>linear</code>, validation roc_auc 0.8337, reviewer APPROVE</div><div class="fine">88 s wall, 12 steps</div></div><div class="card"><b><a href="runs/credit-g/index.html">German credit (OpenML 31)</a></b><div class="fine">1000 rows, binary, metric roc_auc</div><div class="fine">chosen model <code>linear</code>, validation roc_auc 0.7913, reviewer APPROVE</div><div class="fine">68 s wall, 10 steps</div></div><div class="card"><b><a href="runs/wine-quality/index.html">Red wine quality (OpenML 40691)</a></b><div class="fine">1599 rows, regression, metric rmse</div><div class="fine">chosen model <code>rf</code>, validation rmse 0.5802, reviewer APPROVE</div><div class="fine">78 s wall, 11 steps</div></div></div>
+<div class="cards"><div class="card"><b><a href="runs/diabetes/index.html">Pima diabetes (OpenML 37)</a></b><div class="fine">768 rows, binary, metric roc_auc</div><div class="fine">chosen model <code>linear</code>, validation roc_auc 0.8337, reviewer APPROVE</div><div class="fine">42 s wall, 13 steps</div></div><div class="card"><b><a href="runs/credit-g/index.html">German credit (OpenML 31)</a></b><div class="fine">1000 rows, binary, metric roc_auc</div><div class="fine">chosen model <code>linear</code>, validation roc_auc 0.7913, reviewer APPROVE</div><div class="fine">46 s wall, 13 steps</div></div><div class="card"><b><a href="runs/wine-quality/index.html">Red wine quality (OpenML 40691)</a></b><div class="fine">1599 rows, regression, metric rmse</div><div class="fine">chosen model <code>rf</code>, validation rmse 0.5802, reviewer APPROVE</div><div class="fine">35 s wall, 13 steps</div></div></div>
 <h2>How it works</h2>
 <p>The <a href="architecture.html">architecture page</a> shows the planner, the guarded runner, the tool
 servers, the reviewer and the approval gate, and which properties are enforced where.</p>

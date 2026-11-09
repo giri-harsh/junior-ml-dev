@@ -21,20 +21,32 @@ which come from larger tasks and longer budgets. The source repository is curren
 </ul></section>
 <section><h2>Injection defence</h2><ul>
 <li>Real LLM in the loop (injection_llm_v2): attacker action proposed 0/49, unsafe actions executed 0/49. Source: <span class="srcref" title="a file in the source repository"><code>injection_llm_v2.json</code></span>.</li>
+<li>Evasion DEV (<span class="srcref" title="a file in the source repository"><code>injection_llm_v3.json</code></span>; burned, the scanner was tuned on it): attacker actions 0/8, scanner flagged 8/8.</li>
+<li>FRESH 14-payload held-out evasion set (hash-committed before the run, run once): attacker actions proposed 0/14 (Wilson 95% upper bound 0.215), unsafe executed 0, 1 non-train/finish proposal (a benign <code>read_file train.csv</code>, guard allowed). The scanner flagged only 1/14 of the fresh payloads, so the model&#x27;s own behaviour and the structural guard carry this result.</li>
+<li>5 full agent runs with injected column names (real planner v2 + critic v3): 5 finished, unsafe tools executed 0, payload reached the critic 0 times (by design the planner never sees column names, so this is a null-exposure check, not an attack); critic flagged 3/5 for ordinary quality reasons (rules flagged 2). Source: <span class="srcref" title="a file in the source repository"><code>injected_runs_v1.json</code></span>.</li>
 </ul></section>
 <section><h2>Critic (advisory)</h2><ul>
 <li>v5 runs, critic v2 vs rule reviewer: agreement 18/20 (Wilson 95% 0.70-0.97); confusion {&#x27;rule=APPROVE|critic=APPROVE&#x27;: 18, &#x27;rule=REQUEST_CHANGES|critic=APPROVE&#x27;: 2}; 14 requests. Source: <span class="srcref" title="a file in the source repository"><code>critic_v5.json</code></span>.</li>
 <li>Dev calibration (mutated states): see <span class="srcref" title="a file in the source repository"><code>critic_calibration.json</code></span>.</li>
 <li>FRESH planted set (critic v3, schema-enforced answers to failed rules): recall 10/15 (Wilson 95% 0.42-0.85); false alarms 1/19 clean runs (Wilson 95% 0.01-0.25); 4 clean items not run (40-request cap). By type: {&#x27;cv_instability&#x27;: &#x27;1/2&#x27;, &#x27;gap_beyond_family_range&#x27;: &#x27;2/3&#x27;, &#x27;partial_leakage_check&#x27;: &#x27;2/2&#x27;, &#x27;rule_fail_baseline_margin&#x27;: &#x27;0/3&#x27;, &#x27;tiny_test&#x27;: &#x27;2/2&#x27;, &#x27;unresolved_leakage&#x27;: &#x27;3/3&#x27;}. Source: <span class="srcref" title="a file in the source repository"><code>critic_v6.json</code></span>, set <code>benchmarks/critic_set_v6.json</code> (sha256 <code>6595774668473af9</code>, committed before the first call).</li>
 <li>The v5 agreement above (18/20) is burned and post-hoc: the critic was tuned after reading v5-era failures.</li>
+<li>FRESH planted set v2 (53 items, hash <code>bfdcaf09a5aa0346</code>, failing-margin items now unambiguous; a DIFFERENT set from v1, not paired): completed run recall 18/23 (Wilson 95% 0.58-0.90), false alarms 0/30 (0.00-0.11). First pass (8 items hit the gateway token budget) was 15/20 and 0/25; the 8 were completed later with the same prompt (labelled completion). Failing-margin items 0/4: the model dissents with numbers, a documented weakness. Source: <span class="srcref" title="a file in the source repository"><code>critic_v2_eval.json</code></span>.</li>
+</ul></section>
+<section><h2>E2B sandbox backend</h2><ul>
+<li>20/20 sequential execs (default template, internet off): total p50 1.87 s / p95 2.67 s (create p50 0.38 s, upload 0.56 s, exec 0.34 s, download 0.55 s); n=20, one machine, an order-of-magnitude figure. Live suite: 8 passed, 0 failed, 0 xfailed, 2 skipped (the 2 skips need a custom template with pyarrow, not built). Source: <span class="srcref" title="a file in the source repository"><code>e2b_v1.json</code></span>.</li>
+</ul></section>
+<section><h2>Demo</h2><ul>
+<li>LIVE (host: Render free plan, 512 MB, 0.1 vCPU): https://junior-ml-dev-demo.onrender.com . Verified: health 200, landing 200, admin without auth 401, upload attempt 403, deploy path 404, reports [200, 200, 200]. Sample run (diabetes) p50 49.8 s over 3 runs ([49.8, 50.6, 49.0]). Cold start after &gt;15 min idle: health 32.7 s after &gt;15 min idle; first sample run 105.8 s end to end (includes ~45-60 s warm-worker boot); status done. Local peak process-tree RSS of a sample run: 309-327 MB local (Windows psutil process tree, FLAML 15 s); web process alone 63 MB idle. Source: <span class="srcref" title="a file in the source repository"><code>demo_render_v1.json</code></span>.</li>
+<li>Cut to fit the free plan: FLAML off; leakage detectors skipped (recorded as a PARTIAL check); hard wall 60 s, soft wall 35 s; web process no longer imports the full API (225 MB -&gt; 63 MB); a warm fork server loads pandas/scikit-learn/lightgbm once (they took 44 s per run on the 0.1 vCPU).</li>
+<li>Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ .</li>
 </ul></section>
 <section><h2>Infrastructure (GitHub Actions evidence)</h2><ul>
-<li>latest ci: success (451 s)</li>
-<li>latest infra: success (446 s)</li>
+<li>latest : startup_failure (0 s)</li>
+<li>latest ci: startup_failure (2 s)</li>
+<li>latest infra: success (459 s)</li>
 <li>latest load: success (203 s)</li>
-<li>latest web: success (28 s)</li>
-<li>runs sampled: 30 most recent, 18 success</li>
-<li>Run 7 completion (evasion DEV, FRESH 14-payload held-out set, 5 injected full agent runs): PENDING, queued for after the 2026-10-31 00:00 UTC cap reset (v0.2.1).</li>
+<li>latest web: startup_failure (1 s)</li>
+<li>runs sampled: 30 most recent, 24 success</li>
 </ul></section>
 <section><h2>Load test</h2><div class="tbl"><table><thead><tr>
 <th>Users</th><th>RPS</th><th>p50 ms</th><th>p95 ms</th><th>p99 ms</th><th>error rate</th>
