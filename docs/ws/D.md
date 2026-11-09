@@ -101,3 +101,42 @@ actual usage. If items got no output: add `--complete`. Dry check without any LL
 
 The result's `vs_run7` field compares with run 7 (10/15 recall, 1/19 false alarms) and says
 explicitly: DIFFERENT set, not paired.
+
+## First pass (run on 2026-10-31, source `benchmarks/critic_v2/critic_v2_eval.json`)
+
+Partial: 45 of 53 items answered, 8 without output (d45, d46, d47, d50, d52 clean; d48, d51
+unresolved_leakage; d49 cv_instability). Recall 15/20 (Wilson 95 % 0.53 to 0.89), false alarms 0/25
+(0.00 to 0.13). Per type: cv_instability 1/1, gap_beyond_family_range 3/3, leakage_not_run 2/2,
+lift_below_one 2/2, metric_task_mismatch 2/2, partial_leakage_check 3/3, tiny_test 1/2,
+unresolved_leakage 1/1, rule_fail_baseline_margin 0/4. All four failing-margin items got an APPROVE
+with a numeric `dissent` on `baseline_margin` even though cv <= linear: a documented weakness of the
+committed critic, not changed here. 45 requests, no error statuses, `gateway_stats.structured_failed`
+0, no cache or fixture hits.
+
+## Completion (run 9, D2): `--complete` only fills the 8 no-output items
+
+Same prompt, critic (`LLMCriticV3`), set (sha256 bfdcaf09...), cassette. The pass is labelled
+`completion` in the result. Behaviour of the script after this change:
+
+- reviews ONLY the rows whose `critic` is null; the other 45 rows are kept as they are;
+- reserves `min(60 - requests_used, 20)` per provider (15 for the 45 already spent), caps the
+  gateway at that number and settles the reservation in a `finally`;
+- extends the result JSON: top-level numbers are the completed ones over all 53 items; the original
+  first-pass results are kept verbatim under `first_pass` (with `first_pass_meta` = date and git sha
+  of that run) and never overwritten, also over repeated completions; `completion` carries the label,
+  attempted / filled / still-no-output ids, its own request count, gateway stats and error statuses;
+- an item whose answer is schema-invalid after the one repair stays no-output (listed in
+  `completion.still_no_output`); for items with a failed rule check the committed critic then
+  defaults to concurring, counted in `forced_concurrence`.
+
+Status: PENDING. No LLM call was made in this session: the live gateway has to load the provider keys
+from a `.env` (the repo `.env` exists only in the main checkout, the loader also falls back to a
+file outside the repo), and the auto-mode classifier denied loading them for the worktree run. The
+budget was NOT reserved (reservation happens inside the script right before the calls). Budget on
+2026-11-09: Groq 0/120, Gemini 0/120.
+
+Resume command, from a checkout that has the keys in its `.env` (the main checkout):
+
+    PYTHONUTF8=1 .venv/Scripts/python.exe -m benchmarks.critic_v2.eval --complete
+
+Expected cost: at most 8 requests (15 reserved per provider, released afterwards), 6 s pacing.
