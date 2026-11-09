@@ -54,7 +54,12 @@ def install(
         os.environ.pop(name, None)
     _configure_admin()
     s = settings or DemoSettings.from_env()
-    service = DemoService(s, executor or subprocess_executor)
+    chosen = executor
+    if chosen is None and os.name == "posix" and os.environ.get("DEMO_ZYGOTE") == "1":
+        from apps.api.demo.zygote_exec import ZygoteExecutor
+
+        chosen = ZygoteExecutor()  # warm fork server: heavy imports once, not once per run
+    service = DemoService(s, chosen or subprocess_executor)
     app.state.demo_service = service
     app.state.demo_removed_routes = strip_routes(app)
     app.include_router(demo_router)
@@ -76,11 +81,17 @@ def install(
     @asynccontextmanager
     async def lifespan(a: FastAPI) -> AsyncIterator[Any]:
         service.start()
+        warm = getattr(chosen, "warm", None)
+        if warm is not None:
+            warm()
         try:
             async with inner(a) as state:
                 yield state
         finally:
             service.stop()
+            close = getattr(chosen, "close", None)
+            if close is not None:
+                close()
 
     app.router.lifespan_context = lifespan
     return service

@@ -69,17 +69,23 @@ _ENV_PASSTHROUGH = (
 )  # fmt: skip
 
 
+def base_child_env() -> dict[str, str]:
+    """Job-independent part of the run environment (also used by the warm fork server)."""
+    env = {k: os.environ[k] for k in _ENV_PASSTHROUGH if k in os.environ}
+    env.update(PYTHONUTF8="1", JMD_TRACE="off", DEMO_MODE="1", OMP_NUM_THREADS="2")
+    if os.environ.get("DEMO_LEAKAGE_S"):  # lowers (never raises) the leakage-detection budget
+        env["JMD_LEAKAGE_BUDGET_S"] = os.environ["DEMO_LEAKAGE_S"]
+    return env
+
+
 def child_env(job: DemoJob) -> dict[str, str]:
     """Minimal environment for the run process: no JWT/approval/admin/API secrets reach it."""
-    env = {k: os.environ[k] for k in _ENV_PASSTHROUGH if k in os.environ}
+    env = base_child_env()
     env.update(
-        PYTHONUTF8="1", JMD_TRACE="off", DEMO_MODE="1", OMP_NUM_THREADS="2",
         DATA_TOOLS_ROOTS=str(job.data_dir.resolve()),
         EXPERIMENTS_DIR=str((job.run_dir / "exp").resolve()),
         TRAJECTORY_DIR=str((job.run_dir / "traj").resolve()),
     )  # fmt: skip
-    if os.environ.get("DEMO_LEAKAGE_S"):  # lowers (never raises) the leakage-detection budget
-        env["JMD_LEAKAGE_BUDGET_S"] = os.environ["DEMO_LEAKAGE_S"]
     return env
 
 

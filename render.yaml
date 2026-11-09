@@ -20,6 +20,8 @@ services:
         value: "0"
       - key: DEMO_LEAKAGE_S
         value: "8"
+      - key: DEMO_ZYGOTE
+        value: "1"
       - key: DEMO_PROXY_HOPS
         value: "1"
       - key: COOKIE_SECURE
