@@ -46,3 +46,35 @@ def test_demo_web_process_does_not_import_the_heavy_stack() -> None:
     )  # fmt: skip
     assert out.returncode == 0, out.stderr[-500:]
     assert out.stdout.strip() == "", f"heavy modules imported by the demo web process: {out.stdout}"
+
+
+def _deploy_render() -> object:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import deploy_render
+
+    return deploy_render
+
+
+def test_render_service_body_carries_only_demo_settings_and_generated_secrets() -> None:
+    dr = _deploy_render()
+    body = dr.service_body(
+        "tea-x", {"JWT_SECRET": "a", "APPROVAL_SECRET": "b", "DEMO_ADMIN_PASSWORD": "c"}
+    )  # type: ignore[attr-defined]
+    keys = {e["key"] for e in body["envVars"]}
+    assert keys == {*dr.PLAIN_ENV, *dr.SECRET_NAMES}  # type: ignore[attr-defined]
+    assert not any(k.startswith(("GROQ", "GEMINI", "E2B", "HF_", "RENDER")) for k in keys)
+    d = body["serviceDetails"]
+    assert d["plan"] == "free" and d["healthCheckPath"] == "/health" and d["runtime"] == "docker"
+    assert body["branch"] == "main" and body["autoDeploy"] == "yes"
+
+
+def test_render_env_helpers_read_only_named_keys_and_handle_indent(tmp_path: Path) -> None:
+    dr = _deploy_render()
+    p = tmp_path / ".env"
+    p.write_text("GROQ_API_KEY=x\n   RENDER_API_KEY = 'abc'\n# c\nOTHER=1\n", encoding="utf-8")
+    got = dr.read_env_names(p, dr.SETTING_NAMES)  # type: ignore[attr-defined]
+    assert got == {"RENDER_API_KEY": "abc"}
+    dr.set_local_env(p, "DEMO_ADMIN_PASSWORD", "pw")  # type: ignore[attr-defined]
+    dr.set_local_env(p, "DEMO_ADMIN_PASSWORD", "pw2")  # type: ignore[attr-defined]
+    lines = [x for x in p.read_text(encoding="utf-8").splitlines() if x.startswith("DEMO_ADMIN")]
+    assert lines == ["DEMO_ADMIN_PASSWORD=pw2"]
