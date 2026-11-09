@@ -370,6 +370,36 @@ def wait_for_url(
     return False, attempts
 
 
+def wait_for_match(
+    client: Any, url: str, expected: bytes, *, attempts: int = 40, interval_s: float = 15.0,
+    sleep: Callable[[float], None] = time.sleep,
+) -> tuple[bool, int]:  # fmt: skip
+    """Poll until `url` serves exactly `expected`. A bare 200 is not enough on a redeploy: the
+    previous version keeps answering 200 until the Pages workflow finishes."""
+    want = hashlib.sha256(expected).hexdigest()
+    for i in range(1, attempts + 1):
+        try:
+            r = client.get(url)
+            got = getattr(r, "content", r.text.encode("utf-8"))
+            if int(r.status_code) == 200 and hashlib.sha256(got).hexdigest() == want:
+                return True, i
+        except Exception:
+            pass
+        if i < attempts:
+            sleep(interval_s)
+    return False, attempts
+
+
+def workflow_runs(repo: str = REPO) -> int:
+    res = run(
+        ["gh", "run", "list", "-R", repo, "--limit", "100", "--json", "databaseId"], check=False
+    )
+    try:
+        return len(json.loads(res.stdout or "[]"))
+    except ValueError:
+        return 0
+
+
 # --- CLI -----------------------------------------------------------------------------------------
 def make_client() -> Any:
     import httpx
@@ -416,6 +446,7 @@ def main(argv: list[str] | None = None) -> int:
         sha = ""
         try:
             created = ensure_repo()
+            runs_before = workflow_runs() if not created else 0
             sha = push_site(ns.site, files)
             enable_pages()
         except Exception as exc:
@@ -427,15 +458,17 @@ def main(argv: list[str] | None = None) -> int:
             f"pushed {sha[:10]} to {REPO} ({'created' if created else 'existing'}); Pages enabled"
         )
         client = make_client()
-        ok, tries = wait_for_url(client, ns.url)
-        runs_n = len(json.loads(run(["gh", "run", "list", "-R", REPO, "--json", "databaseId"],
-                                    check=False).stdout or "[]"))  # fmt: skip
-        ledger("commit", "ci_runs", max(1, runs_n), 2)
+        base = ns.url if ns.url.endswith("/") else ns.url + "/"
+        ok, tries = wait_for_match(
+            client, base + "index.html", (ns.site / "index.html").read_bytes()
+        )
+        new_runs = max(1, workflow_runs() - runs_before)  # runs this publish caused
+        ledger("commit", "ci_runs", new_runs, 2)
         ledger("commit", "ci_minutes", 2, 3)
         if not ok:
-            print(f"URL not live after {tries} polls: {ns.url}", file=sys.stderr)
+            print(f"new version not served after {tries} polls: {ns.url}", file=sys.stderr)
             return 1
-        print(f"live after {tries} poll(s): {ns.url}")
+        print(f"live (new version) after {tries} poll(s): {ns.url}")
         ns.command = "verify"
 
     rep = verify_site(make_client(), ns.url, ns.site)

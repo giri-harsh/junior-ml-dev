@@ -276,6 +276,25 @@ def test_wait_for_url_polls_until_200_and_gives_up() -> None:
     assert dst.wait_for_url(Seq([404]), "u", attempts=3, sleep=lambda s: None) == (False, 3)
 
 
+def test_wait_for_match_ignores_a_200_that_is_still_the_old_version() -> None:
+    class Old2New:
+        def __init__(self) -> None:
+            self.n = 0
+
+        def get(self, url: str) -> httpx.Response:
+            self.n += 1
+            return httpx.Response(200, content=b"new" if self.n >= 3 else b"old")
+
+    c = Old2New()
+    sleeps: list[float] = []
+    assert dst.wait_for_match(c, "u", b"new", attempts=5, sleep=sleeps.append) == (True, 3)
+    assert len(sleeps) == 2
+    assert dst.wait_for_match(Old2New(), "u", b"never", attempts=2, sleep=lambda s: None) == (
+        False,
+        2,
+    )
+
+
 # --- the committed site --------------------------------------------------------------------------
 def test_the_committed_site_is_clean_and_complete() -> None:
     site = REPO / "site"
