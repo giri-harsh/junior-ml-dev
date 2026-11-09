@@ -133,7 +133,8 @@ def main() -> int:
         commit(LATENCY_N, LATENCY_N)  # conservative: every attempt may have created a sandbox
     cond = Conditions(
         llm="none", sandbox="e2b", n=res["n_ok"],
-        notes="fresh sandbox per exec, no internet; total_s = create+upload+exec+download+kill",
+        notes="fresh sandbox per exec, no internet; total_s = create+upload+exec+download "
+        "(kill is in stages_s)",
     )  # fmt: skip
     path = write_result("e2b_v1", res, cond, command="python -m harness.sandbox.e2b_live")
     print(f"wrote {path}")

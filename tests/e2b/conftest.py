@@ -41,3 +41,9 @@ class _SkipOnDeny(BudgetedE2B):
 @pytest.fixture
 def sandbox() -> BudgetedE2B:
     return _SkipOnDeny(template=os.environ.get("JMD_E2B_TEMPLATE") or None)
+
+
+@pytest.fixture
+def parquet_sandbox() -> BudgetedE2B:
+    """A template with pandas AND pyarrow (internet is off, so nothing can be pip-installed)."""
+    return _SkipOnDeny(template=os.environ.get("JMD_E2B_PARQUET_TEMPLATE") or None)
