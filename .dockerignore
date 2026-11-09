@@ -8,3 +8,6 @@ scorer_data
 .pytest_cache
 .env
 .env.*
+.claude
+.budget
+**/node_modules

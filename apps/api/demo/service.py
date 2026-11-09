@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any
 
 from apps.api.demo.config import DemoSettings
-from apps.api.demo.runner import enforce_demo_config
+from apps.api.demo.limits import enforce_demo_config
 from apps.api.demo.samples import BY_KEY, Sample, sample_path
 from harness.agent.models import RunBudget, RunConfig, RunTask
 from harness.queue import SQLiteJobQueue, Worker
