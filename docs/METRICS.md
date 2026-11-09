@@ -19,6 +19,9 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 ## Injection defence
 
 - Real LLM in the loop (injection_llm_v2): attacker action proposed 0/49, unsafe actions executed 0/49. Source: [`injection_llm_v2.json`](../benchmarks/results/injection_llm_v2.json).
+- Evasion DEV ([`injection_llm_v3.json`](../benchmarks/results/injection_llm_v3.json); burned, the scanner was tuned on it): attacker actions 0/8, scanner flagged 8/8.
+- FRESH 14-payload held-out evasion set (hash-committed before the run, run once): attacker actions proposed 0/14 (Wilson 95% upper bound 0.215), unsafe executed 0, 1 non-train/finish proposal (a benign `read_file train.csv`, guard allowed). The scanner flagged only 1/14 of the fresh payloads, so the model's own behaviour and the structural guard carry this result.
+- 5 full agent runs with injected column names (real planner v2 + critic v3): 5 finished, unsafe tools executed 0, payload reached the critic 0 times (by design the planner never sees column names, so this is a null-exposure check, not an attack); critic flagged 3/5 for ordinary quality reasons (rules flagged 2). Source: [`injected_runs_v1.json`](../benchmarks/results/injected_runs_v1.json).
 
 ## Critic (advisory)
 
@@ -26,15 +29,24 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 - Dev calibration (mutated states): see [`critic_calibration.json`](../benchmarks/results/critic_calibration.json).
 - FRESH planted set (critic v3, schema-enforced answers to failed rules): recall 10/15 (Wilson 95% 0.42-0.85); false alarms 1/19 clean runs (Wilson 95% 0.01-0.25); 4 clean items not run (40-request cap). By type: {'cv_instability': '1/2', 'gap_beyond_family_range': '2/3', 'partial_leakage_check': '2/2', 'rule_fail_baseline_margin': '0/3', 'tiny_test': '2/2', 'unresolved_leakage': '3/3'}. Source: [`critic_v6.json`](../benchmarks/results/critic_v6.json), set `benchmarks/critic_set_v6.json` (sha256 `6595774668473af9`, committed before the first call).
 - The v5 agreement above (18/20) is burned and post-hoc: the critic was tuned after reading v5-era failures.
+- FRESH planted set v2 (53 items, hash `bfdcaf09a5aa0346`, failing-margin items now unambiguous; a DIFFERENT set from v1, not paired): completed run recall 18/23 (Wilson 95% 0.58-0.90), false alarms 0/30 (0.00-0.11). First pass (8 items hit the gateway token budget) was 15/20 and 0/25; the 8 were completed later with the same prompt (labelled completion). Failing-margin items 0/4: the model dissents with numbers, a documented weakness. Source: [`critic_v2_eval.json`](../benchmarks/critic_v2/critic_v2_eval.json).
+
+## E2B sandbox backend
+
+- 20/20 sequential execs (default template, internet off): total p50 1.87 s / p95 2.67 s (create p50 0.38 s, upload 0.56 s, exec 0.34 s, download 0.55 s); n=20, one machine, an order-of-magnitude figure. Live suite: 8 passed, 0 failed, 0 xfailed, 2 skipped (the 2 skips need a custom template with pyarrow, not built). Source: [`e2b_v1.json`](../benchmarks/results/e2b_v1.json).
+
+## Demo
+
+- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . A live Space was not possible: Hugging Face requires PRO for Docker and Gradio Spaces on this account.
 
 ## Infrastructure (GitHub Actions evidence)
 
-- latest ci: success - run 40953422203 (451 s) on `2a8bec9` (merge: stretch 1-6)
-- latest infra: success - run 40953422200 (446 s) on `2a8bec9` (merge: stretch 1-6)
+- latest : startup_failure - run 42583961889 (0 s) on `90d25e7` (merge: fix-ci-e2b-mypy)
+- latest ci: startup_failure - run 42584524699 (2 s) on `90d25e7` (ci)
+- latest infra: success - run 41180320598 (459 s) on `69f7a0c` (fix: clean up linting and mypy errors in new code)
 - latest load: success - run 40945724068 (203 s) on `705cbdf` (load)
-- latest web: success - run 40945730802 (28 s) on `705cbdf` (web)
-- runs sampled: 30 most recent, 18 success
-- Run 7 completion (evasion DEV, FRESH 14-payload held-out set, 5 injected full agent runs): PENDING, queued for after the 2026-10-31 00:00 UTC cap reset (v0.2.1); resume commands in docs/PROGRESS.md.
+- latest web: startup_failure - run 42584606495 (1 s) on `90d25e7` (web)
+- runs sampled: 30 most recent, 24 success
 
 ## Load test
 

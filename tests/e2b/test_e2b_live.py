@@ -4,6 +4,7 @@ were fooled. Each test costs one sandbox creation from the shared budget."""
 
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 
@@ -14,7 +15,31 @@ from harness.sandbox.backends import E2BBackend
 pytestmark = pytest.mark.e2b
 
 
+# The default E2B template is bare python 3.11 (no numpy/pandas/pyarrow). Data-science tests need a
+# template that has them (internet is off by design, so pip install inside the sandbox is not an
+# option; docs/ws/A.md). JMD_E2B_TEMPLATE: numpy+pandas (public `code-interpreter-v1` works).
+# JMD_E2B_PARQUET_TEMPLATE: additionally pyarrow (needs a custom template; `code-interpreter-v1`
+# has no parquet engine).
+needs_template = pytest.mark.skipif(
+    not os.environ.get("JMD_E2B_TEMPLATE"),
+    reason="needs JMD_E2B_TEMPLATE with numpy+pandas (default template has none)",
+)
+needs_parquet_template = pytest.mark.skipif(
+    not os.environ.get("JMD_E2B_PARQUET_TEMPLATE"),
+    reason="needs JMD_E2B_PARQUET_TEMPLATE with pandas+pyarrow+sklearn (custom template)",
+)
+
+
 def test_normal_code_runs_and_returns_output_files(sandbox: E2BBackend) -> None:
+    code = "import json\njson.dump({'a': [1, 2]}, open('out_x.json', 'w'))\nprint('ok')\n"
+    r = sandbox.run_python(code, 60, {})
+    assert r.exit_code == 0 and r.stdout.strip() == "ok" and "out_x.json" in r.files
+    assert not r.timed_out
+
+
+@needs_parquet_template
+def test_pandas_parquet_output_roundtrip(parquet_sandbox: E2BBackend) -> None:
+    sandbox = parquet_sandbox
     code = (
         "import pandas as pd\n"
         "pd.DataFrame({'a': [1, 2]}).to_parquet('out_x.parquet')\n"
@@ -22,7 +47,6 @@ def test_normal_code_runs_and_returns_output_files(sandbox: E2BBackend) -> None:
     )
     r = sandbox.run_python(code, 60, {})
     assert r.exit_code == 0 and r.stdout.strip() == "ok" and "out_x.parquet" in r.files
-    assert not r.timed_out
 
 
 def test_uploaded_files_are_visible_in_the_workdir(sandbox: E2BBackend) -> None:
@@ -37,18 +61,29 @@ def test_nonzero_exit_and_stderr_are_reported(sandbox: E2BBackend) -> None:
 
 
 def test_network_is_blocked(sandbox: E2BBackend) -> None:
-    # allow_internet_access=False is enforced by E2B at the sandbox network layer. If a live run
-    # ever shows CONNECTED, this must become a documented xfail (see docs/ws/A.md), not be hidden.
+    # Live finding (docs/ws/A.md): with allow_internet_access=False the TCP handshake to an outside
+    # IP still completes (a bare connect() is NOT a valid probe), but no byte is ever exchanged and
+    # DNS fails. So the test requires an actual data exchange and a name lookup to both fail.
     code = (
         "import socket\n"
+        "def exchange(host, port, payload):\n"
+        "    try:\n"
+        "        s = socket.create_connection((host, port), timeout=5)\n"
+        "        s.settimeout(5)\n"
+        "        s.sendall(payload)\n"
+        "        return bool(s.recv(16))\n"
+        "    except OSError:\n"
+        "        return False\n"
+        "req = b'GET / HTTP/1.0\\r\\nHost: one.one.one.one\\r\\n\\r\\n'\n"
+        "print('TCP_DATA=%d' % exchange('1.1.1.1', 80, req))\n"
         "try:\n"
-        "    socket.create_connection(('1.1.1.1', 53), timeout=5)\n"
-        "    print('CONNECTED')\n"
+        "    socket.gethostbyname('example.com')\n"
+        "    print('DNS=1')\n"
         "except OSError:\n"
-        "    print('blocked')\n"
+        "    print('DNS=0')\n"
     )
     r = sandbox.run_python(code, 60, {})
-    assert "blocked" in r.stdout and "CONNECTED" not in r.stdout
+    assert r.stdout.split() == ["TCP_DATA=0", "DNS=0"], r.stdout
 
 
 def test_writes_outside_the_workdir_fail(sandbox: E2BBackend) -> None:
@@ -95,9 +130,37 @@ def test_timeout_kills_the_sandbox(sandbox: E2BBackend) -> None:
     assert sandbox.kill_failures == 0
 
 
+@needs_template
+def test_agent_written_feature_code_end_to_end_csv(sandbox: E2BBackend) -> None:
+    """Policy -> E2B -> engineered CSV back, without parquet (works on code-interpreter-v1)."""
+    import io
+
+    import numpy as np
+    import pandas as pd
+
+    from harness.sandbox.backends import run_checked
+
+    code = (
+        "import numpy as np\n"
+        "import pandas as pd\n"
+        "df = pd.read_csv('train.csv')\n"
+        "df['fe_log1p_a'] = np.log1p(df['a'])\n"
+        "df.to_csv('out_train.csv', index=False)\n"
+        "print(len(df.columns))\n"
+    )
+    df = pd.DataFrame({"a": np.arange(1.0, 51.0), "y": np.arange(50) % 2})
+    r = run_checked(sandbox, code, 60.0, {"train.csv": df.to_csv(index=False).encode()})
+    assert r.exit_code == 0, r.stderr
+    out = pd.read_csv(io.BytesIO(r.files["out_train.csv"]))
+    assert list(out.columns) == ["a", "y", "fe_log1p_a"] and r.stdout.strip() == "3"
+    assert np.allclose(out["fe_log1p_a"], np.log1p(df["a"]))
+
+
+@needs_parquet_template
 def test_agent_feature_step_end_to_end_through_e2b(
-    sandbox: E2BBackend, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    parquet_sandbox: E2BBackend, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    sandbox = parquet_sandbox
     from harness.agent.models import RunBudget
     from harness.agent.planners import ScriptedPlanner
     from harness.agent.runner import AgentRunner

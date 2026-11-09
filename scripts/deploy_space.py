@@ -6,9 +6,15 @@
 
 Secrets: only JWT_SECRET, APPROVAL_SECRET and DEMO_ADMIN_PASSWORD are put on the Space, freshly
 generated with `secrets` on every deploy. DEMO_ADMIN_PASSWORD is also written to the local .env
-(never printed). GROQ / GEMINI / E2B keys are never read, uploaded or set. HF_TOKEN and
-DEMO_PRIVATE are read from .env by name. Without HF_TOKEN the script prints "HF_TOKEN missing"
+(never printed). GROQ / GEMINI / E2B keys are never uploaded or set; their values are read from
+.env only to scan the upload set for an accidental copy. .env is read through an allowlist
+(`read_env_names`): HF_TOKEN, DEMO_PRIVATE, DEMO_SPACE_ID for settings plus the PROTECTED_NAMES
+for that scan; every other line is skipped. Without HF_TOKEN the script prints "HF_TOKEN missing"
 and exits 0.
+
+Findings (HF account without PRO, 2026-11): sdk=docker and sdk=gradio both fail at creation with
+HTTP 402; sdk=streamlit is no longer accepted (HTTP 400, only gradio|docker|static). Only a static
+Space or another static host works on a free account: see scripts/deploy_static.py.
 
 Upload guard: the file set is an allowlist (`.spaceignore`), then checked against a hard-deny list
 (.env, cassettes, benchmark data, docs other than METRICS.md, databases, keys) and scanned with the
@@ -40,7 +46,10 @@ from scripts.secret_scan import PATTERNS as REPO_PATTERNS  # noqa: E402
 REPO_URL = "https://github.com/giri-harsh/junior-ml-dev"
 SPACE_NAME = "junior-ml-dev"
 SPACE_SECRETS = ("JWT_SECRET", "APPROVAL_SECRET", "DEMO_ADMIN_PASSWORD")
-# Names whose VALUES must never appear in the upload set. Read from .env only to scan for them.
+# Settings the script acts on (read by name from .env, never anything else).
+SETTING_NAMES = ("HF_TOKEN", "DEMO_PRIVATE", "DEMO_SPACE_ID")
+# Names whose VALUES must never appear in the upload set. Their values are read ONLY to scan the
+# upload set for an accidental copy: held in memory, never logged, never sent anywhere.
 PROTECTED_NAMES = (
     "HF_TOKEN", "GROQ_API_KEY", "GEMINI_API_KEY", "GROQ_FALLBACK_API_KEY", "E2B_API_KEY",
     "DEMO_ADMIN_PASSWORD", "JWT_SECRET", "APPROVAL_SECRET",
@@ -218,7 +227,10 @@ def env_file_path() -> Path:
     return ROOT / ".env"
 
 
-def parse_env(path: Path) -> dict[str, str]:
+def read_env_names(path: Path, names: tuple[str, ...]) -> dict[str, str]:
+    """Allowlist loader: returns ONLY the requested names found in the .env file. Every other
+    line (API keys, database URLs, ...) is skipped without its value being kept. Values are
+    returned to the caller, never logged or copied into os.environ."""
     out: dict[str, str] = {}
     if not path.is_file():
         return out
@@ -227,10 +239,13 @@ def parse_env(path: Path) -> dict[str, str]:
         if not line or line.startswith("#") or "=" not in line:
             continue
         k, _, v = line.partition("=")
+        k = k.strip()
+        if k not in names:
+            continue
         v = v.strip()
         if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
             v = v[1:-1]
-        out[k.strip()] = v
+        out[k] = v
     return out
 
 
@@ -579,7 +594,7 @@ def main(argv: list[str] | None = None) -> int:
     if ns.verify:
         import httpx
 
-        env = parse_env(ns.env_file or env_file_path())
+        env = read_env_names(ns.env_file or env_file_path(), SETTING_NAMES)
         target = ns.verify
         if target == "auto":
             space_id = get_setting(env, "DEMO_SPACE_ID")
@@ -599,13 +614,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if rep.ok else 1
 
     env_path = ns.env_file or env_file_path()
-    env = parse_env(env_path)
+    env = read_env_names(env_path, SETTING_NAMES)
+    scan_env = read_env_names(env_path, PROTECTED_NAMES)
     token = get_setting(env, "HF_TOKEN")
     if not ns.dry_run and not token:
         print("HF_TOKEN missing")
         return 0
     try:
-        files = check_upload_set(ns.root, ns.root / ".spaceignore", protected_values(env))
+        files = check_upload_set(ns.root, ns.root / ".spaceignore", protected_values(scan_env))
     except UploadGuardError as exc:
         print(f"ABORT: {exc}", file=sys.stderr)
         return 2
@@ -627,8 +643,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"DEPLOY FAILED: {type(exc).__name__} {status}", file=sys.stderr)
         print(text[-1] if text else "", file=sys.stderr)
         if status == 402:
-            print("Docker Spaces need an HF PRO subscription (or a paid hardware tier); "
-                  "re-run after upgrading the account.", file=sys.stderr)  # fmt: skip
+            print("Docker and Gradio Spaces need an HF PRO subscription (or a paid hardware "
+                  "tier); re-run after upgrading the account.", file=sys.stderr)  # fmt: skip
         return 1
     if not res.ok:
         print(f"DEPLOY FAILED: {res.note}", file=sys.stderr)

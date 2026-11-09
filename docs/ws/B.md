@@ -1,3 +1,81 @@
+# Workstream B2: free live demo (resumed)
+
+Outcome: **option 3 succeeded.** Free hosted Python is not available to this Hugging Face account, so
+the demo is a static site on GitHub Pages: https://giri-harsh.github.io/junior-ml-dev-demo/ (public
+repo `giri-harsh/junior-ml-dev-demo`, contents of `site/` only; the source repo stays private).
+
+## What was tried, in order (account `Pseudo-Harsh`, not PRO)
+
+| Option | Result | Builds used |
+|---|---|---|
+| 1. HF Space `sdk=gradio` | `create_repo` returned HTTP 402 "hosting Gradio and Docker Spaces on free cpu-basic requires a PRO subscription" | 0 |
+| 2. HF Space `sdk=streamlit` | HTTP 400 `Invalid option: expected one of "gradio"/"docker"/"static"`: Streamlit is no longer an SDK | 0 |
+| 3. Static site on GitHub Pages | published and verified live | 0 HF builds, 1 Pages workflow run |
+
+No Gradio app was written: it could never run on this account, and untested code is worse than none.
+Resume for option 1 (only after an HF PRO upgrade or paid hardware): the Docker route in section B below
+still works, `python scripts/deploy_space.py && python scripts/deploy_space.py --verify auto`.
+A static HF Space is free and could mirror `site/` (`sdk=static`); not done, GitHub Pages already serves it.
+
+## Live verification (`python scripts/deploy_static.py verify`, output in `data/demo/verify_static_live.json`, not committed)
+
+All 10 checks passed against the live URL: all 13 built files are served with 200 and are byte-identical
+(sha256) to `site/`; home, results (headline numbers from METRICS.md, 8 score cells), architecture (inline
+SVG) and the three example-run pages with their agent reports (`planner=scripted`) render; 10 internal
+links, none broken. Page fetch latency over 37 requests with one keep-alive client: p50 8.8 ms, max
+450.1 ms (first request).
+
+The three example runs were really executed with the scripted planner (same runner, child process and
+budgets as the demo mode: soft wall 55 s, FLAML 15 s, 3 tuning trials). Wall time 88.0 s / 68.5 s / 77.6 s
+(diabetes / credit-g / wine-quality; validation roc_auc 0.8337, roc_auc 0.7913, rmse 0.5802; reviewer
+APPROVE in all three), source `data/demo/static_runs/runs.json` (not committed). The machine was loaded by
+parallel workstreams: the earlier idle check of the live-demo code took 44.1 / 48.1 / 36.1 s, so diabetes
+at 88 s was within 2 s of the 90 s kill. The pages call these timing samples, not a benchmark.
+
+## How it works
+
+- `scripts/deploy_static.py build` pre-computes the runs (`apps/space/static_site.py`, through
+  `apps.api.demo.service`), renders `site/` from the runs and `docs/METRICS.md` (no figure is typed into a
+  template), then runs the guard. `--reuse` re-renders from `data/demo/static_runs/` without re-running.
+- Guard (`check`, also run by `publish`): allowlist of file types (html, css, svg, txt, md, `.nojekyll`),
+  the hard-deny list from `deploy_space.py`, the repo's secret patterns plus an HF token pattern, the literal
+  values of the protected local secrets, and local-path or internal-doc markers (Windows user paths, the
+  user name, `NEEDS_HARSH`). Any hit aborts with file, line and rule name, never the match. No source, `.env`,
+  cassettes or benchmark data can pass.
+- `publish`: reserves `ci_runs 2` and `ci_minutes 3` first (denied means deferred), creates the public repo
+  if missing, pushes one fresh commit (author Harsh Giri) containing exactly the checked files, enables
+  Pages from `main` at `/`, polls the URL (up to 30 x 15 s), runs `verify`, then commits the real CI usage to
+  the ledger (ledger now: ci_runs 1/20, ci_minutes 2/250, hf_build 0/6).
+- Source-repo links: the source repo is private, so result-file references are plain names and the pages say
+  so. If it is made public, `build` detects it (`gh repo view`) and renders real links.
+- Re-run: `python scripts/deploy_static.py build --reuse && python scripts/deploy_static.py publish`.
+
+## Follow-up after verification (verdict: PASS, public repo clean)
+
+- Correction: `tests/demo` had 80 tests at the B2 hand-off, not the 90 first reported; it has 86 now.
+- `results.html` now opens with a sentence computed from the paired-difference intervals in METRICS.md
+  (counts and n come from the file; it says "no difference demonstrated" only if every interval includes 0).
+- The published METRICS text drops what only makes sense in the private repo: the "resume commands in
+  docs/PROGRESS.md" pointer, CI run ids and short commit hashes/messages (`sanitize_metrics`). Figures and
+  caveats are untouched; the home-page hash is still the hash of the real file.
+- Guard markers added: `PROGRESS.md`, `AUTOPILOT`, and an e-mail address pattern (reported by label only).
+  The previously committed site failed the new guard until rebuilt, which is the intended behaviour.
+- The 55 s vs 90 s wording is explained on results, home, architecture and run pages: 55 s is the soft wall
+  at which the agent stops searching and wraps up, 90 s the hard limit at which the process is killed (both
+  numbers come from `apps/api/demo/config.py`, not from the template).
+
+## Decisions
+
+1. Static host is GitHub Pages in a NEW public repo (authorized); the main repo was never touched.
+2. `RESULTS.md` is not published: it labels v4 as HEADLINE while `METRICS.md` (the verified file) says v5.
+3. `.env` loader: `scripts/deploy_space.py` no longer parses the whole file. `read_env_names(path, names)`
+   keeps only requested names: `HF_TOKEN`, `DEMO_PRIVATE`, `DEMO_SPACE_ID` as settings, plus the protected
+   names (GROQ/GEMINI/E2B keys, HF token, demo secrets) used only to scan the upload set for an accidental
+   copy (in memory, never logged or sent). Own parser rather than `harness/gateway/envload.py`: that one
+   writes values into `os.environ` and its allowlist is the LLM keys, the opposite of what a deploy script
+   wants. No cross-path change needed.
+4. Wall times are shown as measured under load, with that caveat on the page, not re-run for a nicer number.
+
 # Workstream B: public demo on Hugging Face Spaces (docker SDK)
 
 Status: everything is built and tested locally. The live Space is NOT deployed: Hugging Face
@@ -31,7 +109,7 @@ first deploy so reruns update the same Space). Dry run, no network and no token:
 | Image (python:3.12-slim, `uv export --no-dev` from `uv.lock`, port 7860) | `Dockerfile.space` |
 | Upload allowlist | `.spaceignore` |
 | Deploy, upload guard, secret scan, verify | `scripts/deploy_space.py` |
-| Tests (58 + the demo suite below) | `tests/demo/` |
+| Tests (86 in `tests/demo/` after the B2 follow-up; it was 80 before it) | `tests/demo/` |
 
 ## How the demo constraints are enforced (in code, not by convention)
 

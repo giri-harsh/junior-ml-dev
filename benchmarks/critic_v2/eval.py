@@ -6,9 +6,10 @@ clean runs with Wilson CIs, per-type recall, error statuses and requests used, p
 field against run 7 (a DIFFERENT set, so the two are not paired).
 
 Runs ONCE: refuses if the result file exists. `--complete` re-runs the SAME prompt only to fill
-items that got no output because a provider failed (the cassette replays everything that
-succeeded); its cap is MAX_REQUESTS minus what the first pass spent. `--check` verifies the hash
-and prints the plan without any LLM call.
+items that got no output (first pass: the gateway token budget of 40,000 ran out after 45
+answers, no provider failed; the cassette replays everything that succeeded); its cap is
+MAX_REQUESTS minus what the first pass spent. `--check` verifies the hash and prints the plan
+without any LLM call.
 
 Budget: reserves the request cap on the shared ledger (`scripts/budget.py`) before the run and
 commits the actual usage afterwards. The gateway chain is groq then gemini (as in run 7), so both
@@ -39,6 +40,7 @@ RESULT_NAME = "critic_v2_eval"
 RESULT_DIR = HERE
 CASSETTE = Path("tests/cassettes/critic_v2.jsonl")
 MAX_REQUESTS = 60
+COMPLETION_CAP = 20  # a completion pass reserves at most this many (and never beyond the total)
 PACE_S = 6.0
 PROVIDERS = ("groq", "gemini")
 RUN7_RESULT = RESULTS_DIR / "critic_v6.json"
@@ -150,6 +152,55 @@ def commit(n: int, used: dict[str, int]) -> None:
         _budget("commit", k, str(u), str(n))
 
 
+def merge_completion(
+    first: dict[str, Any],
+    new_rows: list[dict[str, Any]],
+    this_pass: int,
+    stats: dict[str, int],
+    errors: dict[str, int],
+    first_meta: dict[str, Any],
+) -> dict[str, Any]:
+    """Completed numbers on all items; the first pass's fields are kept verbatim under
+    `first_pass` (never overwritten, also across repeated completions) and the completion pass is
+    labelled. Only rows that had NO output are replaced, and only by rows that now have one."""
+    base = first.get("first_pass") or {k: v for k, v in first.items() if k != "completion"}
+    prev = first.get("completion") or {}
+    got = {r["id"]: r for r in new_rows if r["critic"] is not None}
+    rows = [got.get(r["id"], r) if r["critic"] is None else r for r in first["rows"]]
+    done_ids = sorted(set(prev.get("filled_ids", [])) | set(got))
+    comp_stats = {
+        k: int(v) + int(prev.get("gateway_stats", {}).get(k, 0)) for k, v in stats.items()
+    }
+    errs = dict(prev.get("error_statuses", {}))
+    for k, v in errors.items():
+        errs[k] = errs.get(k, 0) + v
+    res: dict[str, Any] = {
+        **score(rows),
+        "set_sha256": first["set_sha256"],
+        "forced_concurrence": sum(bool(r["defaulted_to_rules"]) for r in rows),
+        "requests_used": int(first["requests_used"]) + this_pass,
+        "requests_first_pass": int(base["requests_first_pass"]),
+        "requests_this_pass": this_pass,
+        "max_requests": MAX_REQUESTS,
+        "gateway_stats": base["gateway_stats"],
+        "error_statuses": base["error_statuses"],
+        "rows": rows,
+        "first_pass": base,
+        "first_pass_meta": first_meta,
+        "completion": {
+            "label": "completion",
+            "note": "same prompt, critic and set; only the first pass's no-output items were run",
+            "attempted_ids": sorted(r["id"] for r in new_rows),
+            "filled_ids": done_ids,
+            "still_no_output": sorted(r["id"] for r in rows if r["critic"] is None),
+            "requests_used": this_pass + int(prev.get("requests_used", 0)),
+            "gateway_stats": comp_stats,
+            "error_statuses": errs,
+        },
+    }
+    return res
+
+
 def build_gateway() -> Any:
     from harness.gateway.live import build_live_gateway
 
@@ -182,13 +233,21 @@ def main(argv: list[str] | None = None) -> int:
 
     prior = RESULT_DIR / f"{RESULT_NAME}.json"
     spent = 0
+    first: dict[str, Any] = {}
+    first_meta: dict[str, Any] = {}
+    cap = MAX_REQUESTS
     if prior.exists():
-        first = json.loads(prior.read_text(encoding="utf-8"))["results"]
+        doc = json.loads(prior.read_text(encoding="utf-8"))
+        first = doc["results"]
+        first_meta = first.get("first_pass_meta") or {k: doc.get(k) for k in ("date", "git_sha")}
         if not complete or not first["no_output"]:
             raise SystemExit(f"{prior.name} exists: the fresh set is evaluated once")
         # cumulative uncached requests over all passes so far (cache/fixture hits never count)
         spent = int(first["requests_used"])
-    cap = MAX_REQUESTS - spent
+        cap = min(MAX_REQUESTS - spent, COMPLETION_CAP)
+        # the completion runs ONLY the items that have no output so far
+        missing = {r["id"] for r in first["rows"] if r["critic"] is None}
+        items = [i for i in items if i["id"] in missing]
     if cap <= 0:
         raise SystemExit("request cap spent")
 
@@ -204,24 +263,30 @@ def main(argv: list[str] | None = None) -> int:
     finally:
         commit(cap, {k: v - before.get(k, v) for k, v in _usage().items()})
     this_pass = int(gw.stats["calls"])  # `calls` already excludes cache and fixture hits
-    res = {
-        **score(rows),
-        "set_sha256": SET.with_suffix(".sha256").read_text(encoding="utf-8").strip(),
-        "forced_concurrence": sum(bool(r["defaulted_to_rules"]) for r in rows),
-        "requests_used": spent + this_pass,  # cumulative over passes; never above MAX_REQUESTS
-        "requests_first_pass": spent if spent else this_pass,
-        "requests_this_pass": this_pass,
-        "max_requests": MAX_REQUESTS,
-        "gateway_stats": gw.stats,
-        "error_statuses": gw.error_statuses,
-        "rows": rows,
-    }
+    sha = SET.with_suffix(".sha256").read_text(encoding="utf-8").strip()
+    if first:
+        res = merge_completion(first, rows, this_pass, gw.stats, gw.error_statuses, first_meta)
+    else:
+        res = {
+            **score(rows),
+            "set_sha256": sha,
+            "forced_concurrence": sum(bool(r["defaulted_to_rules"]) for r in rows),
+            "requests_used": this_pass,
+            "requests_first_pass": this_pass,
+            "requests_this_pass": this_pass,
+            "max_requests": MAX_REQUESTS,
+            "gateway_stats": gw.stats,
+            "error_statuses": gw.error_statuses,
+            "rows": rows,
+        }
     res["vs_run7"] = vs_run7(res)
     notes = "FRESH planted set v2 (unambiguous rule failures), critic v3, real LLM"
+    if first:
+        notes += "; includes a labelled COMPLETION pass for the first pass's no-output items"
     write_result(
         RESULT_NAME,
         res,
-        Conditions(llm="real", sandbox="none", n=len(rows), notes=notes),
+        Conditions(llm="real", sandbox="none", n=len(res["rows"]), notes=notes),
         out_dir=RESULT_DIR,
     )
     print({k: res[k] for k in res if k not in {"rows", "gateway_stats"}})

@@ -1,14 +1,15 @@
 # Workstream A: E2B sandbox backend
 
-Status: implemented and unit-tested against a MOCKED SDK. NOT run live: `E2B_API_KEY` is not in
-`.env` (LIVE_E2B=no). No latency or isolation number exists yet and none is claimed.
+Status: implemented, unit-tested against a mocked SDK, and run LIVE on 2026-11-07 against E2B with
+e2b SDK 2.62.0 (the version coded and type-checked against). Numbers below come from
+`benchmarks/results/e2b_v1.json`; per-test results are from the live pytest runs of that day.
 
 ## What exists
 
 - `harness/sandbox/backends.py`: `E2BBackend` behind the existing `SandboxBackend` protocol
   (`run_python(code, timeout_s, files) -> ExecResult`), selected with `JMD_SANDBOX=e2b`.
-  The old stub test contract is kept: `E2BUnavailable` subclasses both `NotImplementedError` and
-  `RuntimeError` and is raised when the key or the SDK is missing (nothing is spent).
+  `E2BUnavailable` subclasses both `NotImplementedError` and `RuntimeError` and is raised when the
+  key or the SDK is missing (nothing is spent).
 - `harness/sandbox/e2b_live.py`: budget-gated `BudgetedE2B` (one `scripts/budget.py reserve e2b 1`
   per exec) and the latency measurement (`python -m harness.sandbox.e2b_live`).
 - `tests/sandbox_e2b/`: mocked-SDK unit tests (always run, no network, no key, no `e2b` needed;
@@ -31,44 +32,115 @@ Status: implemented and unit-tested against a MOCKED SDK. NOT run live: `E2B_API
    is counted (`kill_failures`) and logged, never masks the result. Per-stage timings are kept in
    `last_timings` (create/upload/exec/download/kill).
 
-## Network deny
+## Live results (latency run 2026-11-07; final suite run 2026-11-09)
 
-E2B SDK 2.62.0 supports `allow_internet_access=False` at creation; the backend always sets it.
-This is enforced by E2B's sandbox network layer, not by us. It is UNVERIFIED live. The live test
-`test_network_is_blocked` checks it with a raw socket to 1.1.1.1:53. If that ever prints CONNECTED,
-convert it into an `xfail(reason=...)` and record the limitation here; do not delete the test.
-Limits of the mocked tests: they only prove the flag is passed, not that E2B honours it.
+Latency, 20 sequential execs of a tiny stdlib program, default template, internet disabled,
+20/20 ok (`benchmarks/results/e2b_v1.json`, `total_s` = create+upload+exec+download):
 
-## Known limits and assumptions (all unverified live)
+| stage    | p50 s | p95 s | max s |
+|----------|-------|-------|-------|
+| total    | 1.871 | 2.673 | 2.682 |
+| create   | 0.378 | 1.049 | 1.182 |
+| upload   | 0.557 | 1.357 | 1.393 |
+| exec     | 0.338 | 0.402 | 1.143 |
+| download | 0.552 | 0.572 | 0.579 |
+| kill     | 0.257 | 0.277 | 0.939 |
 
-- Code runs as the template's default non-root user `user` (the `/workspace` chown assumes it
-  exists). The "writes outside the workdir" test relies on that user being unable to write to
-  `/etc`, `/usr`, `/root`.
-- The default E2B template may not ship pandas/pyarrow/scikit-learn. The end-to-end test needs a
-  template that does; set `JMD_E2B_TEMPLATE=<template id/name>` (also read by `E2BBackend`).
-- `python -I` is NOT used (the Docker backend uses it): isolation is VM-level here, and `-I` would
-  hide user-site packages some templates install. Interpreter is configurable (`python=`).
-- There is no per-exec memory/CPU/pids cap of our own; the fork bomb is contained by the microVM
-  and by killing it. Cost per creation is E2B's pricing and is not modelled here.
+Kill time is not part of `total_s`. Small sample (n=20, one machine, one afternoon): treat as an
+order-of-magnitude figure, not a benchmark.
+
+Live suite (`pytest tests/e2b -q -rs`; the final 8-passed/2-skipped run used `JMD_E2B_TEMPLATE=code-interpreter-v1`, the earlier failures were on the default template):
+
+| test | result |
+|------|--------|
+| normal exec + `out_*` download | pass (stdlib-only program) |
+| uploaded file visible in workdir | pass |
+| non-zero exit and stderr reported | pass |
+| network blocked | pass after the test was fixed (see below) |
+| writes outside the workdir (`/etc`, `/usr`, `/root`) | pass: all 3 denied |
+| fork bomb contained | pass: call returned within the wall clock, `kill_failures == 0` |
+| timeout kills the sandbox | pass: `timed_out=True`, `exit_code=-9` |
+| pandas parquet round trip | skipped without `JMD_E2B_PARQUET_TEMPLATE`; FAILS on `code-interpreter-v1` (no parquet engine) |
+| end-to-end feature step through the agent runner (parquet) | skipped without `JMD_E2B_PARQUET_TEMPLATE`; FAILS on `code-interpreter-v1` (same reason) |
+| agent-written feature code end to end, CSV, via `run_checked` | pass on `code-interpreter-v1` |
+
+History: the first live run (default template) failed 3 tests (normal exec used pandas, network
+used a bare connect(), parquet end to end); causes below, tests fixed.
+
+**Final full run, exactly once, after the fixes (2026-11-09):**
+`JMD_E2B_TEMPLATE=code-interpreter-v1 pytest tests/e2b -q -rs` -> **8 passed, 0 failed, 0 xfailed,
+2 skipped** (the two parquet tests, which need `JMD_E2B_PARQUET_TEMPLATE`). All 7 isolation/exec
+tests above plus the CSV end-to-end test passed on `code-interpreter-v1` (python 3.13). Counts are
+stored in `benchmarks/results/e2b_v1.json` under `live_suite`. The 2 skips are a missing custom
+template, not a failure; the parquet path itself is still unproven live.
+
+### Network deny: what the live runs showed
+
+`allow_internet_access=False` (also tried `network={"deny_out": ["0.0.0.0/0"]}`, alone and combined:
+identical behaviour) does block traffic, but a bare `socket.create_connection` to 1.1.1.1:53 and
+:443 SUCCEEDS (the handshake is accepted at the sandbox boundary). Measured with a real exchange:
+
+- open sandbox (flag not set): HTTP request to 1.1.1.1:80 returns `HTTP/1.1 301`; DNS resolves.
+- flag set: connect succeeds, `sendall` works, `recv` returns EOF with no data; DNS raises
+  `gaierror`; `urllib` to example.com raises `URLError`.
+
+So the sandbox is NOT CONNECTED in any useful sense, and the original test (connect() only) was the
+wrong probe. It now requires `TCP_DATA=0` and `DNS=0`. No xfail was needed. Caveats: the TCP-level
+behaviour means "connect succeeded" must never be used as a connectivity signal against E2B;
+and the sandbox user has passwordless `sudo` (see below), so enforcement is only trusted to be
+outside the VM, which these tests cannot prove.
+
+### Other live facts
+
+- Default template: python 3.11.x, user `user` (uid 1000, member of `sudo`, passwordless sudo),
+  `/etc`, `/usr`, `/root` not writable by plain Python. No numpy, pandas, pyarrow, sklearn.
+  Agent code is policy-checked (no subprocess/os.system), so `sudo` is not reachable from code that
+  passed `run_checked`; the raw backend does not stop it.
+- `code-interpreter-v1` (public template, exists): python 3.13.x, numpy 2.3.5, pandas 2.2.3,
+  scikit-learn 1.6.1, scipy 1.17.1, NO pyarrow/fastparquet. `FEATURE_CODE` and the runner's feature
+  step use parquet, so the parquet tests need a custom template with pyarrow. No custom template
+  was built (it is a persistent account resource), so the two parquet tests skip unless
+  `JMD_E2B_PARQUET_TEMPLATE` names one.
+- Parquet gap, decision: installing pyarrow inside the sandbox is NOT possible without enabling
+  internet, which this backend must not do. Measured: `pip install pyarrow` in a sandbox with
+  internet disabled fails with "No matching distribution found" after 41 s (so it is neither
+  <10 s nor possible). The requirement is therefore a template with pandas+pyarrow+scikit-learn.
+  Build (NOT RUN, unverified; needs the E2B CLI and an E2B_ACCESS_TOKEN; the Dockerfile's
+  `USER 65534` / `WORKDIR /workspace` may need adjusting because the backend runs as the template's
+  default `user` and chowns `/workspace` to it):
+  `e2b template build --name jmd-sandbox --dockerfile deploy/sandbox/Dockerfile`, then set
+  `JMD_E2B_TEMPLATE=jmd-sandbox` and `JMD_E2B_PARQUET_TEMPLATE=jmd-sandbox`. Alternative with no
+  new template: feature code that exchanges CSV instead of parquet (the CSV test passes live).
+- Fork bomb: the exec returned within the wall clock and the sandbox was killed; the microVM is
+  discarded, so there is no host impact. No per-exec pids/memory cap of our own is set.
+- Creation is quick: p50 0.38 s. Most per-exec time is file upload/download round trips (~0.5 s
+  each), not compute.
+
+## Known limits
+
+- `python -I` is NOT used (the Docker backend uses it): isolation is VM-level here.
+- Interpreter and template are configurable (`python=`, `JMD_E2B_TEMPLATE`).
 - `ExecResult.files` after a timeout is empty (as in the Docker backend).
+- Cost per creation is E2B's pricing and is not modelled; budget used 48 of the 60-creation cap (39 earlier + 1 pip probe + 8 final suite).
 
-## Resume: live suite plus latency (needs a key; costs ~28 of the 60 creations)
+## Re-run
 
-Prereqs: put `E2B_API_KEY=` in `.env` (never commit it), `uv pip install --python .venv/Scripts/python.exe 'e2b==2.62.0'`, and optionally `export JMD_E2B_TEMPLATE=<template with pandas+pyarrow+sklearn>`.
+Needs `E2B_API_KEY` in `.env` (never commit it) and `uv pip install --python .venv/Scripts/python.exe 'e2b==2.62.0'`.
 
 ```
-set -a; . ./.env; set +a; PYTHONUTF8=1 .venv/Scripts/python.exe -m pytest tests/e2b -q -rs && PYTHONUTF8=1 .venv/Scripts/python.exe -m harness.sandbox.e2b_live
+set -a; . ./.env; set +a; JMD_E2B_TEMPLATE=code-interpreter-v1 PYTHONUTF8=1 .venv/Scripts/python.exe -m pytest tests/e2b -q -rs && PYTHONUTF8=1 .venv/Scripts/python.exe -m harness.sandbox.e2b_live
 ```
 
-The second command makes 20 sequential execs of a tiny program (reserves 20 `e2b` creations), then
-writes `benchmarks/results/e2b_v1.json` through `benchmarks/results_writer.write_result`
-(`total_s` and per-stage p50/p95/max, plus failures; it raises rather than write numbers if every
-exec failed). Live suite: 8 tests, 8 creations.
+Suite: 8 creations with `JMD_E2B_TEMPLATE=code-interpreter-v1` (+2 with `JMD_E2B_PARQUET_TEMPLATE`);
+latency (default template, env var scoped to pytest only): 20.
 
 ## Cross-path changes this workstream needs (not made here)
 
 - `pyproject.toml`: optional dependency `e2b = ["e2b==2.62.0"]`, pytest marker
   `"e2b: live E2B sandbox calls; skipped without E2B_API_KEY"` (the tests/e2b conftest registers
-  it too, so the suite works before this lands), and `-m "not ... and not e2b"` in default CI.
-- `tests/unit/test_sandbox_policy.py::test_e2b_is_an_explicit_stub` still passes only while no
-  `E2B_API_KEY` is set; it should be replaced by the no-key test in `tests/sandbox_e2b`.
+  it too), and `-m "not ... and not e2b"` in default CI.
+- `tests/unit/test_sandbox_policy.py::test_e2b_is_an_explicit_stub` passes only while no
+  `E2B_API_KEY` is set (a set key would attempt a live creation); replace it with the no-key test
+  in `tests/sandbox_e2b`.
+- Optional: a custom E2B template with pandas, pyarrow and scikit-learn (built from
+  `deploy/sandbox/Dockerfile`) to enable the parquet end-to-end test.

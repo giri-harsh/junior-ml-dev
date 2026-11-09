@@ -14,8 +14,10 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 > [docs/METRICS.md](docs/METRICS.md)); both beat the linear baseline (0.798) by about 0.19 and neither
 > is distinguishable from FLAML. Leakage detector v3: 29/30 planted bugs found on an unseen
 > partition, 0/30 false alarms on clean twins. Real-LLM prompt-injection rerun: 0/49 attacker actions
-> proposed, 0 unsafe executed (run-6 payload sets; a fresh 14-payload evasion set and 5 injected full runs are pending, v0.2.1). Every number is generated from `benchmarks/results/*.json` or a CI run:
+> proposed, 0 unsafe executed (run-6 payload sets); a fresh 14-payload evasion set also produced 0 attacker actions proposed (Wilson upper bound 21.5%), and the scanner flagged only 1 of those 14, so the structural guard and the model's own behaviour carry the result. Every number is generated from `benchmarks/results/*.json` or a CI run:
 > [docs/METRICS.md](docs/METRICS.md), [docs/RESULTS.md](docs/RESULTS.md).
+>
+> **Demo.** A static, precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ . A live Hugging Face Space was not possible on a free account (Docker and Gradio Spaces need PRO). The E2B sandbox backend ran live: 20/20 execs, total p50 1.87 s / p95 2.67 s ([docs/ws/A.md](docs/ws/A.md)).
 >
 > **How to verify.** `python scripts/tasks.py gate` (ruff, mypy, pytest with a 91% coverage floor);
 > the **ci** badge runs the same plus bandit, pip-audit and an SBOM; **infra** runs real Postgres, an
@@ -23,7 +25,7 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 >
 > **Limitations.** The S3 service in CI/compose is a moto stand-in (MinIO not pullable), E2B was never
 > run (no key), the local subprocess sandbox is **not** isolation, per-task differences below ~0.02
-> are noise, the LLM critic is advisory (fresh planted set: 10/15 recall, 1/19 false alarms; v5 agreement 18/20 is post-hoc), and load test numbers
+> are noise, the LLM critic is advisory (fresh planted set v2: recall 18/23, 0/30 false alarms, but 0/4 on rule-failed baseline margins; v5 agreement 18/20 is post-hoc), and load test numbers
 > come from a hosted runner (errors appear at 100 users). Gaps and resume steps:
 > [docs/SKIPPED.md](docs/SKIPPED.md), [docs/KNOWN_GAPS.md](docs/KNOWN_GAPS.md),
 > [docs/NEEDS_HARSH.md](docs/NEEDS_HARSH.md).

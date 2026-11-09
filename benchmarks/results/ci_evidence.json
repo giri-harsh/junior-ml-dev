@@ -7,14 +7,15 @@
     "notes": "",
     "sandbox": "none"
   },
-  "date": "2026-10-30T03:21:50+00:00",
-  "git_sha": "e621eaac774240c50ed77afd1ba42216d0e2af8e",
+  "date": "2026-11-09T08:16:50+00:00",
+  "git_sha": "81e4cf04c45a894d7b2b98cfc1a9ce2f055d19fd",
   "name": "ci_evidence",
   "results": {
-    "latest ci": "success - run 40953422203 (451 s) on `2a8bec9` (merge: stretch 1-6)",
-    "latest infra": "success - run 40953422200 (446 s) on `2a8bec9` (merge: stretch 1-6)",
+    "latest ": "startup_failure - run 42583961889 (0 s) on `90d25e7` (merge: fix-ci-e2b-mypy)",
+    "latest ci": "startup_failure - run 42584524699 (2 s) on `90d25e7` (ci)",
+    "latest infra": "success - run 41180320598 (459 s) on `69f7a0c` (fix: clean up linting and mypy errors in new code)",
     "latest load": "success - run 40945724068 (203 s) on `705cbdf` (load)",
-    "latest web": "success - run 40945730802 (28 s) on `705cbdf` (web)",
-    "runs sampled": "30 most recent, 18 success"
+    "latest web": "startup_failure - run 42584606495 (1 s) on `90d25e7` (web)",
+    "runs sampled": "30 most recent, 24 success"
   }
 }
