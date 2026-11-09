@@ -1,0 +1,65 @@
+{
+  "command": "python -m harness.sandbox.e2b_live",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 20,
+    "notes": "fresh sandbox per exec, no internet; total_s = create+upload+exec+download (kill is in stages_s); latency run used the default template, live_suite used code-interpreter-v1",
+    "sandbox": "e2b"
+  },
+  "date": "2026-11-09T07:44:31+00:00",
+  "git_sha": "7bb1d1d7367b71846f55d272e1c81ccf402e7577",
+  "name": "e2b_v1",
+  "results": {
+    "in_sandbox_pip_install": {
+      "detail": "pip install pyarrow with internet disabled: no matching distribution, 41 s to fail",
+      "possible": false
+    },
+    "live_suite": {
+      "command": "JMD_E2B_TEMPLATE=code-interpreter-v1 pytest tests/e2b -q -rs",
+      "creations": 8,
+      "date": "2026-11-09",
+      "failed": 0,
+      "passed": 8,
+      "skipped": 2,
+      "skipped_reason": "parquet tests need JMD_E2B_PARQUET_TEMPLATE (custom template with pyarrow)",
+      "template": "code-interpreter-v1",
+      "xfailed": 0
+    },
+    "n_failed": 0,
+    "n_ok": 20,
+    "n_requested": 20,
+    "stages_s": {
+      "create_s": {
+        "max": 1.182,
+        "p50": 0.378,
+        "p95": 1.049
+      },
+      "download_s": {
+        "max": 0.579,
+        "p50": 0.552,
+        "p95": 0.572
+      },
+      "exec_s": {
+        "max": 1.143,
+        "p50": 0.338,
+        "p95": 0.402
+      },
+      "kill_s": {
+        "max": 0.939,
+        "p50": 0.257,
+        "p95": 0.277
+      },
+      "upload_s": {
+        "max": 1.393,
+        "p50": 0.557,
+        "p95": 1.357
+      }
+    },
+    "total_s": {
+      "max": 2.682,
+      "p50": 1.871,
+      "p95": 2.673
+    }
+  }
+}
