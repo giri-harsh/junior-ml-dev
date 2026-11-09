@@ -50,6 +50,20 @@ at 88 s was within 2 s of the 90 s kill. The pages call these timing samples, no
   so. If it is made public, `build` detects it (`gh repo view`) and renders real links.
 - Re-run: `python scripts/deploy_static.py build --reuse && python scripts/deploy_static.py publish`.
 
+## Follow-up after verification (verdict: PASS, public repo clean)
+
+- Correction: `tests/demo` had 80 tests at the B2 hand-off, not the 90 first reported; it has 86 now.
+- `results.html` now opens with a sentence computed from the paired-difference intervals in METRICS.md
+  (counts and n come from the file; it says "no difference demonstrated" only if every interval includes 0).
+- The published METRICS text drops what only makes sense in the private repo: the "resume commands in
+  docs/PROGRESS.md" pointer, CI run ids and short commit hashes/messages (`sanitize_metrics`). Figures and
+  caveats are untouched; the home-page hash is still the hash of the real file.
+- Guard markers added: `PROGRESS.md`, `AUTOPILOT`, and an e-mail address pattern (reported by label only).
+  The previously committed site failed the new guard until rebuilt, which is the intended behaviour.
+- The 55 s vs 90 s wording is explained on results, home, architecture and run pages: 55 s is the soft wall
+  at which the agent stops searching and wraps up, 90 s the hard limit at which the process is killed (both
+  numbers come from `apps/api/demo/config.py`, not from the template).
+
 ## Decisions
 
 1. Static host is GitHub Pages in a NEW public repo (authorized); the main repo was never touched.
@@ -95,7 +109,7 @@ first deploy so reruns update the same Space). Dry run, no network and no token:
 | Image (python:3.12-slim, `uv export --no-dev` from `uv.lock`, port 7860) | `Dockerfile.space` |
 | Upload allowlist | `.spaceignore` |
 | Deploy, upload guard, secret scan, verify | `scripts/deploy_space.py` |
-| Tests (58 + the demo suite below) | `tests/demo/` |
+| Tests (86 in `tests/demo/` after the B2 follow-up; it was 80 before it) | `tests/demo/` |
 
 ## How the demo constraints are enforced (in code, not by convention)
 

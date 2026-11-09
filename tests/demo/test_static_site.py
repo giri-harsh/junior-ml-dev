@@ -160,9 +160,12 @@ def test_clean_site_passes_the_check(site: Path) -> None:
     ("name", "text", "needle"),
     [
         ("planted.html", f'<p>key = "{FAKE_GROQ}"</p>', "groq-key"),
-        ("path.html", "<p>C:\\Users\\someone\\proj</p>", "local-path"),
-        ("doc.html", "<p>see NEEDS_HARSH for details</p>", "internal-doc"),
+        ("path.html", "<p>C:\\Users\\someone\\proj</p>", "Users"),
+        ("doc.html", "<p>see NEEDS_HARSH for details</p>", "NEEDS_HARSH"),
         ("lit.html", "<p>zz-local-secret-value-12345</p>", "literal-value"),
+        ("prog.html", "<p>resume commands in docs/PROGRESS.md</p>", "PROGRESS.md"),
+        ("auto.html", "<p>see AUTOPILOT_REPORT_RUN8</p>", "AUTOPILOT"),
+        ("mail.html", "<p>contact someone.name@example.org</p>", "email-address"),
     ],
 )
 def test_planted_secrets_paths_and_values_abort_the_publish(
@@ -172,8 +175,8 @@ def test_planted_secrets_paths_and_values_abort_the_publish(
     with pytest.raises(UploadGuardError) as ei:
         dst.check_site(site, {"GROQ_API_KEY": "zz-local-secret-value-12345"})
     msg = str(ei.value)
-    assert needle in msg or "secret scan" in msg or "marker" in msg
-    assert FAKE_GROQ not in msg and "zz-local-secret" not in msg
+    assert needle in msg, msg
+    assert FAKE_GROQ not in msg and "zz-local-secret" not in msg and "someone.name" not in msg
 
 
 @pytest.mark.parametrize(
@@ -289,3 +292,69 @@ def test_the_committed_site_is_clean_and_complete() -> None:
         r"file hash\s*<code>[0-9a-f]{12}</code>", (site / "index.html").read_text(encoding="utf-8")
     )
     assert not [f for f in files if f.endswith(".py")]
+
+
+# --- what is published from METRICS.md -----------------------------------------------------------
+RAW = """# Verified metrics
+
+Intro.
+
+## Agent benchmark v5 (headline; unseen partition, each arm run once)
+
+| Arm | Normalized score [95% CI] | Paired differences | Pass vs linear |
+|---|---|---|---|
+| SCRIPTED | 0.987 [0.949, 1.011] | vs linear 0.189 [0.075, 0.315]; vs FLAML -0.013 [-0.051, 0.011] | 7/10 |
+| LLM | 0.989 [0.950, 1.012] | vs linear 0.190 [0.076, 0.316]; vs FLAML -0.011 [-0.050, 0.012] | 8/10 |
+
+Linear baseline 0.798 [0.680, 0.908] (n=10).
+Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
+
+## Infrastructure
+
+- latest ci: success - run 40953422203 (451 s) on `2a8bec9` (merge: stretch 1-6)
+- Run 7 completion: PENDING, queued for later (v0.2.1); resume commands in docs/PROGRESS.md.
+
+Source: [`load_v1.json`](../benchmarks/results/load_v1.json) (CI run 40945724068); hosted-runner numbers.
+"""
+
+
+def test_private_references_are_stripped_but_figures_are_kept() -> None:
+    from apps.space.static_site import sanitize_metrics
+
+    out = sanitize_metrics(RAW)
+    for gone in ("PROGRESS", "resume commands", "40953422203", "2a8bec9", "stretch", "40945724068"):
+        assert gone not in out, gone
+    assert "latest ci: success (451 s)" in out and "(CI run)" in out
+    assert "PENDING, queued for later (v0.2.1)" in out
+    assert "0.987 [0.949, 1.011]" in out and "vs FLAML -0.013 [-0.051, 0.011]" in out
+
+
+def test_evidence_sentence_is_computed_from_the_intervals() -> None:
+    from apps.space.static_site import evidence_note
+
+    note = evidence_note(RAW)
+    assert note.startswith("All 3 paired-difference intervals against FLAML")
+    assert "include 0 (10 tasks, each arm run once)" in note and "no difference" in note
+    excluded = evidence_note(RAW.replace("[-0.051, 0.011]", "[0.020, 0.040]"))
+    assert excluded.startswith("2 of 3") and "no difference" not in excluded
+    assert evidence_note("# nothing here\n") == ""
+
+
+def test_results_page_states_the_evidence_and_both_time_limits(tmp_path: Path) -> None:
+    import hashlib
+
+    out = tmp_path / "s"
+    build_site(out, make_cache(tmp_path), RAW, repo_private=True, now=NOW)
+    results = (out / "results.html").read_text(encoding="utf-8")
+    assert "include 0 (10 tasks, each arm run once)" in results
+    assert "55 s soft wall" in results and "90 s hard limit" in results
+    arch = (out / "architecture.html").read_text(encoding="utf-8")
+    assert "90 s hard wall clock" in arch and "soft" in arch
+    run = (out / "runs/diabetes/index.html").read_text(encoding="utf-8")
+    assert "soft wall 55 s (agent stops searching), hard limit 90 s (process killed)" in run
+    for rel in ("index.html", "results.html", "architecture.html"):
+        text = (out / rel).read_text(encoding="utf-8")
+        assert "PROGRESS" not in text and "40953422203" not in text, rel
+    dst.check_site(out, {})  # the published set passes the guard with the new markers
+    index = (out / "index.html").read_text(encoding="utf-8")
+    assert hashlib.sha256(RAW.encode()).hexdigest()[:12] in index  # hash of the real file

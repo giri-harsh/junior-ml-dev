@@ -55,8 +55,14 @@ ALLOWED_NAMES = {".nojekyll"}
 # Text that must never appear in published pages: local paths, user names, internal docs.
 LEAK_MARKERS = (
     "C:\\Users", "C:/Users", "/Users/", "/home/", "AppData", "worktrees", "2006h",
-    "NEEDS_HARSH", "Prod_rag", ".env",
+    "NEEDS_HARSH", "PROGRESS.md", "AUTOPILOT", "Prod_rag", ".env",
 )  # fmt: skip
+# Pattern leaks are reported by label only, never by the matched text.
+LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
+    "email-address": re.compile(
+        r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}"
+    ),
+}
 AUTHOR = ("Harsh Giri", "2006.harshgiri@gmail.com")
 
 
@@ -76,6 +82,7 @@ def leak_hits(site_dir: Path, files: list[str]) -> list[tuple[str, str]]:
     for rel in files:
         text = (site_dir / rel).read_text(encoding="utf-8", errors="replace")
         out.extend((rel, m) for m in LEAK_MARKERS if m in text)
+        out.extend((rel, label) for label, pat in LEAK_PATTERNS.items() if pat.search(text))
     return out
 
 

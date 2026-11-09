@@ -21,7 +21,8 @@ generated from result files, with the planner and LLM mode stated in every row.<
 </ul>
 <h2>What the live demo would disable</h2>
 <p>A hosted demo runs the same runner with uploads, deployment and the code sandbox switched off, the scripted
-planner only, a 90 s wall clock and 20 s AutoML ceiling, one run at a time and per-address rate limits.
+planner only, a 90 s hard wall clock (the agent itself stops searching at a shorter soft
+wall and wraps up, which is why the example runs list both), a 20 s AutoML ceiling, one run at a time and per-address rate limits.
 That mode exists in the repository (<code>DEMO_MODE=1</code>) and is covered by tests, but has no free
 host today. The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</p>
 </main><footer class="wrap fine">Static site generated from the project repository. No code runs on this page.</footer></body></html>

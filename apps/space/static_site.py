@@ -26,8 +26,8 @@ from pathlib import Path
 from typing import Any
 
 from apps.api.demo import landing
+from apps.api.demo.config import MAX_FLAML_S, MAX_WALL_S, DemoSettings
 from apps.api.demo.config import REPO_URL as REPO_URL_CONFIG
-from apps.api.demo.config import DemoSettings
 from apps.api.demo.samples import BY_KEY, SAMPLES, public_info
 
 REPO_URL = REPO_URL_CONFIG
@@ -197,6 +197,56 @@ def delink(page_html: str, repo_private: bool | None) -> str:
     )
 
 
+# --- metrics text: what is published ---------------------------------------------------------------
+RESUME_REF = re.compile(r";?\s*resume commands in `?docs/[A-Za-z0-9_./-]+\.md`?")
+CI_LINE = re.compile(r" - run \d{8,} \((\d+ s)\) on `[0-9a-f]{7,40}` \([^)]*\)")
+CI_RUN = re.compile(r"\(CI run \d{8,}\)")
+
+
+def sanitize_metrics(md: str) -> str:
+    """Drop what only makes sense inside the private repo: pointers to internal docs (resume
+    commands), CI run ids and commit hashes/messages. Every figure and caveat stays."""
+    md = RESUME_REF.sub("", md)
+    md = CI_LINE.sub(r" (\1)", md)
+    return CI_RUN.sub("(CI run)", md)
+
+
+PAIRED = re.compile(
+    r"(?:vs FLAML|Paired LLM minus scripted:)\s*(-?\d+\.\d+) \[(-?\d+\.\d+), (-?\d+\.\d+)\]"
+)
+
+
+def evidence_note(md: str) -> str:
+    """One sentence computed from the paired-difference intervals in the metrics file: whether
+    they include 0. Nothing is typed in: the counts and n come from the file."""
+    ivals = PAIRED.findall(md)
+    if not ivals:
+        return ""
+    including = sum(float(lo) <= 0.0 <= float(hi) for _, lo, hi in ivals)
+    n = re.search(r"\(n=(\d+)\)", md)
+    once = "each arm run once" in md
+    scope = (f" ({n.group(1)} tasks" + (", each arm run once" if once else "") + ")") if n else ""
+    if including == len(ivals):
+        return (
+            f"All {len(ivals)} paired-difference intervals against FLAML and between the LLM and "
+            f"scripted planners include 0{scope}: no difference between these arms is demonstrated."
+        )
+    return (
+        f"{including} of {len(ivals)} paired-difference intervals against FLAML and between the LLM "
+        f"and scripted planners include 0{scope}; read each interval below."
+    )
+
+
+def limits_sentence(soft_s: object) -> str:
+    """The two different time limits, so 55 s and 90 s are not read as a contradiction."""
+    return (
+        f"A demo run has two limits: a {soft_s} s soft wall after which the agent stops searching and "
+        f"wraps up (review, report), and a {MAX_WALL_S:.0f} s hard limit at which the whole process is "
+        f"killed (the AutoML ceiling is {MAX_FLAML_S:.0f} s). Wrap-up and process start come on top of "
+        "the soft wall, so a finished run can take longer than it."
+    )
+
+
 # --- pages ---------------------------------------------------------------------------------------
 def fmt_score(v: Any) -> str:
     return "n/a" if v is None else f"{float(v):.4f}"
@@ -217,11 +267,15 @@ def run_card(r: RunRecord) -> str:
 
 
 def index_page(
-    metrics_md: str, runs: list[RunRecord], repo_private: bool | None, now: datetime
+    metrics_md: str,
+    runs: list[RunRecord],
+    repo_private: bool | None,
+    now: datetime,
+    digest_of: str | None = None,
 ) -> str:
     _, sections = landing.split_sections(metrics_md)
     head_name, head_body = sections[0] if sections else ("", [])
-    digest = hashlib.sha256(metrics_md.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha256((digest_of or metrics_md).encode("utf-8")).hexdigest()[:12]
     cards = "".join(run_card(r) for r in runs)
     body = f"""
 <h1>A junior ML engineer that shows its work and catches its own mistakes.</h1>
@@ -239,9 +293,9 @@ Hugging Face account cannot create Docker or Gradio Spaces. {source_note(repo_pr
 <a href="results.html">benchmark results</a>.</p>
 <h2>Example runs</h2>
 <p class="fine">Three small public OpenML tables, each run once with the same code and limits the repository's demo mode
-uses (scripted planner, FLAML {int(runs[0].budget.get("flaml_budget_s", 0)) if runs else 0} s, soft wall
-{int(runs[0].budget.get("max_wall_s", 0)) if runs else 0} s). Wall times are from one machine and will
-differ elsewhere. These are demo-scale tasks, not the benchmark.</p>
+uses (scripted planner, FLAML {int(runs[0].budget.get("flaml_budget_s", 0)) if runs else 0} s).
+{limits_sentence(int(runs[0].budget.get("max_wall_s", 0)) if runs else 0)} Wall times are from one machine
+and will differ elsewhere. These are demo-scale tasks, not the benchmark.</p>
 <div class="cards">{cards}</div>
 <h2>How it works</h2>
 <p>The <a href="architecture.html">architecture page</a> shows the planner, the guarded runner, the tool
@@ -250,8 +304,13 @@ servers, the reviewer and the approval gate, and which properties are enforced w
     return page("junior-ml-dev: demo", delink(body, repo_private), active="index.html")
 
 
-def results_page(metrics_md: str, repo_private: bool | None, now: datetime) -> str:
+def results_page(
+    metrics_md: str, repo_private: bool | None, now: datetime, soft_wall_s: object = ""
+) -> str:
     title, sections = landing.split_sections(metrics_md)
+    note = evidence_note(metrics_md)
+    evidence = f"<p><strong>{E(note)}</strong></p>" if note else ""
+    limits = E(limits_sentence(soft_wall_s))
     intro = landing.blocks_to_html(title.splitlines()[1:]) if "\n" in title else ""
     parts = "\n".join(
         f"<section><h2>{landing.inline(name)}</h2>{landing.blocks_to_html(body)}</section>"
@@ -260,10 +319,13 @@ def results_page(metrics_md: str, repo_private: bool | None, now: datetime) -> s
     body = f"""
 <h1>{landing.inline(title.splitlines()[0] if title else "Verified metrics")}</h1>
 {intro}
-<div class="notice">Rendered unchanged from <code>docs/METRICS.md</code> ({now.strftime("%Y-%m-%d")}).
-Each row names its source file or CI run. A demo run on the <a href="index.html">home page</a> uses a
-small public dataset and a 90 s budget; it does not reproduce these benchmark numbers, which come from
-larger tasks and longer budgets. {source_note(repo_private)}</div>
+<div class="notice">Rendered from <code>docs/METRICS.md</code> ({now.strftime("%Y-%m-%d")}); references that
+only make sense inside the private repository (pointers to internal docs, CI run ids, commit hashes)
+are removed, every figure and caveat is kept. A demo run on the <a href="index.html">home page</a> uses a
+small public dataset under the time limits described below; it does not reproduce these benchmark numbers,
+which come from larger tasks and longer budgets. {source_note(repo_private)}</div>
+{evidence}
+<p class="fine">{limits}</p>
 {parts}
 """
     return page(
@@ -295,7 +357,7 @@ calls during the run. Dataset: <a href="https://www.openml.org/d/{r.openml_id}" 
 <dt>Columns dropped for leakage</dt><dd>{E(dropped)}</dd>
 <dt>Steps</dt><dd>{int(s.get("n_steps") or 0)}</dd>
 <dt>Wall time</dt><dd>{r.wall_s:.1f} s (process start to report); agent clock {float(s.get("latency_s") or 0):.1f} s. One run on a shared machine that was busy with other jobs: a timing sample, not a benchmark.</dd>
-<dt>Budgets</dt><dd>soft wall {int(r.budget.get("max_wall_s", 0))} s, FLAML {int(r.budget.get("flaml_budget_s", 0))} s, {int(r.budget.get("tune_trials", 0))} tuning trials</dd>
+<dt>Budgets</dt><dd>soft wall {int(r.budget.get("max_wall_s", 0))} s (agent stops searching), hard limit {MAX_WALL_S:.0f} s (process killed), FLAML {int(r.budget.get("flaml_budget_s", 0))} s, {int(r.budget.get("tune_trials", 0))} tuning trials</dd>
 </dl>
 <h2>Agent steps</h2>
 <div class="tbl"><table><thead><tr><th>#</th><th>tool</th><th>server</th><th>ok</th><th>latency (s)</th></tr></thead><tbody>{rows}</tbody></table></div>
@@ -381,7 +443,8 @@ generated from result files, with the planner and LLM mode stated in every row.<
 </ul>
 <h2>What the live demo would disable</h2>
 <p>A hosted demo runs the same runner with uploads, deployment and the code sandbox switched off, the scripted
-planner only, a 90 s wall clock and 20 s AutoML ceiling, one run at a time and per-address rate limits.
+planner only, a {MAX_WALL_S:.0f} s hard wall clock (the agent itself stops searching at a shorter soft
+wall and wraps up, which is why the example runs list both), a {MAX_FLAML_S:.0f} s AutoML ceiling, one run at a time and per-address rate limits.
 That mode exists in the repository (<code>DEMO_MODE=1</code>) and is covered by tests, but has no free
 host today. {source_note(repo_private)}</p>
 """
@@ -399,9 +462,11 @@ def build_site(
     runs = load_runs(cache_dir)
     if not runs:
         raise ValueError("no pre-computed runs found")
+    clean = sanitize_metrics(metrics_md)
+    soft = int(runs[0].budget.get("max_wall_s", 0))
     written: dict[str, str] = {
-        "index.html": index_page(metrics_md, runs, repo_private, now),
-        "results.html": results_page(metrics_md, repo_private, now),
+        "index.html": index_page(clean, runs, repo_private, now, digest_of=metrics_md),
+        "results.html": results_page(clean, repo_private, now, soft),
         "architecture.html": architecture_page(repo_private),
         "style.css": CSS,
         ".nojekyll": "",
