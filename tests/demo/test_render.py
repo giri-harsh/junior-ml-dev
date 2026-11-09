@@ -114,3 +114,18 @@ def test_child_env_maps_the_demo_leakage_budget(monkeypatch: object, tmp_path: P
         assert not any(k in env for k in ("JWT_SECRET", "DEMO_ADMIN_PASSWORD", "RENDER_API_KEY"))
     finally:
         mp.undo()
+
+
+def test_leakage_skip_mode_is_recorded_as_partial(monkeypatch: object) -> None:
+    import pytest
+
+    from harness.agent.tools import detect_leakage
+
+    mp = pytest.MonkeyPatch()
+    try:
+        mp.setenv("JMD_LEAKAGE_MODE", "skip")
+        out = detect_leakage(None, {})  # type: ignore[arg-type]  # skip mode never touches ctx
+        assert out["findings"] == [] and out["partial"] is True
+        assert "skipped" in out["partial_reasons"][0]
+    finally:
+        mp.undo()
