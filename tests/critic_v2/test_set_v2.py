@@ -256,7 +256,12 @@ class _GW:
 
 
 def _patch_main(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, prior_used: int | None, new_calls: int
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    prior_used: int | None,
+    new_calls: int,
+    n_missing: int = 6,
+    answer_first: int = 10_000,
 ) -> tuple[list[tuple[str, ...]], _GW]:
     import functools
 
@@ -273,7 +278,7 @@ def _patch_main(
             if Critic.n < new_calls:  # only these reviews are uncached requests
                 gw.stats["calls"] += 1
             Critic.n += 1
-            return _V("APPROVE")
+            return _V("APPROVE") if Critic.n <= answer_first else None
 
     monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
     monkeypatch.setattr(ev, "_budget", lambda *a: (sent.append(a), R())[1])
@@ -282,11 +287,37 @@ def _patch_main(
     monkeypatch.setattr(ev, "make_critic", lambda g: Critic())
     monkeypatch.setattr(ev, "run_items", functools.partial(ev.run_items, sleep=lambda s: None))
     if prior_used is not None:
-        (tmp_path / f"{ev.RESULT_NAME}.json").write_text(
-            json.dumps({"results": {"no_output": 3, "requests_used": prior_used}}),
-            encoding="utf-8",
-        )
+        _write_prior(tmp_path, prior_used, n_missing)
     return sent, gw
+
+
+def _prior_results(used: int, n_missing: int) -> dict[str, Any]:
+    rows = [
+        {
+            "id": it["id"], "planted": it["planted"], "rule_failed": [],
+            "critic": None if k < n_missing else "REQUEST_CHANGES" if it["planted"] else "APPROVE",
+            "defaulted_to_rules": [], "dissent": [], "concerns": [],
+        }
+        for k, it in enumerate(ev.load_set())
+    ]  # fmt: skip
+    return {
+        **ev.score(rows), "set_sha256": "x", "forced_concurrence": 0, "requests_used": used,
+        "requests_first_pass": used, "requests_this_pass": used, "max_requests": 60,
+        "gateway_stats": {"calls": used, "cache_hits": 0, "fixture_hits": 0},
+        "error_statuses": {"500": 2}, "rows": rows,
+    }  # fmt: skip
+
+
+def _write_prior(tmp_path: Path, used: int, n_missing: int) -> None:
+    doc = {"date": "d0", "git_sha": "s0", "results": _prior_results(used, n_missing)}
+    (tmp_path / f"{ev.RESULT_NAME}.json").write_text(json.dumps(doc), encoding="utf-8")
+
+
+def _load(tmp_path: Path) -> dict[str, Any]:
+    out: dict[str, Any] = json.loads(
+        (tmp_path / f"{ev.RESULT_NAME}.json").read_text(encoding="utf-8")
+    )
+    return out
 
 
 def test_complete_pass_cannot_overrun_the_total_cap(
@@ -299,18 +330,67 @@ def test_complete_pass_cannot_overrun_the_total_cap(
         ("reserve", "groq", "5"),
         ("reserve", "gemini", "5"),
     ]
-    res = json.loads((tmp_path / f"{ev.RESULT_NAME}.json").read_text(encoding="utf-8"))["results"]
+    res = _load(tmp_path)["results"]
     # `calls` already excludes cache/fixture hits: the 4 + 9 hits must not be subtracted again
     assert res["requests_this_pass"] == 4 and res["requests_used"] == 59
     assert res["requests_first_pass"] == 55 and res["requests_used"] <= ev.MAX_REQUESTS
     assert ("commit", "groq", "0", "5") in sent and ("commit", "gemini", "0", "5") in sent
     # a repeat with the cap already spent must not run again
-    (tmp_path / f"{ev.RESULT_NAME}.json").write_text(
-        json.dumps({"results": {"no_output": 3, "requests_used": ev.MAX_REQUESTS}}),
-        encoding="utf-8",
-    )
+    _write_prior(tmp_path, ev.MAX_REQUESTS, 3)
     with pytest.raises(SystemExit, match="request cap spent"):
         ev.main(["--complete"])
+
+
+def test_completion_keeps_first_pass_numbers_and_runs_only_missing_items(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sent, gw = _patch_main(monkeypatch, tmp_path, prior_used=45, new_calls=6, n_missing=8)
+    before = _load(tmp_path)["results"]
+    assert before["no_output"] == 8
+    seen: list[int] = []
+    orig = ev.run_items
+
+    def spy(items: list[dict[str, Any]], *a: Any, **k: Any) -> Any:
+        seen.append(len(items))
+        return orig(items, *a, **k)
+
+    monkeypatch.setattr(ev, "run_items", spy)
+    assert ev.main(["--complete"]) == 0
+    assert seen == [8]  # ONLY the no-output items were reviewed
+    assert gw.max_requests == 15 == ev.MAX_REQUESTS - 45  # <= COMPLETION_CAP and the total cap
+    assert [a for a in sent if a[0] == "reserve"] == [
+        ("reserve", "groq", "15"),
+        ("reserve", "gemini", "15"),
+    ]
+    doc = _load(tmp_path)
+    res = doc["results"]
+    # first-pass fields are preserved verbatim, completed numbers are on top
+    assert res["first_pass"] == before
+    assert res["first_pass_meta"] == {"date": "d0", "git_sha": "s0"}
+    assert (res["first_pass"]["recall"], res["first_pass"]["planted_n"]) == (
+        before["recall"], before["planted_n"],
+    )  # fmt: skip
+    assert res["no_output"] == 0 and res["planted_n"] + res["clean_n"] == 53
+    assert res["completion"]["label"] == "completion"
+    assert res["completion"]["still_no_output"] == [] and len(res["completion"]["filled_ids"]) == 8
+    assert res["requests_used"] == 51 and res["requests_first_pass"] == 45
+    assert res["requests_this_pass"] == 6 and res["completion"]["requests_used"] == 6
+
+
+def test_completion_pass_two_keeps_the_original_first_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _patch_main(monkeypatch, tmp_path, 45, new_calls=2, n_missing=8, answer_first=5)
+    first = _load(tmp_path)["results"]
+    assert ev.main(["--complete"]) == 0
+    mid = _load(tmp_path)["results"]
+    assert mid["no_output"] == 3 and len(mid["completion"]["still_no_output"]) == 3
+    assert mid["first_pass"] == first
+    _patch_main(monkeypatch, tmp_path, None, new_calls=1, n_missing=0)
+    assert ev.main(["--complete"]) == 0
+    end = _load(tmp_path)["results"]
+    assert end["first_pass"] == first and end["no_output"] == 0
+    assert end["requests_used"] == 45 + 2 + 1 and end["completion"]["requests_used"] == 3
 
 
 def test_first_pass_records_requests_and_cap(
