@@ -13,6 +13,7 @@ STATIC_SITE_URL = "https://giri-harsh.github.io/junior-ml-dev-demo/"  # precompu
 MAX_WALL_S = 90.0  # hard wall clock for one run, process start to finish
 MAX_FLAML_S = 20.0  # FLAML AutoML budget inside one run
 SOFT_WALL_S = 55.0  # the agent stops searching at this point and wraps up (report, review)
+LARGE_CELLS = 10_000  # rows x columns above which a sample counts as large for the soft wall
 
 # Tools the demo agent may never call, whatever a planner proposes.
 BLOCKED_TOOLS = frozenset(
@@ -56,16 +57,18 @@ class DemoSettings:
     global_runs_per_hour: int
     read_per_min: int  # per-IP cap on every other /demo/api call
     proxy_hops: int  # trusted reverse proxies in front (X-Forwarded-For parsing)
+    soft_wall_large_s: float = 20.0  # soft wall for large samples (stop searching sooner)
 
     @classmethod
     def from_env(cls) -> DemoSettings:
         wall = _f("DEMO_MAX_WALL_S", MAX_WALL_S, MAX_WALL_S)
+        soft = min(_f("DEMO_SOFT_WALL_S", SOFT_WALL_S, SOFT_WALL_S), wall)
         return cls(
             data_dir=Path(os.environ.get("DEMO_DATA_DIR", "data/demo/samples")),
             state_dir=Path(os.environ.get("DEMO_STATE_DIR", "data/demo/state")),
             site_dir=Path(os.environ.get("DEMO_SITE_DIR", "data/demo/site")),
             max_wall_s=wall,
-            soft_wall_s=min(_f("DEMO_SOFT_WALL_S", SOFT_WALL_S, SOFT_WALL_S), wall),
+            soft_wall_s=soft,
             flaml_s=_f("DEMO_FLAML_S", 15.0, MAX_FLAML_S),
             queue_max=_i("DEMO_QUEUE_MAX", 3),
             history_cap=_i("DEMO_HISTORY_CAP", 20),
@@ -75,4 +78,5 @@ class DemoSettings:
             global_runs_per_hour=_i("DEMO_GLOBAL_RUNS_PER_HOUR", 40),
             read_per_min=_i("DEMO_READ_PER_MIN", 240),
             proxy_hops=max(0, int(_f("DEMO_PROXY_HOPS", 0))),
+            soft_wall_large_s=min(_f("DEMO_SOFT_WALL_LARGE_S", 20.0, SOFT_WALL_S), soft),
         )
