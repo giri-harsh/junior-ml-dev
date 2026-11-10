@@ -18,3 +18,4 @@ dist/
 # the React run viewer is built in CI (web.yml) and committed as static files
 !apps/web/dist/
 .budget/
+apps/web/vite.config.dev.js
