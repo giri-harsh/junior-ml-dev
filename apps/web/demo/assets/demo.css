@@ -58,7 +58,10 @@ h1 span{display:block}
 @keyframes scan{from{transform:translateZ(0)}to{transform:translateZ(240px)}}
 .cap{position:absolute;font:500 11px/1.4 var(--mono);color:var(--mut);letter-spacing:.04em;background:rgba(7,7,10,.72);border:1px solid var(--hl2);border-radius:8px;padding:7px 10px;white-space:nowrap}
 .cap b{display:block;color:var(--tx);font-weight:500}.cap.ok span{color:var(--ok)}.cap.am span{color:var(--amb)}
-.c1{left:0;top:30px}.c2{right:0;top:92px}.c3{left:6px;bottom:96px}.c4{right:4px;bottom:36px}
+.c1{right:0;top:18px}.c2{right:0;top:82px}.c3{right:0;bottom:100px}.c4{right:0;bottom:38px}
+/* hero art: figure behind, junior dev in front */
+.heroart{position:relative;min-height:520px}.hfig{position:absolute;right:-20px;top:0;width:100%}.hav{position:absolute;left:0;bottom:-10px;width:300px;z-index:2}
+.rside{display:flex;flex-direction:column;gap:6px;align-items:center}
 /* proof strip */
 .proof{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--hl);border-radius:18px;overflow:hidden;background:rgba(12,11,14,.7)}
 .proof>div{padding:26px 24px;border-right:1px solid var(--hl)}.proof>div:last-child{border-right:0}
@@ -123,7 +126,7 @@ dialog::backdrop{background:rgba(7,7,10,.82)}
 .res p{font-size:clamp(22px,3.4vw,34px);line-height:1.2;font-weight:600;letter-spacing:-.02em;margin:0 0 20px}
 .res .kv{font:400 13px var(--mono);color:var(--mut);margin-bottom:18px}
 /* responsive */
-@media(max-width:960px){.hero{grid-template-columns:1fr;min-height:0;padding-top:8px}.proof{grid-template-columns:1fr 1fr}.proof>div:nth-child(2){border-right:0}.proof>div:nth-child(-n+2){border-bottom:1px solid var(--hl)}
+@media(max-width:960px){.heroart{min-height:0;display:flex;flex-direction:column;align-items:center}.hfig,.hav{position:static;width:auto}.hero{grid-template-columns:1fr;min-height:0;padding-top:8px}.proof{grid-template-columns:1fr 1fr}.proof>div:nth-child(2){border-right:0}.proof>div:nth-child(-n+2){border-bottom:1px solid var(--hl)}
 .grid3,.dgrid{grid-template-columns:1fr}.steps5{grid-template-columns:1fr 1fr}.steps5>div{border-bottom:1px solid var(--hl)}.rgrid{grid-template-columns:1fr}}
 @media(max-width:640px){.wrap{padding:0 16px}.nav{gap:14px;flex-wrap:wrap}.nav a.l{display:none}
 .fig{--s:.72}.fig.mini{--s:.62}

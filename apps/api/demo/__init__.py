@@ -19,9 +19,11 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from apps.api.demo.avatar import avatar_html
 from apps.api.demo.config import DemoSettings, demo_enabled
 from apps.api.demo.figure import figure_html
 from apps.api.demo.guard import GuardMiddleware, strip_routes
+from apps.api.demo.narration import page_data
 from apps.api.demo.routes import landing_response
 from apps.api.demo.routes import router as demo_router
 from apps.api.demo.service import DemoService, Executor, subprocess_executor
@@ -66,7 +68,10 @@ def install(
     app.state.demo_removed_routes = strip_routes(app)
     shell = WEB / "run.template.html"
     app.state.demo_run_page = (
-        shell.read_text(encoding="utf-8").replace("{{FIGURE}}", figure_html(mini=True))
+        shell.read_text(encoding="utf-8")
+        .replace("{{AVATAR}}", avatar_html())
+        .replace("{{FIGURE}}", figure_html(mini=True))
+        .replace("{{NARRATION_JSON}}", page_data())
         if shell.is_file()
         else "<!doctype html><title>run</title><p>Run page not built.</p>"
     )

@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/demo-assets/demo.css">
+<link rel="stylesheet" href="/demo-assets/avatar.css">
 </head>
 <body>
 <div class="wrap">
@@ -20,7 +21,7 @@
     <button class="pill" type="button" data-open-picker>Try it free</button>
   </nav>
 
-  <header class="hero">
+  <header class="hero" id="hero">
     <div>
       <div class="badge rise d1"><b></b>AUTONOMOUS ML PIPELINE · LIVE</div>
       <h1 class="rise d2"><span>Drop a dataset.</span><span>Get a <em class="ser">model</em></span><span>you can trust.</span></h1>
@@ -31,7 +32,7 @@
       </div>
       <div class="hint rise d4">3 real OpenML datasets &middot; downloadable &middot; no signup</div>
     </div>
-    <div>{{FIGURE}}</div>
+    <div class="heroart"><div class="hfig">{{FIGURE}}</div><div class="hav">{{AVATAR}}</div></div>
   </header>
 
   <div class="proof" role="list">{{PROOF}}</div>
@@ -104,6 +105,8 @@
   </div>
 </dialog>
 <div id="runtimes" hidden data-v="{{RUNTIMES_JSON}}"></div>
+<div id="narr" hidden data-v="{{NARRATION_JSON}}"></div>
+<script src="/demo-assets/avatar.js" defer></script>
 <script src="/demo-assets/demo.js" defer></script>
 </body>
 </html>
