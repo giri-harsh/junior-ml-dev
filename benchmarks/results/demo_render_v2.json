@@ -1,0 +1,62 @@
+{
+  "command": "scripts/live_verify (redesign) + repeat runs",
+  "conditions": {
+    "llm": "none",
+    "machine_id": "Harsh-Pc",
+    "n": 3,
+    "notes": "redesigned demo on Render free; timings from the public internet, submit to done; scripted planner",
+    "sandbox": "none"
+  },
+  "date": "2026-11-10T05:05:48+00:00",
+  "git_sha": "336f15c3a9cd7a5a1a319786129493e51a93c687",
+  "name": "demo_render_v2",
+  "results": {
+    "admin_without_auth": 401,
+    "cold_start": "health 32.7 s after >15 min idle; first sample run 105.8 s end to end (includes ~45-60 s warm-worker boot); status done",
+    "commands": "python scripts/deploy_render.py verify; cold start: scripts in docs/ws/R.md",
+    "cut_to_fit": "FLAML off; leakage detectors skipped (recorded as a PARTIAL check); hard wall 60 s, soft wall 35 s; web process no longer imports the full API (225 MB -> 63 MB); a warm fork server loads pandas/scikit-learn/lightgbm once (they took 44 s per run on the 0.1 vCPU).",
+    "deploy_absent": 404,
+    "downloads_hash_match": {
+      "credit-g": true,
+      "diabetes": true,
+      "wine-quality": true
+    },
+    "health_status": 200,
+    "host": "Render free plan (512 MB, 0.1 vCPU)",
+    "landing_kb": 35.4,
+    "landing_status": 200,
+    "notes": "Redesigned demo (hero, dataset picker, live run page, styled report). Diabetes: three clean runs; a fourth run (69.6 s) queued behind another run and is excluded. credit-g first run after a deploy took 74.2 s (worker warm-up), steady state 37.8 s; wine-quality one run. credit-g and wine-quality timed out at 60 s before the large-sample soft wall (20 s) was added.",
+    "page_bytes": {
+      "demo.css": 13065,
+      "demo.js": 5800,
+      "html": 17387,
+      "run.js": 6526,
+      "run_html": 3921
+    },
+    "peak_rss_mb": "309-327 MB local (Windows psutil process tree, FLAML 15 s); web process alone 63 MB idle",
+    "per_sample_s": {
+      "credit-g": 37.8,
+      "diabetes": 52.0,
+      "wine-quality": 27.4
+    },
+    "report_status": [
+      200,
+      200,
+      200
+    ],
+    "run_status": [
+      "done",
+      "done",
+      "done"
+    ],
+    "sample": "diabetes",
+    "sample_run_p50_s": 52.0,
+    "sample_run_s": [
+      52.8,
+      52.0,
+      51.9
+    ],
+    "upload_rejected": 403,
+    "url": "https://junior-ml-dev-demo.onrender.com"
+  }
+}
