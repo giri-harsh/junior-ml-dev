@@ -75,18 +75,24 @@ INFO: dict[str, dict[str, str]] = {
         "predicts": "Whether a patient tests positive for diabetes, from 8 clinical measurements.",
         "pair": "one diabetic and one healthy patient",
         "unit": "",
+        "action": "Build a model for diabetes",
+        "classes": "0=No diabetes;1=Has diabetes",
     },
     "credit-g": {
         "name": "German credit risk",
         "predicts": "Whether a loan applicant turns out to be a bad credit risk.",
         "pair": "one applicant who defaulted and one who repaid",
         "unit": "",
+        "action": "Predict credit risk",
+        "classes": "0=Good credit;1=Bad credit",
     },
     "wine-quality": {
         "name": "Red wine quality",
         "predicts": "The sensory quality score (about 3 to 8) of a red wine, from lab tests.",
         "pair": "",
         "unit": "points of the quality score",
+        "action": "Predict wine quality",
+        "classes": "",
     },
 }
 
@@ -138,7 +144,7 @@ def catalog(data_dir: Path) -> list[dict[str, Any]]:
                 "metric": s.metric, "rows": e.get("rows"), "cols": e.get("cols"),
                 "bytes": e.get("bytes"), "sha256": e["sha256"], "sha12": e["sha256"][:12],
                 "openml_id": s.openml_id, "openml_url": openml_url(s.openml_id),
-                "download": f"/datasets/{s.key}.csv",
+                "download": f"/datasets/{s.key}.csv", "action": info["action"],
                 "preview": {
                     "columns": [{"raw": c, "label": label(s.key, c)} for c in head],
                     "rows": [list(r) for r in rows],
@@ -153,3 +159,37 @@ def download_path(data_dir: Path, key: str) -> Path:
     if key not in BY_KEY:
         raise KeyError(key)
     return sample_path(data_dir, key)
+
+
+def class_names(sample_key: str) -> dict[str, str]:
+    """{"0": "No diabetes", "1": "Has diabetes"} for a classification sample, else {}."""
+    raw = INFO.get(sample_key, {}).get("classes", "")
+    return dict(p.split("=", 1) for p in raw.split(";") if "=" in p)
+
+
+def target_values(data_dir: Path, key: str, column: str) -> list[float]:
+    """The numeric target column of a verified sample, read with `csv` (no pandas)."""
+    path = sample_path(data_dir, key)
+    out: list[float] = []
+    with open(path, encoding="utf-8", newline="") as fh:
+        reader = csv.DictReader(fh)
+        for row in reader:
+            try:
+                out.append(float(row[column]))
+            except (KeyError, TypeError, ValueError):
+                continue
+    return out
+
+
+def histogram(values: list[float], bins: int = 12) -> dict[str, Any]:
+    """Equal-width histogram plus min, max and standard deviation (for the regression card)."""
+    if not values:
+        return {"counts": [], "min": None, "max": None, "std": None, "n": 0}
+    lo, hi = min(values), max(values)
+    width = (hi - lo) / bins or 1.0
+    counts = [0] * bins
+    for v in values:
+        counts[min(bins - 1, int((v - lo) / width))] += 1
+    mean = sum(values) / len(values)
+    std = (sum((v - mean) ** 2 for v in values) / len(values)) ** 0.5
+    return {"counts": counts, "min": lo, "max": hi, "std": std, "n": len(values)}

@@ -27,8 +27,11 @@ from pathlib import Path
 from typing import Any
 
 from apps.api.demo.config import LARGE_CELLS, DemoSettings
+from apps.api.demo.datasets import histogram, target_values
 from apps.api.demo.limits import enforce_demo_config
-from apps.api.demo.pages import render_report, result_sentence, top_feature
+from apps.api.demo.narration import narrate
+from apps.api.demo.pages import result_sentence, top_feature
+from apps.api.demo.report_view import render_report
 from apps.api.demo.samples import BY_KEY, Sample, load_manifest, sample_path
 from harness.agent.models import RunBudget, RunConfig, RunTask
 from harness.queue import SQLiteJobQueue, Worker
@@ -366,12 +369,14 @@ class DemoService:
             return None
         steps: list[tuple[str, float]] = []
         log: list[dict[str, Any]] = []
+        done: list[list[str | None]] = []
         for (raw,) in rows:
             rec = json.loads(raw)
             tool = str(rec["step"]["tool"])
             secs = round(float(rec.get("latency_s", 0.0)), 1)
             steps.append((tool, secs))
             fam = (rec["step"].get("args") or {}).get("family")
+            done.append([tool, fam])
             log.append(
                 {"tool": tool, "family": fam, "ok": bool(rec.get("ok", True)), "s": secs,
                  "reason": str(rec["step"].get("reason", ""))[:80]}
@@ -379,7 +384,7 @@ class DemoService:
         if not steps:
             return {**timeline, "steps_done": 0}
         out = {**timeline, "steps_done": len(steps), "last_step": steps[-1][0], "steps": steps,
-               "log": log[-8:]}  # fmt: skip
+               "log": log[-8:], "done": done}  # fmt: skip
         if last:
             state = json.loads(last[0])
             out["models"] = [
@@ -415,6 +420,27 @@ class DemoService:
             return None
         return dict(json.loads(row[0])) if row else None
 
+    def run_steps(self, run_id: str) -> list[dict[str, Any]]:
+        """Every finished step: tool, family, seconds, ok, reason (tool names and timings only)."""
+        db = self._agent_db(run_id)
+        if db is None:
+            return []
+        try:
+            with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=1)) as c:
+                rows = c.execute("SELECT record FROM checkpoints ORDER BY idx").fetchall()
+        except sqlite3.Error:
+            return []
+        out = []
+        for (raw,) in rows:
+            rec = json.loads(raw)
+            step = rec["step"]
+            out.append(
+                {"tool": str(step["tool"]), "family": (step.get("args") or {}).get("family"),
+                 "secs": float(rec.get("latency_s", 0.0)), "ok": bool(rec.get("ok", True)),
+                 "reason": str(step.get("reason", ""))[:80]}
+            )  # fmt: skip
+        return out
+
     def report_html(self, run_id: str) -> str | None:
         """The styled report, built from the run's own state (None until the run has one)."""
         row = self._row(run_id)
@@ -423,7 +449,16 @@ class DemoService:
         state = self.run_state(run_id)
         if state is None:
             return None
-        return render_report(run_id, row["sample"], state, row["summary"])
+        sample = BY_KEY[row["sample"]]
+        dist = None
+        if sample.task_type == "regression":
+            try:
+                dist = histogram(target_values(self.s.data_dir, sample.key, sample.target))
+            except (KeyError, ValueError, OSError):
+                dist = None
+        return render_report(
+            run_id, row["sample"], state, row["summary"], self.run_steps(run_id), dist
+        )
 
     def public_status(self, run_id: str) -> dict[str, Any] | None:
         row = self._row(run_id)
@@ -454,6 +489,7 @@ class DemoService:
             prog = self.progress(run_id)
             if prog is not None:
                 out["progress"] = prog
+        sentence = None
         if row["status"] == "done" and row["summary"] and row["sample"] in BY_KEY:
             state = self.run_state(run_id)
             sentence = result_sentence(
@@ -462,6 +498,14 @@ class DemoService:
             )  # fmt: skip
             if sentence:
                 out["result"] = {"sentence": sentence}
+        prog = out.get("progress") or {}
+        out["narration"] = narrate(
+            row["status"],
+            done=[(str(d[0]), d[1]) for d in prog.get("done", [])],
+            leakage_skipped=bool(prog.get("leakage_skipped")),
+            queue_position=out.get("queue_position"),
+            sentence=sentence,
+        )
         return out
 
     def report_path(self, run_id: str) -> Path | None:

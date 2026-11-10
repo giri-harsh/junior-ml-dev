@@ -70,23 +70,32 @@
     }
   }
 
+  const dev = document.querySelector(".jd");
+  const jr = dev && dev.jr;
+  let lastSteps = -1, lastChange = Date.now(), maxTrain = 0;
+
+  function persona(st, prog) {
+    const n = st.narration;
+    if (!n || !jr) return;
+    jr.state(n.state);
+    jr.say(n.line, st.status === "done" ? "/demo/api/runs/" + encodeURIComponent(runId) + "/report" : null);
+    // sweat only while a training step outlasts every training step finished so far
+    if (prog && prog.steps && prog.steps.length !== lastSteps) {
+      lastSteps = prog.steps.length; lastChange = Date.now();
+      maxTrain = Math.max(0, ...prog.steps.filter((s) => s[0] === "train_model" || s[0] === "tune_model").map((s) => s[1]));
+    }
+    const training = /^(Training|Tuning) /.test(n.line);
+    jr.sweat(n.state === "working" && training && (Date.now() - lastChange) / 1000 > Math.max(4, maxTrain));
+  }
+
   function finish(st) {
     clearInterval(timer);
     if (st.started && st.finished) finalSecs = st.finished - st.started;
     tick();
-    const res = $("res");
-    if (st.status === "done" && st.result && st.result.sentence) {
-      $("sentence").textContent = st.result.sentence;
+    if (st.status === "done") {
       const s = st.summary || {};
-      const kv = $("kv"); kv.textContent = "";
       const parts = [["model", s.chosen_family], ["reviewer", s.review], ["run time", s.latency_s != null ? Number(s.latency_s).toFixed(0) + " s" : null]];
-      kv.textContent = parts.filter((p) => p[1] != null).map((p) => p[0] + ": " + p[1]).join("   ·   ");
-      $("rep").href = "/demo/api/runs/" + encodeURIComponent(runId) + "/report";
-      res.hidden = false;
-    } else if (st.status === "done") {
-      $("sentence").textContent = "The run finished without a scored model.";
-      $("rep").href = "/demo/api/runs/" + encodeURIComponent(runId) + "/report";
-      res.hidden = false;
+      $("kv").textContent = parts.filter((p) => p[1] != null).map((p) => p[0] + ": " + p[1]).join("   ·   ");
     } else {
       errEl.textContent = st.message || "The run did not finish.";
     }
@@ -111,6 +120,7 @@
     paintRail(prog, st.status);
     paintBoard(prog && prog.models, sample && sample.metric);
     paintLog(prog && prog.log);
+    persona(st, prog);
     if (["done", "failed", "timeout", "interrupted"].includes(st.status)) { finish(st); return; }
     setTimeout(poll, 1000);
   }

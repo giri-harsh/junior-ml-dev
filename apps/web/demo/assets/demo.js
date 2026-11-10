@@ -31,16 +31,28 @@
     return body;
   }
 
+  const hero = document.getElementById("hero");
+  const dev = document.querySelector("#hero .jd");
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
   async function start(key, btn) {
     if (busy) return;
     busy = true; if (btn) btn.disabled = true; say("");
+    const s = samples.find((x) => x.key === key);
+    const nm = s ? (s.name || s.title) : key;
+    const tpl = (window.JrAvatar && window.JrAvatar.data.listening) || "On it! Opening the {name} data now.";
+    if (dlg.open) dlg.close();
+    if (hero) hero.scrollIntoView({ block: "center" });
+    if (dev && dev.jr) { dev.jr.state("listening"); dev.jr.say(tpl.replace("{name}", nm)); }
     try {
-      const r = await api("/demo/api/runs", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sample: key }),
-      });
+      const [r] = await Promise.all([
+        api("/demo/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sample: key }) }),
+        wait(1300),  // let the listening pose play before the page changes
+      ]);
       location.href = "/runs/" + encodeURIComponent(r.run_id);
     } catch (e) {
       say(e.message); busy = false; if (btn) btn.disabled = false;
+      if (dev && dev.jr) { dev.jr.state("error"); dev.jr.say(e.message); }
     }
   }
 
@@ -49,7 +61,7 @@
     c.append(h("span", "k", kind(s)), h("h3", null, s.name || s.title), h("p", null, s.predicts || s.blurb));
     c.append(h("div", "meta", s.rows + " rows × " + s.cols + " columns · " + kb(s.bytes) + " · " + runtime(s)));
     const row = h("div", "row2"); row.style.marginTop = "16px";
-    const run = h("button", "btn pri sm", "Run the agent on this"); run.type = "button";
+    const run = h("button", "btn pri sm", s.action || "Run the agent on this"); run.type = "button";
     run.addEventListener("click", () => start(s.key, run));
     const view = h("button", "btn gho sm", "Preview data"); view.type = "button";
     view.addEventListener("click", () => openPicker());
@@ -91,7 +103,7 @@
     });
     sha.append(cp); c.append(sha);
     const row = h("div", "row2");
-    const run = h("button", "btn pri sm", "Run the agent on this"); run.type = "button";
+    const run = h("button", "btn pri sm", s.action || "Run the agent on this"); run.type = "button";
     run.addEventListener("click", () => start(s.key, run));
     const dl = h("a", "btn gho sm", "Download CSV"); dl.href = s.download; dl.setAttribute("download", s.key + ".csv");
     row.append(run, dl); c.append(row);

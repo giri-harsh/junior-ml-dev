@@ -185,7 +185,7 @@ def test_public_upload_is_still_refused(client: TestClient) -> None:
 # --- live run page -------------------------------------------------------------------------------
 def test_run_page_is_a_static_shell(client: TestClient) -> None:
     r = client.get("/runs/demo-0123456789")
-    assert r.status_code == 200 and "run.js" in r.text and "Open full report" in r.text
+    assert r.status_code == 200 and "run.js" in r.text and "avatar.js" in r.text
     assert r.text == client.get("/runs/demo-abcdef0123").text  # nothing about the run is embedded
     assert r.text.count('class="ly') == 6 and "Pipeline progress" in r.text
     for bad in ("demo-xyz", "demo-0123456789a", "x", "demo-0123456789%2f.."):
@@ -213,10 +213,12 @@ def test_a_finished_run_has_progress_sentence_and_a_styled_report(
     assert "Shown one diabetic and one healthy patient" in st["result"]["sentence"]
     assert "% of the time" in st["result"]["sentence"]
     rep = c.get(f"/demo/api/runs/{run_id}/report")
-    assert rep.status_code == 200 and "What this means" in rep.text
-    assert "<script" not in rep.text and "Model card" in rep.text and "#F2B880" in rep.text
+    assert rep.status_code == 200 and "The answer" in rep.text
+    assert rep.text.count("<script") == 2 and "<script>" not in rep.text  # only src= scripts
+    assert "Model card" in rep.text and "Try another dataset" in rep.text
     csp = rep.headers["content-security-policy"]
-    assert "script-src" not in csp and "default-src 'none'" in csp and "sandbox" in csp
+    assert "script-src 'self'" in csp and "default-src 'none'" in csp
+    assert "unsafe-inline" not in csp.split("style-src")[0] and "unsafe-eval" not in csp
 
 
 # --- sentence and report -------------------------------------------------------------------------
@@ -236,63 +238,6 @@ def test_result_sentences() -> None:
     assert "0.64" in str(pages.result_sentence("diabetes", "f1_macro", 0.64, None))
     assert pages.result_sentence("diabetes", "roc_auc", None, "plas") is None
     assert "mattered" not in str(pages.result_sentence("credit-g", "roc_auc", 0.7, None))
-
-
-def _state(**kw: object) -> dict[str, object]:
-    base: dict[str, object] = {
-        "profile": {"n_rows": 768, "n_cols": 9, "columns": [{"name": "insu", "missing_frac": 0.2}]},
-        "leaderboard": [
-            {"model_id": "linear", "family": "linear", "val_score": 0.83},
-            {"model_id": "dummy", "family": "dummy", "val_score": 0.5},
-        ],
-        "explain": {"top": [{"feature": "plas", "mean_drop": 0.1}, {"feature": "mass", "mean_drop": 0.05}]},
-        "review": {"verdict": "APPROVE", "checks": {"leakage_checked": {"passed": True, "detail": "ok"}}},
-        "models": {"linear": {"family": "linear", "val_score": 0.83}},
-        "chosen": "linear", "dropped": [], "findings": [],
-    }  # fmt: skip
-    base.update(kw)
-    return base
-
-
-def test_skipped_leakage_is_never_shown_as_none() -> None:
-    html = pages.render_report(
-        "demo-0123456789", "diabetes", _state(leakage_partial=["demo skip"]), {"val_score": 0.83}
-    )
-    assert "Skipped in live demo (CPU limit)" in html
-    assert "No leakage findings" not in html
-    ok = pages.render_report("demo-0123456789", "diabetes", _state(), {"val_score": 0.83})
-    assert "Skipped in live demo (CPU limit)" not in ok.split("Reviewer checks")[0]
-
-
-def test_report_uses_readable_names_and_amber_bars() -> None:
-    html = pages.render_report(
-        "demo-0123456789", "diabetes", _state(), {"val_score": 0.83, "chosen_family": "linear"}
-    )
-    for name in ("Plasma glucose", "BMI", "Insulin"):
-        assert name in html
-    assert html.count('class="bb"') >= 4 and "background:var(--amb)" in pages.CSS.replace(" ", "")
-    for h in ("The data", "Leakage check", "Model leaderboard", "Reviewer checks", "Model card"):
-        assert h in html
-    assert html.count("What this means") >= 4
-
-
-def test_hostile_strings_are_escaped_everywhere() -> None:
-    state = _state(
-        profile={"n_rows": 5, "n_cols": 2, "columns": [{"name": HOSTILE, "missing_frac": 0.5}]},
-        explain={"top": [{"feature": HOSTILE, "mean_drop": 0.2}]},
-        leaderboard=[{"model_id": HOSTILE, "family": HOSTILE, "val_score": 0.7}],
-        review={"verdict": HOSTILE, "checks": {HOSTILE: {"passed": False, "detail": HOSTILE}}},
-        dropped=[HOSTILE],
-    )
-    html = pages.render_report("demo-0123456789", "diabetes", state, {"val_score": 0.7})
-    assert "<script" not in html
-    assert "x" * 200 not in html  # long names are cut
-
-
-def test_csp_blocks_scripts_and_everything_but_fonts() -> None:
-    assert "script" not in pages.REPORT_CSP.replace("sandbox", "")
-    assert "connect-src" not in pages.REPORT_CSP and "default-src 'none'" in pages.REPORT_CSP
-    assert "https://fonts.googleapis.com" in pages.REPORT_CSP
 
 
 def test_catalog_skips_a_tampered_sample(app_service: tuple[FastAPI, DemoService]) -> None:

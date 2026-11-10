@@ -15,8 +15,10 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path
 
+from apps.api.demo.avatar import avatar_html
 from apps.api.demo.config import REPO_URL, STATIC_SITE_URL
 from apps.api.demo.figure import figure_html
+from apps.api.demo.narration import page_data
 
 _CODE = re.compile(r"`([^`]+)`")
 _LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
@@ -234,6 +236,8 @@ def render_landing(metrics_md: str, template: str, *, now: datetime | None = Non
         "GENERATED": stamp,
         "METRICS_SHA": digest,
         "FIGURE": figure_html(CAPTIONS),
+        "AVATAR": avatar_html(greet=True),
+        "NARRATION_JSON": page_data(),
         "PROOF": proof_cells(metrics_md),
         "RUNTIMES_JSON": runtimes_json(metrics_md),
     }
