@@ -20,6 +20,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from apps.api.demo.config import DemoSettings, demo_enabled
+from apps.api.demo.figure import figure_html
 from apps.api.demo.guard import GuardMiddleware, strip_routes
 from apps.api.demo.routes import landing_response
 from apps.api.demo.routes import router as demo_router
@@ -27,7 +28,8 @@ from apps.api.demo.service import DemoService, Executor, subprocess_executor
 
 __all__ = ["DemoService", "DemoSettings", "demo_enabled", "install"]
 
-ASSETS = Path(__file__).resolve().parents[2] / "web" / "demo" / "assets"
+WEB = Path(__file__).resolve().parents[2] / "web" / "demo"
+ASSETS = WEB / "assets"
 # Settings that could open a door the demo keeps shut; removed from the process environment.
 _UNSAFE_ENV = ("JMD_SANDBOX", "QUEUE_BACKEND", "OBJECT_STORE", "JMD_WORKER", "E2B_API_KEY")
 
@@ -62,6 +64,12 @@ def install(
     service = DemoService(s, chosen or subprocess_executor)
     app.state.demo_service = service
     app.state.demo_removed_routes = strip_routes(app)
+    shell = WEB / "run.template.html"
+    app.state.demo_run_page = (
+        shell.read_text(encoding="utf-8").replace("{{FIGURE}}", figure_html(mini=True))
+        if shell.is_file()
+        else "<!doctype html><title>run</title><p>Run page not built.</p>"
+    )
     app.include_router(demo_router)
 
     @app.get("/", include_in_schema=False)

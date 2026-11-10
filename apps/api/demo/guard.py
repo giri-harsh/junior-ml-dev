@@ -93,6 +93,7 @@ class GuardMiddleware(BaseHTTPMiddleware):
         self.s = settings
         self.read_limiter = read_limiter
         self.login_limiter = RateLimiter(10, 60.0)
+        self.download_limiter = RateLimiter(30, 60.0)  # sample CSV downloads, per address
 
     @staticmethod
     def _deny(status: int, detail: str, retry_after: int | None = None) -> Response:
@@ -123,6 +124,8 @@ class GuardMiddleware(BaseHTTPMiddleware):
             return self._deny(413, "request body too large")
         if path == "/v1/auth/login" and not self.login_limiter.allow(ip):
             return self._deny(429, "too many login attempts", 30)
+        if path.startswith("/datasets/") and not self.download_limiter.allow(ip):
+            return self._deny(429, "too many downloads", 30)
         if (
             path.startswith("/demo/api/")
             and not (

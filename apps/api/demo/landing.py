@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import hashlib
 import html
+import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
 
 from apps.api.demo.config import REPO_URL, STATIC_SITE_URL
+from apps.api.demo.figure import figure_html
 
 _CODE = re.compile(r"`([^`]+)`")
 _LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
@@ -150,6 +152,64 @@ def tiles(lines: list[str]) -> str:
     return "\n".join(out)
 
 
+CAPTIONS = (
+    '<div class="cap c1"><b>01 · PROFILE</b><span id="cap-profile">rows · columns</span></div>'
+    '<div class="cap c2"><b>02 · LEAKAGE HUNT</b><span>skipped on the free CPU</span></div>'
+    '<div class="cap c3"><b>03 · MODEL RACE</b>'
+    "<span>baseline · linear · boosting · forest</span></div>"
+    '<div class="cap c4 am"><b>04 · REVIEW</b><span>rule-based sign-off</span></div>'
+)
+
+
+def _find(pattern: str, md: str) -> tuple[str, ...] | None:
+    m = re.search(pattern, md)
+    return m.groups() if m else None
+
+
+def proof_cells(md: str) -> str:
+    """The four proof cells. Every number is parsed from the metrics file; a missing one says so."""
+    arm = _find(r"SCRIPTED planner \(no LLM\) \| ([0-9.]+) \[([0-9.]+), ([0-9.]+)\]", md)
+    n = _find(r"\(n=(\d+)\)", md)
+    inj = _find(r"unsafe actions executed (\d+)/(\d+)", md)
+    gate = _find(r"(\d+) tests, ([0-9.]+)% coverage", md)
+    p50 = _find(r"p50 ([0-9.]+) s over", md)
+    n_tasks = n[0] if n else "10"
+    cells = [
+        (
+            "≈ FLAML",
+            f"matches an AutoML baseline on {n_tasks} unseen benchmarks"
+            + (f" ({arm[0]} of FLAML, 95% CI {arm[1]} to {arm[2]})" if arm else ""),
+        ),
+        (
+            f"{inj[0]} unsafe" if inj else "n/a",
+            "actions executed in every prompt-injection test"
+            + (f" ({inj[0]}/{inj[1]} real-LLM runs)" if inj else ""),
+        ),
+        (
+            f"{gate[0]}" if gate else "n/a",
+            f"tests · {gate[1]}% coverage" if gate else "tests and coverage: see METRICS.md",
+        ),
+        (
+            f"~{round(float(p50[0]))} s" if p50 else "n/a",
+            "dataset to report, on a free CPU (measured median)",
+        ),
+    ]
+    return "".join(
+        f'<div role="listitem"><b>{html.escape(big)}</b><span>{html.escape(small)}</span></div>'
+        for big, small in cells
+    )
+
+
+def runtimes_json(md: str) -> str:
+    """{"diabetes": 49.8, ...} from the line 'Per-sample run time (s): diabetes 49.8; ...'."""
+    m = re.search(r"Per-sample run time \(s\): ([^\n]+)", md)
+    out: dict[str, float] = {}
+    if m:
+        for key, val in re.findall(r"([a-z][a-z0-9\-]+) ([0-9]+(?:\.[0-9]+)?)", m.group(1)):
+            out[key] = float(val)
+    return html.escape(json.dumps(out), quote=True)
+
+
 def render_landing(metrics_md: str, template: str, *, now: datetime | None = None) -> str:
     title, sections = split_sections(metrics_md)
     head_name, head_body = sections[0] if sections else ("", [])
@@ -170,6 +230,9 @@ def render_landing(metrics_md: str, template: str, *, now: datetime | None = Non
         "MORE": more,
         "GENERATED": stamp,
         "METRICS_SHA": digest,
+        "FIGURE": figure_html(CAPTIONS),
+        "PROOF": proof_cells(metrics_md),
+        "RUNTIMES_JSON": runtimes_json(metrics_md),
     }
     page = template
     for k, v in subs.items():

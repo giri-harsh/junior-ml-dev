@@ -28,6 +28,7 @@ from typing import Any
 
 from apps.api.demo.config import DemoSettings
 from apps.api.demo.limits import enforce_demo_config
+from apps.api.demo.pages import render_report, result_sentence, top_feature
 from apps.api.demo.samples import BY_KEY, Sample, sample_path
 from harness.agent.models import RunBudget, RunConfig, RunTask
 from harness.queue import SQLiteJobQueue, Worker
@@ -346,23 +347,77 @@ class DemoService:
                 timeline = {"child_imports_s": raw.get("imports_s")}
             except (OSError, ValueError):
                 timeline = {}
-        db = self.runs_dir / run_id / "out" / "agent.db"
-        if not db.is_file():
-            db = self.runs_dir / run_id / "agent.db"
-        if not db.is_file():
+        db = self._agent_db(run_id)
+        if db is None:
             return timeline or None
         try:
             with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=1)) as c:
                 rows = c.execute("SELECT record FROM checkpoints ORDER BY idx").fetchall()
+                last = c.execute(
+                    "SELECT state FROM checkpoints ORDER BY idx DESC LIMIT 1"
+                ).fetchone()
         except sqlite3.Error:
             return None
-        steps = []
+        steps: list[tuple[str, float]] = []
+        log: list[dict[str, Any]] = []
         for (raw,) in rows:
             rec = json.loads(raw)
-            steps.append((str(rec["step"]["tool"]), round(float(rec.get("latency_s", 0.0)), 1)))
+            tool = str(rec["step"]["tool"])
+            secs = round(float(rec.get("latency_s", 0.0)), 1)
+            steps.append((tool, secs))
+            fam = (rec["step"].get("args") or {}).get("family")
+            log.append(
+                {"tool": tool, "family": fam, "ok": bool(rec.get("ok", True)), "s": secs,
+                 "reason": str(rec["step"].get("reason", ""))[:80]}
+            )  # fmt: skip
         if not steps:
             return {**timeline, "steps_done": 0}
-        return {**timeline, "steps_done": len(steps), "last_step": steps[-1][0], "steps": steps}
+        out = {**timeline, "steps_done": len(steps), "last_step": steps[-1][0], "steps": steps,
+               "log": log[-8:]}  # fmt: skip
+        if last:
+            state = json.loads(last[0])
+            out["models"] = [
+                {"model_id": mid, "family": m.get("family"), "val_score": m.get("val_score")}
+                for mid, m in (state.get("models") or {}).items()
+                if isinstance(m.get("val_score"), int | float) and m.get("scored", True)
+            ]
+            out["leakage_skipped"] = bool(state.get("leakage_partial"))
+            if state.get("review"):
+                out["review"] = state["review"].get("verdict")
+        return out
+
+    def _agent_db(self, run_id: str) -> Path | None:
+        for cand in (
+            self.runs_dir / run_id / "out" / "agent.db",
+            self.runs_dir / run_id / "agent.db",
+        ):
+            if cand.is_file():
+                return cand
+        return None
+
+    def run_state(self, run_id: str) -> dict[str, Any] | None:
+        """The agent's final (latest) state for a run: profile, leaderboard, review, features."""
+        db = self._agent_db(run_id)
+        if db is None:
+            return None
+        try:
+            with closing(sqlite3.connect(f"file:{db}?mode=ro", uri=True, timeout=1)) as c:
+                row = c.execute(
+                    "SELECT state FROM checkpoints ORDER BY idx DESC LIMIT 1"
+                ).fetchone()
+        except sqlite3.Error:
+            return None
+        return dict(json.loads(row[0])) if row else None
+
+    def report_html(self, run_id: str) -> str | None:
+        """The styled report, built from the run's own state (None until the run has one)."""
+        row = self._row(run_id)
+        if row is None or row["status"] != "done" or row["sample"] not in BY_KEY:
+            return None
+        state = self.run_state(run_id)
+        if state is None:
+            return None
+        return render_report(run_id, row["sample"], state, row["summary"])
 
     def public_status(self, run_id: str) -> dict[str, Any] | None:
         row = self._row(run_id)
@@ -393,6 +448,14 @@ class DemoService:
             prog = self.progress(run_id)
             if prog is not None:
                 out["progress"] = prog
+        if row["status"] == "done" and row["summary"] and row["sample"] in BY_KEY:
+            state = self.run_state(run_id)
+            sentence = result_sentence(
+                row["sample"], BY_KEY[row["sample"]].metric,
+                row["summary"].get("val_score"), top_feature(state),
+            )  # fmt: skip
+            if sentence:
+                out["result"] = {"sentence": sentence}
         return out
 
     def report_path(self, run_id: str) -> Path | None:
