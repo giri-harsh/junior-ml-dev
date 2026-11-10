@@ -202,7 +202,10 @@ def proof_cells(md: str) -> str:
 
 def runtimes_json(md: str) -> str:
     """{"diabetes": 49.8, ...} from the line 'Per-sample run time (s): diabetes 49.8; ...'."""
-    m = re.search(r"Per-sample run time \(s\): ([^\n]+)", md)
+    m = re.search(
+        r"Per-sample run time \(s\): ((?:[a-z][a-z0-9\-]+ [0-9]+(?:\.[0-9]+)?(?:; )?)+)",
+        md,
+    )
     out: dict[str, float] = {}
     if m:
         for key, val in re.findall(r"([a-z][a-z0-9\-]+) ([0-9]+(?:\.[0-9]+)?)", m.group(1)):

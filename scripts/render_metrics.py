@@ -169,7 +169,7 @@ def main() -> int:
     else:
         L += ["- NOT RUN."]
     L += ["", "## Demo", ""]
-    dm = load("demo_render_v1")
+    dm = load("demo_render_v2") or load("demo_render_v1")
     if dm:
         r = dm["results"]
         L += [
@@ -181,6 +181,14 @@ def main() -> int:
             f"Local peak process-tree RSS of a sample run: {r['peak_rss_mb']}. Source: {src('demo_render_v1')}.",
             f"- Cut to fit the free plan: {r['cut_to_fit']}",
         ]  # fmt: skip
+        per_sample = r.get("per_sample_s")
+        if per_sample:
+            joined = "; ".join(f"{k} {v}" for k, v in per_sample.items())
+            L += [
+                f"- Per-sample run time (s): {joined} (live, submit to done: diabetes median of 3 runs, the others one steady-state run; "
+                f"scripted planner, FLAML off, leakage detectors skipped; "
+                f"landing page {r.get('landing_kb', 'n/a')} KB of HTML, CSS and JS, fonts excluded)."
+            ]
     L += [
         "- Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ ."
     ]
