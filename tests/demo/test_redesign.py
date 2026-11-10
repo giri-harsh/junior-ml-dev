@@ -306,3 +306,22 @@ def test_catalog_skips_a_tampered_sample(app_service: tuple[FastAPI, DemoService
 def test_no_cache_and_nosniff_headers(client: TestClient, path: str) -> None:
     r = client.get(path)
     assert r.headers["x-content-type-options"] == "nosniff"
+
+
+def test_large_samples_get_a_shorter_soft_wall(app_service: tuple[FastAPI, DemoService]) -> None:
+    import json
+
+    _, service = app_service
+    assert service.soft_wall_for("diabetes") == service.s.soft_wall_s  # 300 x 3: small
+    mf = service.s.data_dir / "manifest.json"
+    raw = json.loads(mf.read_text(encoding="utf-8"))
+    for e in raw["samples"]:
+        if e["key"] == "credit-g":
+            e["rows"], e["cols"] = 1000, 21
+    mf.write_text(json.dumps(raw), encoding="utf-8")
+    assert service.soft_wall_for("credit-g") == service.s.soft_wall_large_s < service.s.soft_wall_s
+    cfg = service.build_config(
+        "demo-0123456789", BY_KEY["credit-g"], sample_path(service.s.data_dir, "credit-g")
+    )
+    assert cfg.budget.max_wall_s == service.s.soft_wall_large_s
+    assert service.soft_wall_for("unknown") == service.s.soft_wall_s

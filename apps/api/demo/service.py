@@ -26,10 +26,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from apps.api.demo.config import DemoSettings
+from apps.api.demo.config import LARGE_CELLS, DemoSettings
 from apps.api.demo.limits import enforce_demo_config
 from apps.api.demo.pages import render_report, result_sentence, top_feature
-from apps.api.demo.samples import BY_KEY, Sample, sample_path
+from apps.api.demo.samples import BY_KEY, Sample, load_manifest, sample_path
 from harness.agent.models import RunBudget, RunConfig, RunTask
 from harness.queue import SQLiteJobQueue, Worker
 from harness.security.ratelimit import RateLimiter
@@ -220,6 +220,12 @@ class DemoService:
             return int(c.execute(sql, args).fetchone()[0])
 
     # --- admission ----------------------------------------------------------------------------
+    def soft_wall_for(self, sample_key: str) -> float:
+        """Large tables stop searching sooner: on 0.1 vCPU one forest fit can outlast the wall."""
+        entry = load_manifest(self.s.data_dir).get(sample_key, {})
+        cells = int(entry.get("rows") or 0) * int(entry.get("cols") or 0)
+        return self.s.soft_wall_large_s if cells > LARGE_CELLS else self.s.soft_wall_s
+
     def build_config(self, run_id: str, sample: Sample, data_path: Path) -> RunConfig:
         cfg = RunConfig(
             run_id=run_id,
@@ -229,7 +235,7 @@ class DemoService:
                 metric=sample.metric,
             ),
             budget=RunBudget(
-                max_steps=20, max_wall_s=self.s.soft_wall_s, max_tokens=0,
+                max_steps=20, max_wall_s=self.soft_wall_for(sample.key), max_tokens=0,
                 flaml_budget_s=self.s.flaml_s, tune_trials=3, step_retries=1, selection="cv",
             ),
             planner="scripted", llm_mode="none", deploy=False, sandbox_features=False, mode="dev",
