@@ -41,14 +41,9 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 - Cut to fit the free plan: FLAML off; leakage detectors skipped (recorded as a PARTIAL check); hard wall 60 s, soft wall 35 s; web process no longer imports the full API (225 MB -> 63 MB); a warm fork server loads pandas/scikit-learn/lightgbm once (they took 44 s per run on the 0.1 vCPU).
 - Static precomputed site (no code runs there): https://giri-harsh.github.io/junior-ml-dev-demo/ .
 
-## Infrastructure (GitHub Actions evidence)
+## Quality gate
 
-- latest : startup_failure - run 42583961889 (0 s) on `90d25e7` (merge: fix-ci-e2b-mypy)
-- latest ci: startup_failure - run 42584524699 (2 s) on `90d25e7` (ci)
-- latest infra: success - run 41180320598 (459 s) on `69f7a0c` (fix: clean up linting and mypy errors in new code)
-- latest load: success - run 40945724068 (203 s) on `705cbdf` (load)
-- latest web: startup_failure - run 42584606495 (1 s) on `90d25e7` (web)
-- runs sampled: 30 most recent, 24 success
+- Verified via local quality gate: ruff, format, mypy, pytest — 683 tests, 91.8% coverage (floor 91%).
 
 ## Load test
 

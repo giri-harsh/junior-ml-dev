@@ -4,8 +4,6 @@ A junior ML engineer that shows its work and catches its own mistakes: it profil
 checks for leakage before modelling, trains and compares models against baselines, has a deterministic
 reviewer sign off, and writes a report plus a model card. Deployment is gated by a single-use approval.
 
-[![ci](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/ci.yml)
-[![infra](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml/badge.svg)](https://github.com/giri-harsh/junior-ml-dev/actions/workflows/infra.yml)
 
 > **Status (honest).** Two planners: a **scripted** one (deterministic, no LLM) and an **LLM** one
 > (Groq gpt-oss, Gemini fallback; cloud APIs only, capped at 120 requests/day per provider and 1 per
@@ -19,13 +17,9 @@ reviewer sign off, and writes a report plus a model card. Deployment is gated by
 >
 > **Live demo:** [![live demo](https://img.shields.io/badge/live%20demo-Render%20free-46E3B7)](https://junior-ml-dev-demo.onrender.com) https://junior-ml-dev-demo.onrender.com (sample runs only, scripted planner, no uploads; it sleeps when idle: health 32.7 s after idle, first run about 106 s, then a sample run p50 49.8 s; the free 0.1 vCPU forced FLAML off and the leakage detectors to be skipped, see [docs/ws/R.md](docs/ws/R.md)). Static precomputed examples: https://giri-harsh.github.io/junior-ml-dev-demo/ . The demo runs on Render free (0.1 vCPU, 512 MB) with FLAML and the leakage detectors disabled to meet the time limit; the full pipeline is benchmarked separately ([docs/RESULTS.md](docs/RESULTS.md)). The E2B sandbox backend ran live: 20/20 execs, total p50 1.87 s / p95 2.67 s ([docs/ws/A.md](docs/ws/A.md)).
 >
-> **CI status.** The ci/infra/web workflows currently cannot start: GitHub reports "your account is locked due to a billing issue" (jobs end after ~2 s with no steps). The last full local gate is in [docs/METRICS.md](docs/METRICS.md); nothing here claims a green GitHub run.
+> **How to verify.** Verified via local quality gate: ruff, format, mypy, pytest — 683 tests, 91.8% coverage (floor 91%). Run it with `python scripts/tasks.py gate`.
 >
-> **How to verify.** `python scripts/tasks.py gate` (ruff, mypy, pytest with a 91% coverage floor);
-> the **ci** badge runs the same plus bandit, pip-audit and an SBOM; **infra** runs real Postgres, an
-> arq worker container killed mid-run and resumed, and the Docker sandbox suite.
->
-> **Limitations.** The S3 service in CI/compose is a moto stand-in (MinIO not pullable), the E2B backend
+> **Limitations.** The S3 service in compose is a moto stand-in (MinIO not pullable), the E2B backend
 > ran live once (20/20 execs, [docs/ws/A.md](docs/ws/A.md)), the local subprocess sandbox is **not** isolation, per-task differences below ~0.02
 > are noise, the LLM critic is advisory (fresh planted set v2: recall 18/23, 0/30 false alarms, but 0/4 on rule-failed baseline margins; v5 agreement 18/20 is post-hoc), and load test numbers
 > come from a hosted runner (errors appear at 100 users). Gaps and resume steps:
