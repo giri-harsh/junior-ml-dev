@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Live run · Junior ML Dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/demo-assets/demo.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="/"><i></i>Junior ML Dev</a>
+    <a class="l" href="/#datasets">All datasets</a>
+  </nav>
+  <div class="rtop"><h1 id="title">Starting…</h1><span class="timer mono" id="timer" aria-label="Elapsed time">00:00</span></div>
+  <p class="muted" id="sub">Connecting to the run.</p>
+  <div class="rail" id="rail" aria-label="Pipeline progress"></div>
+  <div class="rgrid">
+    <div>
+      <h3>Model leaderboard</h3>
+      <ul class="lb" id="lb" aria-live="polite"><li class="dim">Models appear here as they finish.</li></ul>
+      <h3 style="margin-top:26px">Agent log</h3>
+      <div class="log" id="log" aria-live="off"></div>
+      <div class="res" id="res" hidden>
+        <p id="sentence"></p>
+        <div class="kv" id="kv"></div>
+        <a class="btn pri" id="rep" href="#" target="_blank" rel="noopener">Open full report</a>
+      </div>
+      <p class="err" id="err" role="alert"></p>
+    </div>
+    <div>{{FIGURE}}</div>
+  </div>
+</div>
+<script src="/demo-assets/run.js" defer></script>
+</body>
+</html>

@@ -1,16 +1,24 @@
 "use strict";
-// Demo page: pick a bundled sample, start a run, poll it, show the summary and the report.
-// All server text is written with textContent / attributes, never as markup.
+// Landing page: dataset cards, the dataset picker dialog, starting a run. Server text is only ever
+// written with textContent / attributes, never as markup.
 (function () {
   const $ = (id) => document.getElementById(id);
-  const samplesEl = $("samples"), go = $("go"), msg = $("msg"), steps = $("steps");
-  const resultEl = $("result"), report = $("report"), limitsEl = $("limits");
-  let chosen = null, timer = null;
+  const dlg = $("picker"), dgrid = $("dgrid"), cards = $("cards"), perr = $("pk-err");
+  let samples = [], runtimes = {}, busy = false, maxWall = 60;
+  try { runtimes = JSON.parse($("runtimes").dataset.v) || {}; } catch (e) { runtimes = {}; }
 
-  function say(text, isErr) {
-    msg.textContent = text || "";
-    msg.className = isErr ? "msg err" : "msg";
+  function h(tag, cls, text) {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
   }
+  function kb(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+  function kind(s) { return s.task_kind === "regression" ? "Regression" : "Classification"; }
+  function runtime(s) {
+    return runtimes[s.key] ? "about " + Math.round(runtimes[s.key]) + " s here (measured)" : "capped at " + maxWall + " s";
+  }
+  function say(text) { perr.textContent = text || ""; $("limits").classList.toggle("err", !!text); if (text) $("limits").textContent = text; }
 
   async function api(path, opts) {
     const r = await fetch(path, opts);
@@ -23,95 +31,92 @@
     return body;
   }
 
-  function pick(card, key) {
-    chosen = key;
-    for (const c of samplesEl.children) c.setAttribute("aria-checked", String(c === card));
-    go.disabled = false;
-  }
-
-  function renderSamples(list) {
-    samplesEl.textContent = "";
-    for (const s of list) {
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "sample"; b.setAttribute("role", "radio");
-      b.setAttribute("aria-checked", "false");
-      const t = document.createElement("b"); t.textContent = s.title;
-      const d = document.createElement("span");
-      d.textContent = s.blurb + " (" + s.rows + " rows, " + s.task_type + ", " + s.metric + ")";
-      b.append(t, d);
-      b.addEventListener("click", () => pick(b, s.key));
-      samplesEl.append(b);
-    }
-    if (!list.length) say("No samples are installed on this server.", true);
-  }
-
-  function showResult(st) {
-    resultEl.textContent = "";
-    const dl = document.createElement("dl");
-    const s = st.summary || {};
-    const rows = [
-      ["Status", st.status + (s.status && s.status !== st.status ? " (" + s.status + ")" : "")],
-      ["Chosen model", s.chosen_family || "none"],
-      ["Validation score", s.val_score == null ? "n/a" : Number(s.val_score).toFixed(4)],
-      ["Reviewer verdict", s.review || "n/a"],
-      ["Steps", s.n_steps == null ? "n/a" : String(s.n_steps)],
-      ["Wall time", s.latency_s == null ? "n/a" : Number(s.latency_s).toFixed(1) + " s"],
-    ];
-    if (s.dropped && s.dropped.length) rows.push(["Columns dropped for leakage", s.dropped.join(", ")]);
-    for (const [k, v] of rows) {
-      const dt = document.createElement("dt"); dt.textContent = k;
-      const dd = document.createElement("dd"); dd.textContent = v;
-      dl.append(dt, dd);
-    }
-    resultEl.append(dl);
-    resultEl.hidden = false;
-    if (s.has_report) {
-      report.src = "/demo/api/runs/" + encodeURIComponent(st.run_id) + "/report";
-      report.hidden = false;
-    }
-  }
-
-  async function poll(runId) {
-    try {
-      const st = await api("/demo/api/runs/" + encodeURIComponent(runId));
-      if (st.status === "queued") {
-        say("Queued, position " + st.queue_position + ".");
-      } else if (st.status === "running") {
-        say("Running. The agent is profiling, checking leakage, training and reviewing...");
-      } else {
-        go.disabled = false;
-        if (st.status === "done") { say("Finished."); showResult(st); }
-        else { say(st.message || "The run did not finish.", true); }
-        return;
-      }
-    } catch (e) {
-      say(e.message, true);
-    }
-    timer = setTimeout(() => poll(runId), 1500);
-  }
-
-  go.addEventListener("click", async () => {
-    if (!chosen) return;
-    clearTimeout(timer);
-    go.disabled = true; resultEl.hidden = true; report.hidden = true; steps.hidden = true;
-    say("Submitting...");
+  async function start(key, btn) {
+    if (busy) return;
+    busy = true; if (btn) btn.disabled = true; say("");
     try {
       const r = await api("/demo/api/runs", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sample: chosen }),
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sample: key }),
       });
-      poll(r.run_id);
+      location.href = "/runs/" + encodeURIComponent(r.run_id);
     } catch (e) {
-      say(e.message, true);
-      go.disabled = false;
+      say(e.message); busy = false; if (btn) btn.disabled = false;
     }
-  });
+  }
+
+  function card(s) {
+    const c = h("div", "card");
+    c.append(h("span", "k", kind(s)), h("h3", null, s.name || s.title), h("p", null, s.predicts || s.blurb));
+    c.append(h("div", "meta", s.rows + " rows × " + s.cols + " columns · " + kb(s.bytes) + " · " + runtime(s)));
+    const row = h("div", "row2"); row.style.marginTop = "16px";
+    const run = h("button", "btn pri sm", "Run the agent on this"); run.type = "button";
+    run.addEventListener("click", () => start(s.key, run));
+    const view = h("button", "btn gho sm", "Preview data"); view.type = "button";
+    view.addEventListener("click", () => openPicker());
+    row.append(run, view); c.append(row);
+    return c;
+  }
+
+  function previewTable(s) {
+    const wrap = h("div", "pv"), t = h("table"), thead = h("thead"), tr = h("tr");
+    for (const col of s.preview.columns) {
+      const th = h("th", null, col.label);
+      if (col.label !== col.raw) th.append(h("i", null, col.raw));
+      tr.append(th);
+    }
+    thead.append(tr); t.append(thead);
+    const tb = h("tbody");
+    for (const r of s.preview.rows) {
+      const row = h("tr");
+      for (const v of r) row.append(h("td", null, v));
+      tb.append(row);
+    }
+    t.append(tb); wrap.append(t);
+    return wrap;
+  }
+
+  function dsCard(s) {
+    const c = h("div", "ds");
+    c.append(h("span", "tag", kind(s) + " · predicts " + (s.target_label || s.target)));
+    c.append(h("h3", null, s.name || s.title), h("p", null, s.predicts));
+    c.append(h("div", "meta", s.rows + " × " + s.cols + " · " + kb(s.bytes) + " · "));
+    const src = h("a", null, "OpenML dataset " + s.openml_id); src.href = s.openml_url; src.rel = "noopener"; src.target = "_blank";
+    c.lastChild.append(src);
+    c.append(previewTable(s));
+    const sha = h("div", "sha"); sha.append(h("span", null, "SHA-256 " + s.sha12 + "…"));
+    const cp = h("button", null, "copy"); cp.type = "button"; cp.setAttribute("aria-label", "Copy the full SHA-256");
+    cp.addEventListener("click", () => {
+      const done = () => { cp.textContent = "copied"; setTimeout(() => { cp.textContent = "copy"; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(s.sha256).then(done, () => {});
+    });
+    sha.append(cp); c.append(sha);
+    const row = h("div", "row2");
+    const run = h("button", "btn pri sm", "Run the agent on this"); run.type = "button";
+    run.addEventListener("click", () => start(s.key, run));
+    const dl = h("a", "btn gho sm", "Download CSV"); dl.href = s.download; dl.setAttribute("download", s.key + ".csv");
+    row.append(run, dl); c.append(row);
+    return c;
+  }
+
+  function openPicker() {
+    if (!samples.length) { say("No datasets are installed on this server."); return; }
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+
+  for (const b of document.querySelectorAll("[data-open-picker]")) b.addEventListener("click", openPicker);
+  for (const b of document.querySelectorAll("[data-sample]")) b.addEventListener("click", () => start(b.dataset.sample, b));
+  $("pk-x").addEventListener("click", () => dlg.close());
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 
   api("/demo/api/info").then((info) => {
-    renderSamples(info.samples || []);
+    samples = info.samples || [];
     const l = info.limits || {};
-    limitsEl.textContent = "Limits: " + l.max_wall_s + " s per run, " + l.flaml_s +
-      " s AutoML, " + l.ip_runs + " runs per " + Math.round(l.ip_window_s / 60) +
-      " minutes per address, queue of " + l.queue_max + ".";
-  }).catch((e) => say(e.message, true));
+    maxWall = l.max_wall_s || maxWall;
+    cards.textContent = ""; dgrid.textContent = "";
+    for (const s of samples) { cards.append(card(s)); dgrid.append(dsCard(s)); }
+    const d = samples.find((s) => s.key === "diabetes");
+    if (d) $("cap-profile").textContent = d.rows + " rows · " + d.cols + " cols";
+    $("limits").textContent = "Limits: " + l.max_wall_s + " s per run, " + l.ip_runs + " runs per " +
+      Math.round(l.ip_window_s / 60) + " minutes per address, a queue of " + l.queue_max + ".";
+  }).catch((e) => say(e.message));
 })();

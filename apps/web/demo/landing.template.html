@@ -3,72 +3,107 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>junior-ml-dev: live demo</title>
-<meta name="description" content="A junior ML engineer that shows its work and catches its own mistakes. Live demo, scripted planner, small public samples.">
+<title>Junior ML Dev: drop a dataset, get a model you can trust</title>
+<meta name="description" content="A junior ML engineer that profiles a dataset, trains and races models, reviews its own work and writes a report. Live demo on three public datasets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="/demo-assets/demo.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <span class="brand">junior-ml-dev</span>
-    <a class="repo" href="{{STATIC_URL}}" rel="noopener">Static example runs</a>
-    <a class="repo" href="{{REPO_URL}}" rel="noopener">GitHub repository</a>
-  </div>
-</header>
+<div class="wrap">
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="/"><i></i>Junior ML Dev</a>
+    <a class="l" href="#pipeline">Pipeline</a>
+    <a class="l" href="#benchmarks">Benchmarks</a>
+    <a class="l" href="{{REPO_URL}}" rel="noopener">GitHub</a>
+    <button class="pill" type="button" data-open-picker>Try it free</button>
+  </nav>
 
-<main class="wrap">
-  <section class="hero">
-    <h1>A junior ML engineer that shows its work and catches its own mistakes.</h1>
-    <p class="lede">It profiles a tabular dataset, checks for leakage before modelling, trains and compares models
-      against baselines, has a deterministic reviewer sign off, and writes a report. Deployment is gated by a
-      single-use approval; this demo has deployment switched off.</p>
-    <div class="tiles">{{TILES}}</div>
-    <p class="fine">Figures above are read from <code>docs/METRICS.md</code> when this page is built
-      (file hash <code>{{METRICS_SHA}}</code>, built {{GENERATED}}). Details and caveats are below.</p>
-  </section>
-
-  <section id="try" class="panel">
-    <h2>Try it on a small public dataset</h2>
-    <p class="fine">Pick a sample and start a run. The agent uses the <strong>scripted planner (no LLM)</strong>.
-      Each run is capped at a hard wall clock and a short AutoML budget (limits shown once the page loads);
-      one run executes at a time, so you may wait in a short queue.</p>
-    <div id="limits" class="fine"></div>
-    <div id="samples" class="samples" role="radiogroup" aria-label="Sample dataset"></div>
-    <div class="actions">
-      <button id="go" type="button" disabled>Run the agent</button>
-      <span id="msg" class="msg" role="status" aria-live="polite"></span>
+  <header class="hero">
+    <div>
+      <div class="badge rise d1"><b></b>AUTONOMOUS ML PIPELINE · LIVE</div>
+      <h1 class="rise d2"><span>Drop a dataset.</span><span>Get a <em class="ser">model</em></span><span>you can trust.</span></h1>
+      <p class="sub rise d3">Your junior ML engineer that never sleeps. It profiles the data, hunts for leakage, trains and races models, reviews its own work, and hands you a report &mdash; in about a minute.</p>
+      <div class="ctas rise d4">
+        <button class="btn pri" type="button" data-open-picker>Upload a CSV &rarr;</button>
+        <button class="btn gho" type="button" data-sample="diabetes">Watch a sample run</button>
+      </div>
+      <div class="hint rise d4">3 real OpenML datasets &middot; downloadable &middot; no signup</div>
     </div>
-    <ol id="steps" class="steps" hidden></ol>
-    <div id="result" class="result" hidden></div>
-    <iframe id="report" title="Run report" class="report" hidden sandbox></iframe>
+    <div>{{FIGURE}}</div>
+  </header>
+
+  <div class="proof" role="list">{{PROOF}}</div>
+
+  <section class="blk" id="datasets">
+    <p class="eyebrow">Sample datasets</p>
+    <h2>Three real tables. <span class="ser">Pick one.</span></h2>
+    <p class="muted" style="max-width:620px">Public OpenML datasets bundled with this demo. The agent uses the scripted planner (no LLM) and stops at a hard time limit; one run executes at a time, so you may wait in a short queue.</p>
+    <div class="grid3" id="cards" style="margin-top:22px"></div>
+    <p class="fine" id="limits"></p>
   </section>
 
-  <section>
+  <section class="blk" id="pipeline">
+    <p class="eyebrow">How it works</p>
+    <h2>Five steps, <span class="ser">no hand-holding.</span></h2>
+    <div class="steps5" style="margin-top:22px">
+      <div><em>01 PROFILE</em><h3>Look at the data</h3><p>Rows, columns, types, missing values, duplicates.</p></div>
+      <div><em>02 LEAKAGE</em><h3>Check for cheats</h3><p>Columns that give the answer away are flagged and dropped. Skipped in this demo to fit the free CPU.</p></div>
+      <div><em>03 RACE</em><h3>Train and compare</h3><p>A baseline, a linear model, boosting and a forest, scored on held-out data.</p></div>
+      <div><em>04 REVIEW</em><h3>Check its own work</h3><p>A deterministic reviewer signs off or sends the run back.</p></div>
+      <div><em>05 EXPLAIN</em><h3>Write it up</h3><p>A plain-English summary, the top features and a model card.</p></div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="notbox">
+      <p class="eyebrow">Not in this demo</p>
+      <h3>What the full system does</h3>
+      <ul>
+        <li>An LLM planner and a critic, with a structural guard against prompt injection.</li>
+        <li>Leakage detectors and FLAML AutoML (both switched off here: this server has 0.1 of a CPU).</li>
+        <li>Agent-written feature code in a sandbox (Docker or E2B), and gated model deployment with a single-use approval.</li>
+        <li>Bring-your-own CSV. The demo has no upload at all: the server accepts no files.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="blk" id="benchmarks">
+    <p class="eyebrow">Benchmarks</p>
     <h2>{{HEADLINE_NAME}}</h2>
+    <div class="tiles">{{TILES}}</div>
     {{HEADLINE}}
+    <p class="fine">Figures are read from <code>docs/METRICS.md</code> when this page is built (file hash <code>{{METRICS_SHA}}</code>, built {{GENERATED}}). A demo run uses a shorter budget and does not reproduce them.</p>
+    <details class="more" style="margin-top:18px"><summary class="muted" style="cursor:pointer">{{METRICS_TITLE}}: everything else</summary>
+      {{METRICS_INTRO}}
+      {{MORE}}
+    </details>
   </section>
 
-  <section class="more">
-    <h2>{{METRICS_TITLE}}: everything else</h2>
-    {{METRICS_INTRO}}
-    {{MORE}}
-  </section>
+  <footer>
+    Junior ML Dev demo &middot; <a href="{{REPO_URL}}" rel="noopener">source on GitHub</a> &middot; <a href="{{STATIC_URL}}" rel="noopener">static example runs</a>
+    &middot; numbers rendered from <code>docs/METRICS.md</code>. Runs are rate limited and deleted after a short while; admin endpoints need a login.
+  </footer>
+</div>
 
-  <section class="panel">
-    <h2>What this demo is, and is not</h2>
-    <ul>
-      <li>It runs the real agent harness on three small public OpenML tables bundled in the image. There are
-        no uploads, no model deployment, and no code execution sandbox on this server.</li>
-      <li>The planner is the deterministic scripted one. The benchmark numbers above come from larger
-        tasks and longer budgets than a demo run allows, so a demo run will not reproduce them.</li>
-      <li>Runs are rate limited, queued one at a time and deleted after a short while. Admin endpoints need a
-        login.</li>
-      <li>Source, tests and the full evaluation write-up: <a href="{{REPO_URL}}" rel="noopener">{{REPO_URL}}</a>.</li>
-    </ul>
-  </section>
-</main>
-
-<footer class="wrap fine">junior-ml-dev demo. Numbers rendered from <code>docs/METRICS.md</code>.</footer>
+<dialog id="picker" aria-labelledby="pk-t">
+  <div class="dlg">
+    <div class="dlg-h">
+      <div><h2 id="pk-t">Pick a dataset</h2>
+        <p class="muted" style="margin:0">These are real public datasets from OpenML. Download any of them to check exactly what the agent sees.</p></div>
+      <button class="x" type="button" id="pk-x" aria-label="Close">&times;</button>
+    </div>
+    <div class="dgrid" id="dgrid"></div>
+    <p class="err" id="pk-err" role="alert"></p>
+    <div class="soon" aria-disabled="true">
+      <b>Upload your own CSV</b>
+      <span class="pl">Coming soon</span>
+      <p>Bring-your-own-data is in the works. For now, try one of the datasets above.</p>
+    </div>
+  </div>
+</dialog>
+<div id="runtimes" hidden data-v="{{RUNTIMES_JSON}}"></div>
 <script src="/demo-assets/demo.js" defer></script>
 </body>
 </html>
