@@ -378,3 +378,39 @@ def test_pages_carry_the_avatar_and_stay_light() -> None:
 def test_every_status_maps_to_a_known_pose(status: str) -> None:
     n = narration.narrate(status, done=[], queue_position=1)
     assert n["state"] in narration.STATES and n["line"]
+
+
+def test_running_step_drives_the_narration() -> None:
+    n = narration.narrate(
+        "running", running=("explain_model", None), done=list(narration.CANON[:6])
+    )
+    assert n["line"] == narration.LINES["explain_model"]
+    n = narration.narrate("running", running=("train_model", "rf"), done=[])
+    assert "random forest" in n["line"]
+    n = narration.narrate("running", running=("detect_leakage", None), leakage_skipped=True)
+    assert n["line"] == narration.LINES["leakage_skipped"]
+    n = narration.narrate("running", running=("not_a_tool", None), done=[("profile_dataset", None)])
+    assert "leaks the answer" in n["line"]  # unknown marker falls back to the step log
+
+
+def test_in_flight_marker_is_written_and_read(tmp_path: Path) -> None:
+    import time as _t
+
+    from apps.api.demo.config import DemoSettings
+    from apps.api.demo.service import DemoService
+    from tests.demo.helpers import make_samples, make_settings
+
+    make_samples(tmp_path)
+    s: DemoSettings = make_settings(tmp_path)
+    svc = DemoService(s, lambda job: None)  # type: ignore[arg-type,return-value]
+    run_dir = svc.runs_dir / "demo-0123456789"
+    run_dir.mkdir(parents=True)
+    (run_dir / "current.json").write_text(
+        json.dumps({"tool": "explain_model", "family": None, "idx": 7, "started": _t.time() - 5}),
+        encoding="utf-8",
+    )
+    prog = svc.progress("demo-0123456789")
+    assert prog is not None and prog["running"]["tool"] == "explain_model"
+    assert prog["running"]["idx"] == 7 and prog["running"]["for_s"] >= 4.5
+    js = (ASSETS / "run.js").read_text(encoding="utf-8")
+    assert "running for" in js and "prog.running" in js

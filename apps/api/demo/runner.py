@@ -10,14 +10,16 @@ Entry point (spawned by the service so a hung run can be killed):
 
 from __future__ import annotations
 
+import contextlib
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
 from apps.api.demo.config import BLOCKED_TOOLS
 from apps.api.demo.limits import enforce_demo_config
-from harness.agent.models import RunConfig
+from harness.agent.models import RunConfig, Step, StepRecord
 from harness.agent.planners import ScriptedPlanner
 from harness.agent.runner import AgentRunner
 from harness.agent.store import RunStore
@@ -29,6 +31,28 @@ class DemoAgentRunner(AgentRunner):
         kwargs["extra_tools"] = None
         super().__init__(*args, **kwargs)
         self.tools = {k: v for k, v in self.tools.items() if k not in BLOCKED_TOOLS}
+
+    def _execute(
+        self,
+        cfg: RunConfig,
+        step: Step,
+        idx: int,
+        state: dict[str, Any],
+        records: list[StepRecord],
+        usage0: tuple[int, float] | None = None,
+    ) -> StepRecord:
+        """Record which step is in flight (tool, family, start time) so the public status can show
+        it; the checkpoint only appears once a step has finished."""
+        marker = self.run_root.parent / "current.json"
+        with contextlib.suppress(OSError):
+            marker.write_text(
+                json.dumps(
+                    {"tool": step.tool, "family": (step.args or {}).get("family"),
+                     "idx": idx, "started": time.time()}
+                ),
+                encoding="utf-8",
+            )  # fmt: skip
+        return super()._execute(cfg, step, idx, state, records, usage0)
 
 
 def execute(job_file: Path) -> dict[str, Any]:
