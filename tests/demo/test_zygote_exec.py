@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from apps.api.demo.service import DemoJob
 from apps.api.demo.zygote_exec import ZygoteExecutor
 from harness.agent.models import RunBudget, RunConfig, RunTask
@@ -83,3 +85,29 @@ def test_nonzero_exit_and_worker_death_are_failures_not_hangs(tmp_path: Path) ->
         assert out.status == "failed" and "worker exited" in out.error
     finally:
         die.close()
+
+
+def test_warm_up_job_is_a_valid_demo_job_that_finishes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from apps.api.demo import runner, zygote
+
+    for kind in ("binary", "regression"):
+        job = zygote._warm_job(tmp_path, kind)
+        spec = json.loads(job.read_text(encoding="utf-8"))
+        assert spec["flaml_s"] == 0.0 and spec["config"]["planner"] == "scripted"
+        monkeypatch.setenv("DATA_TOOLS_ROOTS", str(Path(spec["data_dir"]).resolve()))
+        monkeypatch.setenv("EXPERIMENTS_DIR", str((job.parent / "exp").resolve()))
+        monkeypatch.setenv("TRAJECTORY_DIR", str((job.parent / "traj").resolve()))
+        out = runner.execute(job)
+        assert out["status"] in {"done", "budget_exhausted"}, out
+        assert (job.parent / "current.json").is_file()  # the in-flight marker is written
+
+
+def test_warm_up_is_skipped_where_fork_does_not_exist() -> None:
+    from apps.api.demo import zygote
+
+    if sys.platform == "win32":
+        assert zygote.warm_up(1.0) == 0.0
+    src = Path(zygote.__file__).read_text(encoding="utf-8")
+    assert "DEMO_ZYGOTE_WARMUP" in src and "warm_s=" in src

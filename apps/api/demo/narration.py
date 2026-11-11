@@ -97,9 +97,19 @@ def current_line(done: list[tuple[str, str | None]], leakage_skipped: bool) -> s
     return LINES.get(tool, STARTING)
 
 
+def line_for(tool: str, family: str | None, leakage_skipped: bool) -> str:
+    """What the dev says while `tool` (with `family`, for training) is running."""
+    if tool in ("detect_leakage", "decide_leakage"):
+        return LINES["leakage_skipped"] if leakage_skipped else LINES[tool]
+    if tool == "train_model":
+        return TRAIN.format(model=MODEL_NAMES.get(family or "", "a model"))
+    return LINES.get(tool, STARTING)
+
+
 def narrate(
     status: str,
     *,
+    running: tuple[str, str | None] | None = None,
     done: list[tuple[str, str | None]] | None = None,
     leakage_skipped: bool = False,
     queue_position: int | None = None,
@@ -110,6 +120,8 @@ def narrate(
         extra = f" (number {queue_position})" if queue_position else ""
         return {"state": "idle", "line": QUEUED[:-1] + extra + "."}
     if status == "running":
+        if running is not None and running[0] in PIPELINE_TOOLS:
+            return {"state": "working", "line": line_for(running[0], running[1], leakage_skipped)}
         if not done:
             return {"state": "working", "line": STARTING}
         return {"state": "working", "line": current_line(done, leakage_skipped)}

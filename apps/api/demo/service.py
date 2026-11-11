@@ -356,6 +356,18 @@ class DemoService:
                 timeline = {"child_imports_s": raw.get("imports_s")}
             except (OSError, ValueError):
                 timeline = {}
+        cur = self.runs_dir / run_id / "current.json"
+        if cur.is_file():
+            try:
+                c0 = json.loads(cur.read_text(encoding="utf-8"))
+                timeline["running"] = {
+                    "tool": str(c0.get("tool", ""))[:40],
+                    "family": (str(c0["family"])[:20] if c0.get("family") else None),
+                    "idx": int(c0.get("idx", 0)),
+                    "for_s": round(max(0.0, self.clock() - float(c0.get("started", 0))), 1),
+                }
+            except (OSError, ValueError, TypeError):
+                pass
         db = self._agent_db(run_id)
         if db is None:
             return timeline or None
@@ -499,8 +511,15 @@ class DemoService:
             if sentence:
                 out["result"] = {"sentence": sentence}
         prog = out.get("progress") or {}
+        run_now = prog.get("running") or {}
+        n_done = len(prog.get("done", []))
         out["narration"] = narrate(
             row["status"],
+            running=(
+                (str(run_now["tool"]), run_now.get("family"))
+                if run_now.get("tool") and int(run_now.get("idx", -1)) >= n_done
+                else None
+            ),
             done=[(str(d[0]), d[1]) for d in prog.get("done", [])],
             leakage_skipped=bool(prog.get("leakage_skipped")),
             queue_position=out.get("queue_position"),

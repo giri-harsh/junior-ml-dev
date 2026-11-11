@@ -60,12 +60,17 @@
     lb.style.display = "flex"; lb.style.flexDirection = "column";
   }
 
-  function paintLog(log) {
-    if (!log) return;
+  function paintLog(log, running) {
+    if (!log && !running) return;
     logEl.textContent = "";
-    for (const e of log) {
+    for (const e of log || []) {
       const d = h("div");
       d.append(h("span", "t", e.tool + (e.family ? " · " + e.family : "")), document.createTextNode("  " + (e.ok ? "" : "FAILED ") + e.s + " s  " + (e.reason || "")));
+      logEl.append(d);
+    }
+    if (running && running.tool) {
+      const d = h("div");
+      d.append(h("span", "t", "▸ " + running.tool + (running.family ? " · " + running.family : "")), document.createTextNode("  running for " + running.for_s + " s"));
       logEl.append(d);
     }
   }
@@ -119,7 +124,7 @@
     else $("sub").textContent = "Run " + runId;
     paintRail(prog, st.status);
     paintBoard(prog && prog.models, sample && sample.metric);
-    paintLog(prog && prog.log);
+    paintLog(prog && prog.log, st.status === "running" && prog ? prog.running : null);
     persona(st, prog);
     if (["done", "failed", "timeout", "interrupted"].includes(st.status)) { finish(st); return; }
     setTimeout(poll, 1000);
