@@ -270,3 +270,18 @@ def test_large_samples_get_a_shorter_soft_wall(app_service: tuple[FastAPI, DemoS
     )
     assert cfg.budget.max_wall_s == service.s.soft_wall_large_s
     assert service.soft_wall_for("unknown") == service.s.soft_wall_s
+
+
+def test_large_sample_soft_wall_default_leaves_room_before_the_hard_wall(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from apps.api.demo.config import DemoSettings
+
+    monkeypatch.delenv("DEMO_SOFT_WALL_LARGE_S", raising=False)
+    monkeypatch.setenv("DEMO_SOFT_WALL_S", "35")
+    s = DemoSettings.from_env()
+    # wine (1599 x 12) spent 19.2 s on profile + three models live; with a 12 s soft wall the
+    # planner stops after boosting instead of starting a forest it cannot finish in 60 s
+    assert s.soft_wall_large_s == 12.0 < 19.2 < s.soft_wall_s
+    monkeypatch.setenv("DEMO_SOFT_WALL_LARGE_S", "99")
+    assert DemoSettings.from_env().soft_wall_large_s == 35.0  # clamped to the soft wall

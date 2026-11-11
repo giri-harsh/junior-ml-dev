@@ -57,7 +57,7 @@ class DemoSettings:
     global_runs_per_hour: int
     read_per_min: int  # per-IP cap on every other /demo/api call
     proxy_hops: int  # trusted reverse proxies in front (X-Forwarded-For parsing)
-    soft_wall_large_s: float = 20.0  # soft wall for large samples (stop searching sooner)
+    soft_wall_large_s: float = 12.0  # soft wall for large samples: no forest fit on 0.1 vCPU
 
     @classmethod
     def from_env(cls) -> DemoSettings:
@@ -78,5 +78,5 @@ class DemoSettings:
             global_runs_per_hour=_i("DEMO_GLOBAL_RUNS_PER_HOUR", 40),
             read_per_min=_i("DEMO_READ_PER_MIN", 240),
             proxy_hops=max(0, int(_f("DEMO_PROXY_HOPS", 0))),
-            soft_wall_large_s=min(_f("DEMO_SOFT_WALL_LARGE_S", 20.0, SOFT_WALL_S), soft),
+            soft_wall_large_s=min(_f("DEMO_SOFT_WALL_LARGE_S", 12.0, SOFT_WALL_S), soft),
         )
