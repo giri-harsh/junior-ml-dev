@@ -29,3 +29,23 @@ Linux RSS may differ from Windows; the live peak is not observable from the Rend
 Source: `benchmarks/results/demo_render_v1.json`. The public status of a run now shows per-step
 timings (`progress`), which is how the import and leakage costs were found. The free plan CPU and
 a 512 MB limit are the constraints; live peak memory is not visible through the Render API.
+
+## Custom domain (ml.harshgiri.site)
+
+The demo is host-agnostic, so a custom domain needs no code change: the pages call the API with
+relative same-origin paths, there is no CORS middleware (same-origin requests need none) and no
+host allowlist, and the admin cookie is host-only (no `Domain` attribute, `HttpOnly`,
+`SameSite=Strict`, `Secure`), so login works separately on each address.
+`tests/demo/test_hosts.py` checks this for `ml.harshgiri.site`, the Render URL and a `*.hf.space`
+URL.
+
+As of 2026-11-15 `ml.harshgiri.site` has no DNS record (NXDOMAIN at the domain's Namecheap
+nameservers and at 1.1.1.1), and there is no junior-ml-dev Hugging Face Space (the free Docker
+Space needs PRO; the demo runs on Render). To serve the demo at the custom domain:
+
+1. Render dashboard > junior-ml-dev-demo > Settings > Custom Domains > add `ml.harshgiri.site`.
+2. Namecheap > harshgiri.site > Advanced DNS > add `CNAME` host `ml` value
+   `junior-ml-dev-demo.onrender.com`.
+3. Wait for Render to verify the domain and issue the certificate, then switch the README and
+   `apps/space/static_site.py` `LIVE_URL` to `https://ml.harshgiri.site`, keeping the Render URL
+   as the fallback.
