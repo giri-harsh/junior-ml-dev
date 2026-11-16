@@ -63,7 +63,21 @@ LEAK_PATTERNS: dict[str, re.Pattern[str]] = {
         r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}"
     ),
 }
-AUTHOR = ("Harsh Giri", "2006.harshgiri@gmail.com")
+AUTHOR_NAME = "Harsh Giri"
+
+
+def author_email() -> str:
+    """Commit email for the published site: $DEPLOY_GIT_EMAIL, else `git config user.email`.
+    Never stored in the repository (the source is public)."""
+    email = os.environ.get("DEPLOY_GIT_EMAIL", "").strip()
+    if not email:
+        res = subprocess.run(
+            ["git", "config", "user.email"], capture_output=True, text=True, check=False
+        )
+        email = res.stdout.strip()
+    if not email:
+        raise RuntimeError("no commit email: set DEPLOY_GIT_EMAIL or `git config user.email`")
+    return email
 
 
 # --- guard ---------------------------------------------------------------------------------------
@@ -170,9 +184,10 @@ def build(
 # --- publish -------------------------------------------------------------------------------------
 def git_env() -> dict[str, str]:
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    email = author_email()
     env.update(
-        GIT_AUTHOR_NAME=AUTHOR[0], GIT_AUTHOR_EMAIL=AUTHOR[1],
-        GIT_COMMITTER_NAME=AUTHOR[0], GIT_COMMITTER_EMAIL=AUTHOR[1],
+        GIT_AUTHOR_NAME=AUTHOR_NAME, GIT_AUTHOR_EMAIL=email,
+        GIT_COMMITTER_NAME=AUTHOR_NAME, GIT_COMMITTER_EMAIL=email,
     )  # fmt: skip
     return env
 

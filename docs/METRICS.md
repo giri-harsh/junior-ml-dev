@@ -44,7 +44,7 @@ Paired LLM minus scripted: 0.001 [-0.001, 0.004] (n=10).
 
 ## Quality gate
 
-- Verified via local quality gate: ruff, format, mypy, pytest — 683 tests, 91.8% coverage (floor 91%).
+- Verified via local quality gate (2026-11-16): ruff, format, mypy, pytest — 741 tests, 91.96% coverage (floor 91%; 0 failed, 10 skipped). Source: [`quality_gate.json`](../benchmarks/results/quality_gate.json).
 
 ## Load test
 
