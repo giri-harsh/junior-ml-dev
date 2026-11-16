@@ -30,7 +30,7 @@ Leakage v2 (leakage_v2.json; leakage_v1.json superseded for current code, kept a
 
 Infra/sandbox status: arq policy (max_tries 3, job_timeout 3600, Retry on errors) verified with fakeredis only; Postgres store, MinIO store, compose app profile, docker-kill resume and container deploy are NOT RUN (no Docker). MinIO healthcheck is now `mc ready local`. Sandbox is still the subprocess backend with Windows job limits: NOT isolation (README says so). E2B not run.
 
-Attribution check: ~/.claude/settings.json has includeCoAuthoredBy=false and attribution commit/pr empty (verified, not changed). Repo-local git user is Harsh Giri <2006.harshgiri@gmail.com>; local and GitHub history (71 commits) have that single author/committer and 0 hits for Claude, Anthropic, Co-Authored-By, Generated with. No rewrite was needed.
+Attribution check: ~/.claude/settings.json has includeCoAuthoredBy=false and attribution commit/pr empty (verified, not changed). Repo-local git user is Harsh Giri (email from git config, not stored in the repo); local and GitHub history (71 commits) have that single author/committer and 0 hits for Claude, Anthropic, Co-Authored-By, Generated with. No rewrite was needed.
 
 Decisions added: 95-108 in docs/DECISIONS.md (bake-off order, Gemini model, hard caps, cassettes as cache, env allowlist, v3 partition, leakage v2 on unseen data, two-arm freeze, wider-action-space injection eval, tag re-point, arq policy, MinIO check, pytest-timeout, report as-is).
 

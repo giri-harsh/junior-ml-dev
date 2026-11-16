@@ -8,6 +8,7 @@ import subprocess
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -201,8 +202,9 @@ def test_missing_site_or_index_is_refused(tmp_path: Path) -> None:
 
 # --- what gets pushed ----------------------------------------------------------------------------
 def test_push_contains_only_the_site_files_authored_as_the_owner(
-    tmp_path: Path, site: Path
+    tmp_path: Path, site: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("DEPLOY_GIT_EMAIL", "owner@example.test")
     bare = tmp_path / "remote.git"
     subprocess.run(["git", "init", "-q", "--bare", "-b", "main", str(bare)], check=True)
     files = dst.check_site(site, {})
@@ -214,8 +216,30 @@ def test_push_contains_only_the_site_files_authored_as_the_owner(
     log = subprocess.run(["git", "--git-dir", str(bare), "log", "-1", "--format=%H|%an|%ae|%cn|%ce|%B", "main"],
                          capture_output=True, text=True, check=True).stdout  # fmt: skip
     assert log.startswith(sha)
-    assert "Harsh Giri|2006.harshgiri@gmail.com|Harsh Giri|2006.harshgiri@gmail.com" in log
+    assert "Harsh Giri|owner@example.test|Harsh Giri|owner@example.test" in log
     assert not re.search(r"claude|anthropic|co-authored", log, re.I)
+
+
+def test_commit_email_comes_from_env_then_git_config_else_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEPLOY_GIT_EMAIL", " env@example.test ")
+    assert dst.author_email() == "env@example.test"
+    monkeypatch.delenv("DEPLOY_GIT_EMAIL")
+
+    def fake_run(out: str) -> Any:
+        return lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout=out, stderr="")
+
+    monkeypatch.setattr(dst.subprocess, "run", fake_run("cfg@example.test\n"))
+    assert dst.author_email() == "cfg@example.test"
+    monkeypatch.setattr(dst.subprocess, "run", fake_run(""))
+    with pytest.raises(RuntimeError, match="DEPLOY_GIT_EMAIL"):
+        dst.author_email()
+
+
+def test_deploy_script_holds_no_email_address() -> None:
+    text = Path(dst.__file__).read_text(encoding="utf-8")
+    assert not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}", text)
 
 
 # --- live verification ---------------------------------------------------------------------------
