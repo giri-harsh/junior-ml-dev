@@ -9,12 +9,12 @@ were computed once with the project's scripted planner (no LLM) on a developer l
 and are shown as recorded. A live, interactive version runs separately on a free Render instance:
 <a href="https://ml.harshgiri.site/" rel="noopener">https://ml.harshgiri.site/</a> (fallback: <a href="https://junior-ml-dev-demo.onrender.com/" rel="noopener">https://junior-ml-dev-demo.onrender.com/</a>) (it sleeps when idle, so the first visit can take
 about a minute; it is slower and lighter than the runs here: leakage detectors skipped, no FLAML).
-Hugging Face Docker and Gradio Spaces need a paid account. The source repository is currently <strong>private</strong>, so file references below (result JSONs, code) are names only, not links.</div>
+Hugging Face Docker and Gradio Spaces need a paid account. Source code and the full evaluation write-up: <a href="https://github.com/giri-harsh/junior-ml-dev">https://github.com/giri-harsh/junior-ml-dev</a>.</div>
 <h2>Headline: Agent benchmark v5 (headline; unseen partition, each arm run once)</h2>
 <div class="tiles"><div class="tile"><div class="tile-k">SCRIPTED planner (no LLM)</div><div class="tile-v">0.987 [0.949, 1.011]</div><div class="tile-s">pass vs linear: 7/10 (Wilson 0.40-0.89)</div></div>
 <div class="tile"><div class="tile-k">REAL-LLM planner v2</div><div class="tile-v">0.989 [0.950, 1.012]</div><div class="tile-s">pass vs linear: 8/10 (Wilson 0.49-0.94)</div></div></div>
 <p class="fine">Read from <code>docs/METRICS.md</code> when this site was built (file hash
-<code>51e907642319</code>, built 2026-11-09 18:20 UTC). Full tables, intervals and caveats:
+<code>997814d2f3e3</code>, built 2026-11-16 05:24 UTC). Full tables, intervals and caveats:
 <a href="results.html">benchmark results</a>.</p>
 <h2>Example runs</h2>
 <p class="fine">Three small public OpenML tables, each run once with the same code and limits the repository's demo mode
