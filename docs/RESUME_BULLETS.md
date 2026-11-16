@@ -2,7 +2,7 @@
 
 **Project summary (header, 2 lines).** junior-ml-dev: an autonomous tabular-ML agent (15 MCP tools,
 rule-based reviewer, leakage detector, injection guard, E2B sandbox backend) evaluated once on unseen
-OpenML partitions from frozen commits; 672 tests, 92.6% coverage. Live demo: https://junior-ml-dev-demo.onrender.com (static examples: https://giri-harsh.github.io/junior-ml-dev-demo/)
+OpenML partitions from frozen commits; 672 tests, 92.6% coverage. Live demo: https://ml.harshgiri.site (fallback: https://junior-ml-dev-demo.onrender.com; static examples: https://giri-harsh.github.io/junior-ml-dev-demo/)
 
 - **Engineered** an autonomous tabular-ML agent on 15 MCP tools across 4 servers with CV-based model
   selection and a deterministic reviewer; on 10 unseen OpenML tasks (frozen commit, evaluated once)

@@ -49,3 +49,11 @@ Space needs PRO; the demo runs on Render). To serve the demo at the custom domai
 3. Wait for Render to verify the domain and issue the certificate, then switch the README and
    `apps/space/static_site.py` `LIVE_URL` to `https://ml.harshgiri.site`, keeping the Render URL
    as the fallback.
+
+Final setup (live since 2026-11-16): `ml.harshgiri.site` is a custom domain on the Render service
+junior-ml-dev-demo, verified with the certificate issued, and Namecheap has `CNAME` host `ml` value
+`junior-ml-dev-demo.onrender.com`. `deploy.harshgiri.site` was removed from the
+calorie-tracker service to free the free plan's custom-domain slot. The README
+and `LIVE_URL` point at `https://ml.harshgiri.site`; `https://junior-ml-dev-demo.onrender.com`
+stays as the fallback. Checked with `curl --doh-url https://dns.google/dns-query
+https://ml.harshgiri.site/health`: `{"status":"ok","demo":true}`, TLS verified.
