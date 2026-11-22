@@ -39,9 +39,15 @@ def svc(request: Request) -> DemoService:
 Svc = Annotated[DemoService, Depends(svc)]
 
 
+def model_loaded(request: Request) -> bool:
+    """Whether the warm run worker is ready. Only asks; never starts or waits for anything."""
+    ready = getattr(request.app.state, "demo_ready", None)
+    return bool(ready()) if ready is not None else True
+
+
 @router.get("/health")
-def health() -> dict[str, Any]:
-    return {"status": "ok", "demo": True}
+def health(request: Request) -> dict[str, Any]:
+    return {"status": "ok", "demo": True, "model_loaded": model_loaded(request)}
 
 
 @router.get("/demo/api/info")
@@ -53,6 +59,8 @@ def info(request: Request, service: Svc) -> dict[str, Any]:
 
 @router.post("/demo/api/runs", status_code=202)
 def start_run(body: DemoRunBody, request: Request, service: Svc) -> JSONResponse:
+    if not model_loaded(request):  # answer now instead of holding the visitor while it warms up
+        return JSONResponse({"status": "warming_up"}, status_code=503, headers={"Retry-After": "5"})
     try:
         run_id = service.submit(body.sample, client_ip(request, service.s.proxy_hops))
     except DemoError as exc:

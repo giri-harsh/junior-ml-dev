@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from apps.api.demo.avatar import avatar_html
@@ -47,6 +48,25 @@ def _configure_admin() -> None:
     os.environ.setdefault("COOKIE_SECURE", "1")
 
 
+def cors_origins() -> list[str]:
+    """Origins of the static frontend (DEMO_CORS_ORIGINS, comma-separated). No credentials."""
+    raw = os.environ.get("DEMO_CORS_ORIGINS", "https://ml.harshgiri.site")
+    return [o.strip().rstrip("/") for o in raw.split(",") if o.strip()]
+
+
+def run_shell() -> str:
+    """The live-run page: one static shell for every run id (served here and by the frontend)."""
+    shell = WEB / "run.template.html"
+    if not shell.is_file():
+        return "<!doctype html><title>run</title><p>Run page not built.</p>"
+    return (
+        shell.read_text(encoding="utf-8")
+        .replace("{{AVATAR}}", avatar_html())
+        .replace("{{FIGURE}}", figure_html(mini=True))
+        .replace("{{NARRATION_JSON}}", page_data())
+    )
+
+
 def install(
     app: FastAPI, settings: DemoSettings | None = None, executor: Executor | None = None
 ) -> DemoService | None:
@@ -65,16 +85,9 @@ def install(
         chosen = ZygoteExecutor()  # warm fork server: heavy imports once, not once per run
     service = DemoService(s, chosen or subprocess_executor)
     app.state.demo_service = service
+    app.state.demo_ready = getattr(chosen, "ready", lambda: True)  # cold subprocess runs: always
     app.state.demo_removed_routes = strip_routes(app)
-    shell = WEB / "run.template.html"
-    app.state.demo_run_page = (
-        shell.read_text(encoding="utf-8")
-        .replace("{{AVATAR}}", avatar_html())
-        .replace("{{FIGURE}}", figure_html(mini=True))
-        .replace("{{NARRATION_JSON}}", page_data())
-        if shell.is_file()
-        else "<!doctype html><title>run</title><p>Run page not built.</p>"
-    )
+    app.state.demo_run_page = run_shell()
     app.include_router(demo_router)
 
     @app.get("/", include_in_schema=False)
@@ -87,6 +100,14 @@ def install(
         GuardMiddleware,  # type: ignore[arg-type]
         settings=s,
         read_limiter=service.read_limiter,
+    )
+    # Added after the guard, so it is outermost: preflights end here and guard denials carry CORS.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins(),
+        allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type"],
     )
 
     inner = app.router.lifespan_context

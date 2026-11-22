@@ -1,6 +1,7 @@
 """The demo is host-agnostic: it works unchanged on the Render URL, a *.hf.space URL and a custom
-domain such as ml.harshgiri.site. Same-origin relative API calls, no CORS, no host allowlist, and a
-host-only admin cookie (no Domain attribute), so login works separately on each address."""
+domain such as ml.harshgiri.site. Same-origin relative API calls (CORS only for the static
+frontend's origins), no host allowlist, and a host-only admin cookie (no Domain attribute), so login
+works separately on each address."""
 
 from __future__ import annotations
 
@@ -51,14 +52,16 @@ def test_a_cookie_from_one_host_is_not_sent_to_another(
     assert b.get("/demo/api/admin/runs").status_code == 401  # each address logs in on its own
 
 
-def test_no_cors_headers_and_no_host_allowlist(app_service: tuple[FastAPI, DemoService]) -> None:
+def test_no_cors_for_other_origins_and_no_host_allowlist(
+    app_service: tuple[FastAPI, DemoService],
+) -> None:
     app, _ = app_service
-    c = TestClient(app, base_url="https://ml.harshgiri.site")
+    c = TestClient(app, base_url="https://junior-ml-dev-demo.onrender.com")
     r = c.get("/demo/api/info", headers={"Origin": "https://evil.example"})
     assert r.status_code == 200 and "access-control-allow-origin" not in r.headers
     names = {type(m.cls).__name__ if not isinstance(m.cls, type) else m.cls.__name__
              for m in app.user_middleware}  # fmt: skip
-    assert "CORSMiddleware" not in names and "TrustedHostMiddleware" not in names
+    assert "TrustedHostMiddleware" not in names  # CORS is allowlisted: see test_frontend.py
 
 
 def test_front_ends_call_the_api_with_relative_paths() -> None:

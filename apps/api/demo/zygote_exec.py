@@ -52,6 +52,10 @@ class ZygoteExecutor:
         with self._lock:
             self._ensure()
 
+    def ready(self) -> bool:
+        """True once the zygote has imported everything and finished its warm-up run."""
+        return self._ready.is_set()
+
     def _ensure(self) -> None:
         if self._proc is not None and self._proc.poll() is None:
             return

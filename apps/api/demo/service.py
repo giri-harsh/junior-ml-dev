@@ -142,6 +142,14 @@ def subprocess_executor(job: DemoJob) -> ExecOutcome:
     return ExecOutcome(str(result.get("status", "failed")), result)
 
 
+def public_limits(s: DemoSettings) -> dict[str, Any]:
+    return {
+        "max_wall_s": s.max_wall_s, "flaml_s": s.flaml_s,
+        "queue_max": s.queue_max, "history_cap": s.history_cap,
+        "ip_runs": s.ip_runs_per_window, "ip_window_s": s.ip_window_s,
+    }  # fmt: skip
+
+
 class DemoService:
     def __init__(
         self,
@@ -539,15 +547,7 @@ class DemoService:
         return p if p.is_file() and p.is_relative_to(base) else None
 
     def info(self) -> dict[str, Any]:
-        return {
-            "demo": True,
-            "limits": {
-                "max_wall_s": self.s.max_wall_s, "flaml_s": self.s.flaml_s,
-                "queue_max": self.s.queue_max, "history_cap": self.s.history_cap,
-                "ip_runs": self.s.ip_runs_per_window, "ip_window_s": self.s.ip_window_s,
-            },
-            "active_runs": self._count_active(),
-        }  # fmt: skip
+        return {"demo": True, "limits": public_limits(self.s), "active_runs": self._count_active()}
 
     def admin_list(self) -> list[dict[str, Any]]:
         with closing(self._db()) as c:

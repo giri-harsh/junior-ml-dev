@@ -215,7 +215,11 @@ def runtimes_json(md: str) -> str:
     return html.escape(json.dumps(out), quote=True)
 
 
-def render_landing(metrics_md: str, template: str, *, now: datetime | None = None) -> str:
+def render_landing(
+    metrics_md: str, template: str, *, now: datetime | None = None, info_json: str = ""
+) -> str:
+    """`info_json` (attribute-escaped /demo/api/info) lets a static copy show the datasets before
+    the backend answers; empty means the page asks the API."""
     title, sections = split_sections(metrics_md)
     head_name, head_body = sections[0] if sections else ("", [])
     rest = sections[1:]
@@ -240,6 +244,7 @@ def render_landing(metrics_md: str, template: str, *, now: datetime | None = Non
         "NARRATION_JSON": page_data(),
         "PROOF": proof_cells(metrics_md),
         "RUNTIMES_JSON": runtimes_json(metrics_md),
+        "INFO_JSON": info_json,
     }
     page = template
     for k, v in subs.items():
