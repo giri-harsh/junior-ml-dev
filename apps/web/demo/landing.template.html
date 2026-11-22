@@ -31,6 +31,7 @@
         <button class="btn gho" type="button" data-sample="diabetes">Watch a sample run</button>
       </div>
       <div class="hint rise d4">3 real OpenML datasets &middot; downloadable &middot; no signup</div>
+      <p class="sp rise d4" id="sp" role="status" data-state="waking"><i></i><span id="sp-t">Waking up the server&hellip; (can take about 3 min on the free plan)</span> <button type="button" id="sp-retry" hidden>Retry</button></p>
     </div>
     <div class="heroart"><div class="hfig">{{FIGURE}}</div><div class="hav">{{AVATAR}}</div></div>
   </header>
@@ -106,6 +107,8 @@
 </dialog>
 <div id="runtimes" hidden data-v="{{RUNTIMES_JSON}}"></div>
 <div id="narr" hidden data-v="{{NARRATION_JSON}}"></div>
+<div id="info" hidden data-v="{{INFO_JSON}}"></div>
+<script src="/demo-assets/config.js" defer></script>
 <script src="/demo-assets/avatar.js" defer></script>
 <script src="/demo-assets/demo.js" defer></script>
 </body>

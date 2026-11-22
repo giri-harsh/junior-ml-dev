@@ -3,6 +3,7 @@
 // Server text is only ever written with textContent / attributes, never as markup.
 (function () {
   const $ = (id) => document.getElementById(id);
+  const API = (window.JMD_API || "").replace(/\/$/, "");  // "" = same origin
   const runId = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
   const STAGES = ["Profile", "Leakage", "Train", "Compare", "Review", "Explain"];
   const STAGE_OF = {
@@ -83,7 +84,7 @@
     const n = st.narration;
     if (!n || !jr) return;
     jr.state(n.state);
-    jr.say(n.line, st.status === "done" ? "/demo/api/runs/" + encodeURIComponent(runId) + "/report" : null);
+    jr.say(n.line, st.status === "done" ? API + "/demo/api/runs/" + encodeURIComponent(runId) + "/report" : null);
     // sweat only while a training step outlasts every training step finished so far
     if (prog && prog.steps && prog.steps.length !== lastSteps) {
       lastSteps = prog.steps.length; lastChange = Date.now();
@@ -109,7 +110,7 @@
   async function poll() {
     let st = null;
     try {
-      const r = await fetch("/demo/api/runs/" + encodeURIComponent(runId));
+      const r = await fetch(API + "/demo/api/runs/" + encodeURIComponent(runId));
       if (r.status === 404) { errEl.textContent = "This run is unknown or has expired."; clearInterval(timer); $("title").textContent = "Run not found"; return; }
       if (r.status === 429) { setTimeout(poll, 3000); return; }
       st = await r.json();
@@ -130,5 +131,5 @@
     setTimeout(poll, 1000);
   }
 
-  fetch("/demo/api/info").then((r) => r.json()).then((i) => { info = i; }, () => {}).finally(poll);
+  fetch(API + "/demo/api/info").then((r) => r.json()).then((i) => { info = i; }, () => {}).finally(poll);
 })();

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Live run · Junior ML Dev</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/demo-assets/demo.css">
+<link rel="stylesheet" href="/demo-assets/avatar.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav" aria-label="Main">
+    <a class="logo" href="/"><i></i>Junior ML Dev</a>
+    <a class="l" href="/#datasets">All datasets</a>
+  </nav>
+  <div class="rtop"><h1 id="title">Starting…</h1><span class="timer mono" id="timer" aria-label="Elapsed time">00:00</span></div>
+  <p class="muted" id="sub">Connecting to the run.</p>
+  <div class="rail" id="rail" aria-label="Pipeline progress"></div>
+  <div class="rgrid">
+    <div>
+      <h3>Model leaderboard</h3>
+      <ul class="lb" id="lb" aria-live="polite"><li class="dim">Models appear here as they finish.</li></ul>
+      <h3 style="margin-top:26px">Agent log</h3>
+      <div class="log" id="log" aria-live="off"></div>
+      <div class="kv" id="kv"></div>
+      <p class="err" id="err" role="alert"></p>
+    </div>
+    <div class="rside"><div class="jd" data-state="idle"><div class="jd-bubble" aria-live="polite" role="status"><span class="jd-say"></span><a class="jd-cta" hidden></a></div><button class="jd-btn" type="button" aria-label="Junior ML dev — click for a tip"><span class="jd-box"><span class="jd-rig"><span class="jd-body"><i class="jd-hood"></i><i class="jd-pocket"></i><i class="jd-cord l"></i><i class="jd-cord r"></i></span><span class="jd-arm l"><i class="jd-hand"></i></span><span class="jd-arm r"><i class="jd-hand"></i></span><span class="jd-head"><i class="jd-hair"></i><i class="jd-fringe"></i><i class="jd-ear l"></i><i class="jd-ear r"></i><span class="jd-glass l"><i class="jd-eye"></i></span><span class="jd-glass r"><i class="jd-eye"></i></span><i class="jd-bridge"></i><i class="jd-cheek l"></i><i class="jd-cheek r"></i><i class="jd-mouth"></i><i class="jd-sweat"></i></span></span><span class="jd-lap"><span class="jd-screen"><span class="jd-code"><i class="ca" style="width:62%"></i><i class="cg" style="width:38%"></i><i class="ct" style="width:74%"></i><i class="ca" style="width:50%"></i><i class="cd" style="width:28%"></i><i class="ct" style="width:66%"></i><i class="cg" style="width:44%"></i><i class="ca" style="width:58%"></i><i class="ct" style="width:34%"></i><i class="cd" style="width:70%"></i><i class="ca" style="width:46%"></i><i class="cg" style="width:54%"></i><i class="ca" style="width:62%"></i><i class="cg" style="width:38%"></i><i class="ct" style="width:74%"></i><i class="ca" style="width:50%"></i><i class="cd" style="width:28%"></i><i class="ct" style="width:66%"></i><i class="cg" style="width:44%"></i><i class="ca" style="width:58%"></i><i class="ct" style="width:34%"></i><i class="cd" style="width:70%"></i><i class="ca" style="width:46%"></i><i class="cg" style="width:54%"></i></span></span><i class="jd-base"></i></span></span></button></div><div class="fig mini" aria-hidden="true"><div class="fs"><div class="bob"><div class="stage"><div class="ring"></div><div class="ly" style="--i:0"><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i></div><div class="ly" style="--i:1"><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i></div><div class="ly" style="--i:2"><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="ly" style="--i:3"><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i></div><div class="ly" style="--i:4"><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i></div><div class="ly top" style="--i:5"><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i><i></i></div><div class="scan"></div></div></div></div></div></div>
+  </div>
+</div>
+<div id="narr" hidden data-v="{&quot;tips&quot;: [&quot;I test on data I never trained on, so the score is not flattered.&quot;, &quot;A rule-based reviewer checks my work. I can&#x27;t talk it into approving.&quot;, &quot;Every number you see comes from the run, not from me.&quot;, &quot;On this free server I skip the leakage hunt. The full system doesn&#x27;t.&quot;, &quot;I never see your files here: you can only pick the three public datasets.&quot;], &quot;listening&quot;: &quot;On it! Opening the {name} data now.&quot;, &quot;greeting&quot;: &quot;Hi, I&#x27;m the junior ML dev. Pick a dataset and watch me work.&quot;, &quot;cta&quot;: &quot;See my report&quot;}"></div>
+<script src="/demo-assets/config.js" defer></script>
+<script src="/demo-assets/avatar.js" defer></script>
+<script src="/demo-assets/run.js" defer></script>
+</body>
+</html>

@@ -20,13 +20,18 @@
   }
   function say(text) { perr.textContent = text || ""; $("limits").classList.toggle("err", !!text); if (text) $("limits").textContent = text; }
 
+  const API = (window.JMD_API || "").replace(/\/$/, "");  // "" = same origin
+  const CAP_MS = 240000;  // measured: wake ~35 s + warm-up run ~2.5 min after idle (docs/ws/R.md)
+
   async function api(path, opts) {
-    const r = await fetch(path, opts);
+    const r = await fetch(API + path, opts);
     let body = null;
     try { body = await r.json(); } catch (e) { body = null; }
     if (!r.ok) {
       const d = body && body.detail;
-      throw new Error(typeof d === "string" ? d : "request failed (" + r.status + ")");
+      const err = new Error(typeof d === "string" ? d : "request failed (" + r.status + ")");
+      err.warming = r.status === 503 && body && body.status === "warming_up";
+      throw err;
     }
     return body;
   }
@@ -35,20 +40,58 @@
   const dev = document.querySelector("#hero .jd");
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  async function start(key, btn) {
-    if (busy) return;
-    busy = true; if (btn) btn.disabled = true; say("");
+  // Server status: poll /health (never loads anything) until the run worker is ready.
+  const sp = $("sp"), spT = $("sp-t"), spRetry = $("sp-retry");
+  let ready = false, pending = null, t0 = Date.now();
+  function status(state, text) { sp.dataset.state = state; spT.textContent = text; spRetry.hidden = state !== "slow"; }
+  function runButtons() { return document.querySelectorAll("[data-sample], .card .btn.pri, .ds .btn.pri"); }
+  function markButtons() {
+    for (const b of runButtons()) {
+      b.classList.toggle("wait", !ready);
+      if (ready) { b.removeAttribute("aria-disabled"); b.removeAttribute("title"); }
+      else { b.setAttribute("aria-disabled", "true"); b.title = "Starts as soon as the server is ready"; }
+    }
+  }
+  async function probe() {
+    if (ready) return;
+    try {
+      const r = await fetch(API + "/health", { cache: "no-store", signal: AbortSignal.timeout(60000) });
+      const d = await r.json();
+      if (r.ok && d.model_loaded !== false) { ready = true; status("ready", "Ready"); markButtons(); if (pending) start(pending.key, pending.btn, true); return; }
+    } catch (e) { /* asleep or waking: keep polling */ }
+    if (Date.now() - t0 > CAP_MS) { status("slow", "The server is slow to wake up."); return; }
+    setTimeout(probe, 3000);
+  }
+  spRetry.addEventListener("click", () => { t0 = Date.now(); status("waking", "Waking up the server… (can take about 3 min on the free plan)"); probe(); });
+
+  async function start(key, btn, fromQueue) {
+    if (busy && !fromQueue) return;
+    say("");
     const s = samples.find((x) => x.key === key);
     const nm = s ? (s.name || s.title) : key;
     const tpl = (window.JrAvatar && window.JrAvatar.data.listening) || "On it! Opening the {name} data now.";
     if (dlg.open) dlg.close();
     if (hero) hero.scrollIntoView({ block: "center" });
+    if (!ready) {  // queue it: sent by probe() the moment the server is ready
+      pending = { key, btn };
+      if (dev && dev.jr) { dev.jr.state("listening"); dev.jr.say("Got it: " + nm + ". I'll start as soon as the server is awake."); }
+      return;
+    }
+    busy = true; pending = null; if (btn) btn.disabled = true;
     if (dev && dev.jr) { dev.jr.state("listening"); dev.jr.say(tpl.replace("{name}", nm)); }
+    const post = async () => {
+      for (let delay = 2000, t = Date.now(); ; delay = Math.min(delay * 2, 15000)) {
+        try {
+          return await api("/demo/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sample: key }) });
+        } catch (e) {
+          if (!e.warming || Date.now() - t > CAP_MS) throw e;
+          status("waking", "The run worker is still warming up…");
+          await wait(delay);
+        }
+      }
+    };
     try {
-      const [r] = await Promise.all([
-        api("/demo/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sample: key }) }),
-        wait(1300),  // let the listening pose play before the page changes
-      ]);
+      const [r] = await Promise.all([post(), wait(1300)]);  // let the listening pose play before the page changes
       location.href = "/runs/" + encodeURIComponent(r.run_id);
     } catch (e) {
       say(e.message); busy = false; if (btn) btn.disabled = false;
@@ -105,7 +148,7 @@
     const row = h("div", "row2");
     const run = h("button", "btn pri sm", s.action || "Run the agent on this"); run.type = "button";
     run.addEventListener("click", () => start(s.key, run));
-    const dl = h("a", "btn gho sm", "Download CSV"); dl.href = s.download; dl.setAttribute("download", s.key + ".csv");
+    const dl = h("a", "btn gho sm", "Download CSV"); dl.href = (s.download || "").startsWith("/") ? API + s.download : s.download; dl.setAttribute("download", s.key + ".csv");
     row.append(run, dl); c.append(row);
     return c;
   }
@@ -120,7 +163,7 @@
   $("pk-x").addEventListener("click", () => dlg.close());
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 
-  api("/demo/api/info").then((info) => {
+  function show(info) {
     samples = info.samples || [];
     const l = info.limits || {};
     maxWall = l.max_wall_s || maxWall;
@@ -130,5 +173,12 @@
     if (d) $("cap-profile").textContent = d.rows + " rows · " + d.cols + " cols";
     $("limits").textContent = "Limits: " + l.max_wall_s + " s per run, " + l.ip_runs + " runs per " +
       Math.round(l.ip_window_s / 60) + " minutes per address, a queue of " + l.queue_max + ".";
-  }).catch((e) => say(e.message));
+    markButtons();
+  }
+
+  let built = null;  // the static frontend ships /demo/api/info, so the page works before the backend wakes
+  try { built = JSON.parse($("info").dataset.v || "null"); } catch (e) { built = null; }
+  if (built) show(built);
+  probe();
+  api("/demo/api/info").then(show).catch((e) => { if (!built) say(e.message); });
 })();

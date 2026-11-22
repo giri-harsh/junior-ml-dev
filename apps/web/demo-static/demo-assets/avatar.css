@@ -1,0 +1,76 @@
+/* The junior ML dev: HTML boxes only. Poses follow data-state; words come from avatar.js. */
+.jd{--s:1;--skin:#E8B48F;--hair:#1A1411;--hoodie:#1D1B22;width:calc(300px*var(--s));max-width:100%;margin:0 auto}
+.jd.small{--s:.5}
+.jd-btn{display:block;position:relative;width:calc(300px*var(--s));height:calc(420px*var(--s));padding:0;border:0;background:none;cursor:pointer;font:inherit}
+.jd-btn:focus-visible{outline:2px solid #F2B880;outline-offset:4px;border-radius:24px}
+.jd-box{position:absolute;left:0;top:0;width:300px;height:420px;transform:scale(var(--s));transform-origin:0 0}
+.jd-box i,.jd-box span{position:absolute;display:block}
+.jd-rig{inset:0;animation:jd-breathe 4s ease-in-out infinite}
+/* hoodie */
+.jd-body{left:60px;top:168px;width:180px;height:230px;border-radius:76px 76px 18px 18px;background:var(--hoodie)}
+.jd-hood{left:28px;top:-8px;width:124px;height:50px;border-radius:50%;background:#2A2630}
+.jd-pocket{left:44px;top:120px;width:92px;height:48px;border-radius:12px;background:#17151B}
+.jd-cord{top:30px;width:5px;height:50px;border-radius:3px;background:#F2B880}
+.jd-cord::after{content:"";position:absolute;left:-1px;bottom:-5px;width:7px;height:7px;border-radius:50%;background:#FFD9B0}
+.jd-cord.l{left:66px}.jd-cord.r{left:110px}
+/* arms (sleeves) and hands */
+.jd-arm{top:188px;width:30px;height:202px;border-radius:15px;background:var(--hoodie);transform-origin:50% 16px;z-index:5}
+.jd-arm.l{left:36px}.jd-arm.r{left:234px}
+.jd-hand{bottom:-10px;width:34px;height:26px;border-radius:14px;background:var(--skin)}
+.jd-arm.l .jd-hand{left:14px}.jd-arm.r .jd-hand{left:-18px}
+/* head */
+.jd-head{left:92px;top:40px;width:116px;height:128px;border-radius:50% 50% 46% 46%;background:var(--skin);transform-origin:50% 100%;z-index:3}
+.jd-hair{left:-5px;top:-8px;width:126px;height:68px;border-radius:63px 63px 28px 28px;background:var(--hair)}
+.jd-fringe{left:12px;top:30px;width:96px;height:24px;border-radius:0 0 46px 22px;background:var(--hair)}
+.jd-ear{top:66px;width:16px;height:22px;border-radius:50%;background:var(--skin)}
+.jd-ear.l{left:-8px}.jd-ear.r{right:-8px}
+.jd-glass{top:62px;width:42px;height:42px;border:3px solid #EDE8E1;border-radius:50%;background:rgba(237,232,225,.1)}
+.jd-glass.l{left:14px}.jd-glass.r{left:60px}
+.jd-bridge{left:55px;top:79px;width:12px;height:3px;background:#EDE8E1}
+.jd-eye{left:13px;top:11px;width:9px;height:12px;border-radius:50%;background:#17120C;animation:jd-blink 4s infinite;transform-origin:50% 50%}
+.jd-cheek{top:98px;width:16px;height:10px;border-radius:50%;background:#F2B880;opacity:0}
+.jd-cheek.l{left:8px}.jd-cheek.r{right:8px}
+.jd-mouth{left:43px;top:102px;width:30px;height:12px;border-bottom:3px solid #6B3B2A;border-radius:0 0 30px 30px}
+.jd-sweat{left:108px;top:54px;width:11px;height:15px;border-radius:50% 0 50% 50%;transform:rotate(-45deg);background:#9CC9E8;opacity:0}
+/* laptop */
+.jd-lap{left:62px;top:262px;width:176px;height:140px;z-index:4}
+.jd-screen{left:0;top:0;width:176px;height:122px;border:6px solid #2E2B28;border-radius:10px;background:#0C0B0E;overflow:hidden}
+.jd-code{left:0;top:0;width:100%;display:flex;flex-direction:column;gap:7px;padding:10px 12px}
+.jd-code i{position:static;height:6px;border-radius:3px;opacity:.9}
+.jd-code .ca{background:#F2B880}.jd-code .cg{background:#8FD9A8}.jd-code .ct{background:#A39C92}.jd-code .cd{background:#4A443D}
+.jd-base{left:-16px;top:122px;width:208px;height:14px;border-radius:0 0 16px 16px;background:#2E2B28}
+.jd-base::after{content:"";position:absolute;left:84px;top:0;width:40px;height:5px;border-radius:0 0 6px 6px;background:#1C1A18}
+/* speech bubble */
+.jd-bubble{position:relative;background:#0C0B0E;border:1px solid #2E2B28;border-radius:16px;padding:12px 15px;margin:0 0 16px;min-height:62px;font:500 14px/1.45 "Inter Tight",system-ui,sans-serif;color:#EDE8E1}
+.jd-bubble::after{content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;margin-left:-7px;background:#0C0B0E;border-right:1px solid #2E2B28;border-bottom:1px solid #2E2B28;transform:rotate(45deg)}
+.jd-bubble.pop{animation:jd-pop .35s cubic-bezier(.2,1.4,.4,1)}
+.jd-cta{display:inline-block;margin-top:8px;padding:7px 14px;border-radius:999px;background:#F2B880;color:#17120C;font-weight:600;font-size:13px;text-decoration:none}
+.jd-cta:hover{background:#FFD9B0;color:#17120C}.jd-cta[hidden]{display:none}
+/* poses */
+.jd[data-state=listening] .jd-mouth,.jd[data-state=done] .jd-mouth{left:36px;width:44px;height:20px;border-bottom-width:4px}
+.jd[data-state=listening] .jd-cheek,.jd[data-state=done] .jd-cheek{opacity:.5}
+.jd[data-state=listening] .jd-head{animation:jd-nod .5s ease-in-out 2}
+.jd[data-state=working] .jd-head{transform:translateY(14px) rotate(-7deg)}
+.jd[data-state=working] .jd-eye{height:5px;animation:none;top:15px}
+.jd[data-state=working] .jd-mouth{left:50px;width:16px;height:4px;border-radius:2px;border-bottom-width:3px}
+.jd[data-state=working] .jd-code{animation:jd-scroll 1.8s linear infinite}
+.jd[data-state=working] .jd-arm.l .jd-hand{animation:jd-type .36s ease-in-out infinite}
+.jd[data-state=working] .jd-arm.r .jd-hand{animation:jd-type .36s ease-in-out .18s infinite}
+.jd[data-sweat="1"] .jd-sweat{opacity:.95;animation:jd-drip 1.6s ease-in infinite}
+.jd[data-state=done] .jd-arm.r{animation:jd-cheer 3s ease-in-out 1 forwards}
+.jd[data-state=error] .jd-mouth{top:108px;left:44px;width:28px;height:12px;border-bottom:0;border-top:3px solid #6B3B2A;border-radius:28px 28px 0 0}
+.jd[data-state=error] .jd-head{transform:rotate(6deg) translateY(4px)}
+.jd[data-state=error] .jd-body{transform:translateY(-6px)}
+.jd[data-state=error] .jd-arm.l{transform:rotate(18deg) translateY(-6px)}
+.jd[data-state=error] .jd-arm.r{transform:rotate(-18deg) translateY(-6px)}
+.jd[data-state=error] .jd-rig{animation:none}
+@keyframes jd-breathe{50%{transform:translateY(-4px)}}
+@keyframes jd-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes jd-nod{50%{transform:translateY(12px)}}
+@keyframes jd-pop{from{opacity:0;transform:scale(.85) translateY(6px)}to{opacity:1;transform:none}}
+@keyframes jd-scroll{to{transform:translateY(-50%)}}
+@keyframes jd-type{50%{transform:translateY(-6px)}}
+@keyframes jd-drip{0%{transform:rotate(-45deg) translate(0,0);opacity:.95}80%{transform:rotate(-45deg) translate(-8px,10px);opacity:.9}100%{transform:rotate(-45deg) translate(-10px,16px);opacity:0}}
+@keyframes jd-cheer{0%{transform:rotate(0)}12%{transform:rotate(-148deg)}30%{transform:rotate(-134deg)}48%{transform:rotate(-152deg)}66%{transform:rotate(-136deg)}84%{transform:rotate(-146deg)}100%{transform:rotate(0)}}
+@media(max-width:640px){.jd{--s:.73}.jd.small{--s:.45}}
+@media(prefers-reduced-motion:reduce){.jd *,.jd *::before,.jd *::after{animation:none!important;transition:none!important}}
