@@ -1,0 +1,18 @@
+# Keeps the Render free backend awake 03:30-15:30 UTC (9:00-21:00 IST) so daytime visitors skip the
+# cold start. Every 12 min, not 14: cron restarts */14 each hour (a :42 -> :00 gap of 18 min would let
+# Render sleep after its 15 idle minutes). About 12 h/day, ~360 of the 750 free instance hours/month.
+name: keepalive
+on:
+  schedule:
+    - cron: "36,48 3 * * *"
+    - cron: "*/12 4-14 * * *"
+    - cron: "0,12,24 15 * * *"
+  workflow_dispatch:
+permissions: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: GET /health
+        run: curl -fsS --max-time 180 --retry 2 https://junior-ml-dev-demo.onrender.com/health
